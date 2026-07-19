@@ -1015,11 +1015,10 @@ function bindEditorKeepFocus(){ /* re-render sonrası editor tekrar bağlanır (
 /* ---------- category popover ---------- */
 const pop=$("#pop");
 function openCatPop(anchor,noteId){
-  pop.innerHTML=S.cats.filter(c=>!c.parent).map(c=>
-    `<button data-pick="${c.id}"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}</button>`
-    +kidsOf(c.id).map(k=>
-    `<button data-pick="${k.id}" style="padding-left:26px"><span class="dot" style="background:${k.color}"></span>${esc(k.name)}</button>`).join("")
-  ).join("");
+  const catOpt=(c,depth)=>
+    `<button data-pick="${c.id}" style="padding-left:${10+depth*16}px"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}</button>`
+    +kidsOf(c.id).map(k=>catOpt(k,depth+1)).join("");
+  pop.innerHTML=S.cats.filter(c=>!c.parent).map(c=>catOpt(c,0)).join("");
   const r=anchor.getBoundingClientRect();
   pop.style.display="block";
   pop.style.left=Math.min(r.left,innerWidth-170)+"px";
