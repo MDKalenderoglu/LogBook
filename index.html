@@ -298,7 +298,7 @@ function seed(){
   };
 }
 let S; try{ S=JSON.parse(localStorage.getItem(LS_KEY))||seed(); }catch(e){ S=seed(); }
-S.notes.forEach(n=>{ if(!n.files)n.files=[]; if(!n.subs)n.subs=[]; });
+S.notes.forEach(n=>{ if(!n.files)n.files=[]; if(!n.subs)n.subs=[]; if(!n.revs)n.revs=[]; });
 const save=()=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(S)); }catch(e){ console.error(e); } scheduleSync(); };
 
 let view={type:"active",catId:null};
@@ -373,7 +373,7 @@ async function idbGet(id){ const db=await idbOpen(); return new Promise((res,rej
 function newNote(content,title){
   const now=Date.now();
   const n={id:uid(),title:title||"",content:content||"",cat:(view.type==="cat"?view.catId:"genel"),
-    createdAt:now,updatedAt:now,deadline:null,done:false,doneAt:null,audios:[],files:[],subs:[],
+    createdAt:now,updatedAt:now,deadline:null,done:false,doneAt:null,audios:[],files:[],subs:[],revs:[],
     log:[{t:now,a:"Not oluşturuldu"}]};
   S.notes.unshift(n);
   appLog("Yeni not: “"+(title||content||"").slice(0,40)+"”",n.id);
@@ -465,7 +465,7 @@ function editorHTML(n){
     <div class="editor-row">
       <button class="tool" id="ed-rec">🎤 Ses Kaydet</button>
       <button class="tool" id="ed-file">📎 Dosya Ekle</button>
-      <button class="tool" id="ed-history">🕘 Geçmiş (${n.log.length})</button>
+      <button class="tool" id="ed-history">🕘 Geçmiş (${n.log.length+(n.revs?n.revs.length:0)})</button>
       <button class="tool" id="ed-close">✔ Kapat</button>
     </div>
     <input type="file" id="ed-fileinput" multiple style="display:none">
@@ -528,17 +528,36 @@ function expandNote(id){
   render();
   const ed=$("#ed-content"); if(ed){ ed.focus(); ed.setSelectionRange(ed.value.length,ed.value.length); }
 }
-function collapseNote(skipRender){
+function editDiffSummary(o,n){
+  const parts=[], cut=l=>l.length>60?l.slice(0,60)+"…":l;
+  if((o.title||"")!==(n.title||"")) parts.push(`başlık: “${cut(o.title||"—")}” → “${cut(n.title||"—")}”`);
+  const ol=(o.content||"").split("\n").map(s=>s.trim()).filter(Boolean);
+  const nl=(n.content||"").split("\n").map(s=>s.trim()).filter(Boolean);
+  const oset=new Set(ol), nset=new Set(nl);
+  const added=nl.filter(l=>!oset.has(l)), removed=ol.filter(l=>!nset.has(l));
+  for(const l of added.slice(0,3)) parts.push("＋ “"+cut(l)+"”");
+  if(added.length>3) parts.push("＋ …ve "+(added.length-3)+" satır daha");
+  for(const l of removed.slice(0,3)) parts.push("− “"+cut(l)+"”");
+  if(removed.length>3) parts.push("− …ve "+(removed.length-3)+" satır daha");
+  return parts;
+}
+function finalizeEdit(){
+  // Editör kapanırken: önceki sürümü tarihçeye kaydet (hiçbir şey silinmez),
+  // ne eklendiğini/çıkarıldığını satır bazında logla.
   const n=S.notes.find(x=>x.id===expandedId);
-  if(n&&editSnapshot){
-    const dAdd=Math.max(0,(n.title.length+n.content.length)-(editSnapshot.title.length+editSnapshot.content.length));
-    const dRem=Math.max(0,(editSnapshot.title.length+editSnapshot.content.length)-(n.title.length+n.content.length));
-    if(n.title!==editSnapshot.title||n.content!==editSnapshot.content){
-      noteLog(n,`✏️ Düzenlendi (+${dAdd} / −${dRem} karakter)`);
-      appLog("Düzenlendi: “"+titleOf(n)+"”",n.id);
-      save();
-    }
+  if(!n||!editSnapshot) return;
+  if(n.title!==editSnapshot.title||n.content!==editSnapshot.content){
+    if(!n.revs)n.revs=[];
+    n.revs.push({t:Date.now(),title:editSnapshot.title,content:editSnapshot.content});
+    const parts=editDiffSummary(editSnapshot,n);
+    noteLog(n,"✏️ Düzenlendi"+(parts.length?" — "+parts.join(" · "):""));
+    appLog("Düzenlendi: “"+titleOf(n)+"”"+(parts.length?" — "+parts.join(" · "):""),n.id);
+    editSnapshot={title:n.title,content:n.content};
+    save();
   }
+}
+function collapseNote(skipRender){
+  finalizeEdit();
   if(recState.active) stopRecording();
   stopAllPlayers();
   expandedId=null; editSnapshot=null;
@@ -562,7 +581,17 @@ function bindEditor(){
   $("#ed-history").onclick=()=>{
     const el=$("#ed-log");
     if(el.style.display==="none"){
-      el.innerHTML=[...n.log].reverse().map(l=>`<div><b>${fmtDT(l.t)}</b> — ${esc(l.a)}</div>`).join("");
+      const items=n.log.map(l=>({t:l.t,html:esc(l.a)}));
+      (n.revs||[]).forEach((r,i)=>items.push({t:r.t,
+        html:`📜 Önceki sürüm saklandı <button data-rev="${i}" style="color:var(--accent);font-size:11.5px;text-decoration:underline">görüntüle</button>`+
+          `<div id="rev-${i}" style="display:none;white-space:pre-wrap;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-top:4px;color:var(--text)">`+
+          (r.title?`<b>${esc(r.title)}</b>\n`:"")+(esc(r.content||"")||"<i>boş</i>")+`</div>`}));
+      items.sort((a,b)=>b.t-a.t);
+      el.innerHTML=items.map(i=>`<div><b>${fmtDT(i.t)}</b> — ${i.html}</div>`).join("");
+      el.querySelectorAll("[data-rev]").forEach(b=>{
+        b.onclick=()=>{ const d=el.querySelector("#rev-"+b.dataset.rev);
+          d.style.display=d.style.display==="none"?"block":"none"; };
+      });
       el.style.display="block";
     } else el.style.display="none";
   };
@@ -720,6 +749,7 @@ document.addEventListener("click",e=>{
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&expandedId&&!recState.active) collapseNote();
 });
+addEventListener("pagehide",()=>{ if(expandedId) finalizeEdit(); });
 
 /* ================= AUDIO ================= */
 const recState={active:false,rec:null,chunks:[],note:null,start:0,raf:0,timer:0,stream:null,actx:null};
@@ -896,8 +926,11 @@ async function doImport(file){
     for(const [id,dataUrl] of Object.entries(audioMap)){
       const res=await fetch(dataUrl); await idbPut(id,await res.blob());
     }
+    // Bu cihazın senkron bağlantısı yedekten etkilenmesin
+    const keep={syncOn:S.syncOn,gEmail:S.gEmail,lastSync:S.lastSync};
     S=data;
-    S.notes.forEach(n=>{ if(!n.files)n.files=[]; if(!n.subs)n.subs=[]; });
+    S.notes.forEach(n=>{ if(!n.files)n.files=[]; if(!n.subs)n.subs=[]; if(!n.revs)n.revs=[]; });
+    S.syncOn=keep.syncOn; S.gEmail=keep.gEmail; S.lastSync=keep.lastSync;
     appLog("📦 Yedek geri yüklendi ("+S.notes.length+" not)");
     save(); render();
   }catch(e){ alert("Geri yükleme hatası: "+e.message); }
@@ -926,7 +959,11 @@ function getToken(interactive){
     if(!gisReady()) return rej(new Error("Google bağlantısı yüklenemedi"));
     if(!tokenClient) tokenClient=google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID,scope:DRIVE_SCOPE,callback:()=>{}});
     tokenClient.callback=async t=>{
-      if(t.error) return rej(new Error(t.error_description||t.error));
+      if(t.error){
+        const friendly={interaction_required:"Google girişi gerekiyor",login_required:"Google girişi gerekiyor",
+          access_denied:"izin verilmedi",consent_required:"Google izni gerekiyor"};
+        return rej(new Error(friendly[t.error]||t.error_description||t.error));
+      }
       gTok={access_token:t.access_token,exp:Date.now()+(Number(t.expires_in)||3600)*1000};
       try{ localStorage.setItem("nbmd_gtok",JSON.stringify(gTok)); }catch(e){}
       if(!S.gEmail){ try{
@@ -951,7 +988,8 @@ async function gFetch(url,opt){
 async function driveList(t,q){
   let files=[],pt="";
   do{
-    const u=DRIVE_API+"/files?spaces=appDataFolder&pageSize=1000&fields=nextPageToken,files(id,name)&q="+encodeURIComponent(q)+(pt?"&pageToken="+pt:"");
+    const u=DRIVE_API+"/files?spaces=appDataFolder&pageSize=1000&fields=nextPageToken,files(id,name)"+
+      (q?"&q="+encodeURIComponent(q):"")+(pt?"&pageToken="+pt:"");
     const j=await(await gFetch(u,{headers:gh(t)})).json();
     files=files.concat(j.files||[]); pt=j.nextPageToken||"";
   }while(pt);
@@ -981,37 +1019,51 @@ function unionLog(a,b){
   for(const l of (b||[])) if(!seen.has(l.t+"|"+l.a)){ a.push(l); seen.add(l.t+"|"+l.a); }
   a.sort((x,y)=>x.t-y.t); return a;
 }
+function unionRevs(a,b){
+  const seen=new Set(a.map(r=>r.t));
+  for(const r of (b||[])) if(!seen.has(r.t)){ a.push(r); seen.add(r.t); }
+  a.sort((x,y)=>x.t-y.t); return a;
+}
 function mergeRemote(remote){
-  // Silme olmadığı için birleştirme güvenli: notlar birleşim, çakışmada yeni olan kazanır, loglar daima birleşir.
+  // Silme olmadığı için birleştirme güvenli: notlar birleşim, çakışmada yeni olan kazanır,
+  // loglar ve önceki sürümler (revs) daima birleşir — hiçbir tarihçe kaybolmaz.
   const byId=new Map(S.notes.map(n=>[n.id,n]));
   for(const rn of remote.notes||[]){
-    if(!rn.files)rn.files=[]; if(!rn.subs)rn.subs=[];
+    if(!rn.files)rn.files=[]; if(!rn.subs)rn.subs=[]; if(!rn.revs)rn.revs=[];
     const ln=byId.get(rn.id);
     if(!ln) S.notes.push(rn);
     else{
       const lg=unionLog([...ln.log],rn.log);
+      const rv=unionRevs([...(ln.revs||[])],rn.revs);
       if((rn.updatedAt||0)>(ln.updatedAt||0)) Object.assign(ln,rn);
-      ln.log=lg;
+      ln.log=lg; ln.revs=rv;
     }
   }
   for(const c of remote.cats||[]) if(!S.cats.some(x=>x.id===c.id)) S.cats.push(c);
   unionLog(S.appLog,remote.appLog);
 }
 function setSyncStat(t){ const el=$("#syncstat"); if(el) el.textContent=t; }
+let pendingSync=false;
 function scheduleSync(){
-  if(!S.syncOn||syncBusy)return;
+  if(!S.syncOn)return;
+  if(syncBusy){ pendingSync=true; return; } // eşitleme sürerken gelen değişiklik, bitince tekrar tetiklenir
   clearTimeout(syncTimer);
   syncTimer=setTimeout(()=>syncNow(),4000);
+}
+function syncRender(){
+  // Kullanıcı yazarken imleci kaçırmamak için açık editör varsa sadece kenar çubuğu tazelenir
+  if(expandedId) renderSidebar(); else render();
 }
 async function syncNow(manual){
   if(!S.syncOn||syncBusy)return;
   syncBusy=true; setSyncStat("☁️ Eşitleniyor…");
   try{
     const t=await getToken(!!manual);
+    const all=await driveList(t);
     let stateId=fidCache.state||null;
     if(!stateId){
-      const f=await driveList(t,"name='notebookmd.json'");
-      if(f.length){ stateId=f[0].id; fidCache.state=stateId; saveFid(); }
+      const f=all.find(x=>x.name==="notebookmd.json");
+      if(f){ stateId=f.id; fidCache.state=stateId; saveFid(); }
     }
     if(stateId){
       try{ mergeRemote(await(await driveDownload(t,stateId)).json()); }
@@ -1020,10 +1072,10 @@ async function syncNow(manual){
         else throw e;
       }
     }
-    save(); render();
+    save(); syncRender();
     // --- blob senkronu (ses + dosyalar): sadece eksikler aktarılır ---
     const localIds=[]; S.notes.forEach(n=>{n.audios.forEach(a=>localIds.push(a.id)); n.files.forEach(f=>localIds.push(f.id));});
-    const remoteBlobs=new Map((await driveList(t,"name contains 'blob-'")).map(f=>[f.name.slice(5),f.id]));
+    const remoteBlobs=new Map(all.filter(f=>f.name.startsWith("blob-")).map(f=>[f.name.slice(5),f.id]));
     let gotNew=false;
     for(const bid of localIds){
       const have=await idbGet(bid);
@@ -1038,13 +1090,14 @@ async function syncNow(manual){
     S.lastSync=Date.now(); save();
     setSyncStat("☁️ Eşitlendi ✓ "+fmtTime(Date.now()));
     if(manual) syncMsg("Eşitleme başarılı ✓");
-    if(gotNew) render();
+    if(gotNew) syncRender();
   }catch(e){
     console.error("sync",e);
     setSyncStat("☁️ ⚠️ "+(navigator.onLine?e.message+" — tekrar denemek için tıkla":"çevrimdışı — bağlanınca eşitlenecek"));
     if(manual) syncMsg("Hata: "+e.message);
   }
   syncBusy=false;
+  if(pendingSync){ pendingSync=false; scheduleSync(); }
 }
 const syncModal=$("#syncmodal");
 const syncMsg=t=>{ const el=$("#sync-msg"); if(el) el.textContent=t; };
