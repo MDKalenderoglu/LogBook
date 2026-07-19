@@ -765,13 +765,25 @@ function renderFiles(n){
       };
       const holder=box.querySelector(".fpdf");
       box.querySelector(".fview").onclick=async()=>{
-        if(holder.style.display==="block"&&holder.dataset.mode==="frame"){ holder.style.display="none"; return; }
-        holder.dataset.mode="frame"; holder.innerHTML="";
-        const url=await fileURL(f.id);
-        if(!url){ alert("Dosya bulunamadı."); return; }
-        const fr=document.createElement("iframe");
-        fr.src=url; fr.title=esc(f.name);
-        holder.appendChild(fr); holder.style.display="block";
+        if(holder.style.display==="block"&&holder.dataset.mode==="view"){ holder.style.display="none"; return; }
+        holder.dataset.mode="view"; holder.innerHTML=""; holder.style.display="block";
+        try{
+          await loadPdfjs();
+          const blob=await idbGet(f.id); if(!blob) throw new Error("Dosya bulunamadı");
+          const pdf=await pdfjsLib.getDocument({data:await blob.arrayBuffer()}).promise;
+          const cw=Math.max(holder.clientWidth,320), dpr=devicePixelRatio||1;
+          for(let p=1;p<=Math.min(pdf.numPages,3);p++){ // ilk 3 sayfa (preview)
+            const page=await pdf.getPage(p);
+            const vp0=page.getViewport({scale:1});
+            const vp=page.getViewport({scale:cw/vp0.width*dpr});
+            const cv=document.createElement("canvas"); cv.width=vp.width; cv.height=vp.height;
+            const wrap=document.createElement("div"); wrap.className="inkpage" style="margin-bottom:10px;border:none;border-radius:0";
+            wrap.appendChild(cv); holder.appendChild(wrap);
+            await page.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;
+          }
+          if(pdf.numPages>3){ const info=document.createElement("div"); info.className="fmeta";
+            info.textContent="📄 "+pdf.numPages+" sayfa (ilk 3 gösterildi, tam görmek için ↗ Yeni Sekme)"; holder.appendChild(info); }
+        }catch(e){ holder.innerHTML="⚠️ "+e.message; }
       };
       box.querySelector(".fann").onclick=()=>{
         if(holder.style.display==="block"&&holder.dataset.mode==="ink"){
