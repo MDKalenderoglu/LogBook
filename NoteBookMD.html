@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="NoteBookMD">
-<title>NoteBookMD</title>
+<meta name="apple-mobile-web-app-title" content="LogBook">
+<meta name="theme-color" content="#5B5BD6">
+<title>LogBook</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%9D%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -234,7 +237,7 @@ button.chip:hover{border-color:var(--text2)}
 <body>
 <div id="app">
   <nav id="sidebar">
-    <div class="brand"><div class="logo">📝</div>NoteBookMD</div>
+    <div class="brand"><div class="logo">📝</div>LogBook</div>
     <button class="navitem" data-view="active">📥 Aktif Notlar<span class="count" id="c-active"></span></button>
     <button class="navitem" data-view="done">✅ Tamamlananlar<span class="count" id="c-done"></span></button>
     <button class="navitem" data-view="log">🕘 Günlük (Log)</button>
@@ -1213,6 +1216,9 @@ applyTheme();
   if(!last||Date.now()-last.t>60000){ appLog("🔓 Oturum açıldı"); save(); }
 })();
 render();
+/* PWA: çevrimdışı kabuk (yalnızca http/https'te; file:// açılışta atlanır) */
+if("serviceWorker" in navigator && location.protocol.startsWith("http"))
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
 if(S.syncPass!==undefined) delete S.syncPass; // eski "senkron anahtarı" modeli kaldırıldı
 if(S.syncOn){
   setSyncStat("☁️ Senkron açık");

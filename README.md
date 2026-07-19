@@ -1,6 +1,8 @@
-# 📝 NoteBookMD
+# 📝 LogBook
 
-**Hızlı not + görev uygulaması.** OneNote'un not alma gücü ile Microsoft To-Do'nun görev pratikliğini birleştirir. Kurulum yok, hesap yok, internet şartı yok — verileriniz kendi cihazınızda kalır.
+**Hızlı not + görev uygulaması.** OneNote'un not alma gücü ile Microsoft To-Do'nun görev pratikliğini birleştirir. Kurulum yok, internet şartı yok — verileriniz kendi cihazınızda kalır; isterseniz Google hesabınızla tüm cihazlarınıza eşitlenir.
+
+**LogBook'un farkı: hiçbir şey silinmez.** Her düzenlemede önceki sürüm saklanır, ne eklediğiniz/çıkardığınız tarihiyle loglanır — fikir değiştirmek serbest, geçmişi kaybetmek yok.
 
 ## ✨ Özellikler
 
@@ -9,6 +11,8 @@
 - 📎 **Dosya ekleri** — görsel, PDF, Word, her tür dosya; sürükle-bırak veya yapıştır. Görseller ve PDF'ler uygulamanın **içinde** görüntülenir
 - ⏳ **Deadline geri sayımı** — "3 saat kaldı" gibi canlı sayaç; yaklaşınca sarı, geçince kırmızı
 - 🏷 **Tek tıkla kategori** — notları anında kategorilere ayır
+- 📜 **Düzenleme tarihçesi** — her değişiklikte önceki sürüm saklanır; Geçmiş'ten tek tıkla eski hali görüntülenir
+- 📲 **Kurulabilir uygulama (PWA)** — telefonda "Ana Ekrana Ekle" deyin, kendi ikonuyla tam ekran, çevrimdışı bile açılır
 - ☑ **Alt maddeler** — not içinde tikli mini görev listesi (2/5 ilerleme göstergesiyle)
 - 📑 **Alt başlıklar** — satıra `## ` ile başla, başlık olsun; linkler otomatik tıklanabilir
 - ✅ **Biten işler arşivi** — tik at, arşive gitsin; **hiçbir şey silinmez**
