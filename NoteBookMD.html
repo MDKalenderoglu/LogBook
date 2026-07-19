@@ -185,6 +185,8 @@ button.chip:hover{border-color:var(--text2)}
 
 /* rendered note content: links + subheadings */
 .note-preview a,.sub a{color:var(--accent);text-decoration:underline;word-break:break-all}
+.note-preview .pdate{display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11.5px;font-weight:700;margin:8px 0 4px;font-variant-numeric:tabular-nums}
+.note-preview .pdate::before,.note-preview .pdate::after{content:"";height:1px;background:var(--border);flex:1}
 .note-preview .ph1{font-weight:700;font-size:15px;color:var(--text)}
 .note-preview .ph2{font-weight:700;font-size:14px;color:var(--text)}
 .note-preview .ph3{font-weight:600;font-size:13.5px;color:var(--text)}
@@ -316,6 +318,8 @@ const linkify=s=>s.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank"
 function renderContent(t){
   let out="";
   for(const line of (t||"").split("\n")){
+    const d=line.match(/^⏱\s+(.*)/);
+    if(d){ out+=`<div class="pdate">${esc(d[1])}</div>`; continue; }
     const m=line.match(/^(#{1,3})\s+(.*)/);
     if(m) out+=`<div class="ph${m[1].length}">${linkify(esc(m[2]))}</div>`;
     else out+=linkify(esc(line))+"\n";
@@ -460,7 +464,7 @@ function editorHTML(n){
   return `<div class="editor" id="editor-${n.id}">
     <input class="title" id="ed-title" placeholder="Başlık" value="${esc(n.title)}">
     <textarea id="ed-content" placeholder="Notunu yaz…">${esc(n.content)}</textarea>
-    <div class="hint">İpucu: satıra <b>##</b> ile başlarsan alt başlık olur · linkler otomatik tıklanabilir · dosyaları sürükleyip bırakabilir ya da görseli yapıştırabilirsin</div>
+    <div class="hint">İpucu: satıra <b>##</b> ile başlarsan alt başlık olur · linkler otomatik tıklanabilir · dosya sürükle/yapıştır olur · uzun aradan sonra dönünce araya otomatik tarih düşülür (⏱ satırı)</div>
     <div id="ed-subs"></div>
     <div class="editor-row">
       <label>⏰ Bitiş:</label>
@@ -526,11 +530,20 @@ function bindNotes(){
 }
 
 /* ---------- editor logic ---------- */
+let autoDivider=null;
 function expandNote(id){
   if(expandedId) collapseNote(true);
   expandedId=id;
   const n=S.notes.find(x=>x.id===id);
   editSnapshot={title:n.title,content:n.content};
+  // Uzun aradan sonra dönülen nota otomatik tarih ayracı: yeni eklenenlerin
+  // ne zaman yazıldığı notun İÇİNDE görünsün. Altına bir şey yazılmazsa kapanışta silinir.
+  autoDivider=null;
+  const lastLine=(n.content||"").trimEnd().split("\n").pop()||"";
+  if((n.content||"").trim() && Date.now()-(n.updatedAt||0)>36e5 && !lastLine.startsWith("⏱")){
+    autoDivider="⏱ "+fmtDT(Date.now());
+    n.content=n.content.replace(/\s+$/,"")+"\n\n"+autoDivider+"\n";
+  }
   render();
   const ed=$("#ed-content"); if(ed){ ed.focus(); ed.setSelectionRange(ed.value.length,ed.value.length); }
 }
@@ -552,6 +565,12 @@ function finalizeEdit(){
   // ne eklendiğini/çıkarıldığını satır bazında logla.
   const n=S.notes.find(x=>x.id===expandedId);
   if(!n||!editSnapshot) return;
+  if(autoDivider){
+    // Otomatik ayracın altına hiçbir şey yazılmadıysa ayracı iz bırakmadan kaldır
+    const rx=autoDivider.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+    n.content=n.content.replace(new RegExp("\\n*"+rx+"[ \\t]*\\s*$"),"");
+    autoDivider=null;
+  }
   if(n.title!==editSnapshot.title||n.content!==editSnapshot.content){
     if(!n.revs)n.revs=[];
     n.revs.push({t:Date.now(),title:editSnapshot.title,content:editSnapshot.content});
