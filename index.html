@@ -206,6 +206,18 @@ button.chip:hover{border-color:var(--text2)}
 #pop button{display:flex;align-items:center;gap:8px;width:100%;padding:6px 10px;border-radius:7px;font-size:13.5px;text-align:left}
 #pop button:hover{background:var(--surface2)}
 
+/* sync */
+#syncstat{font-size:11px;color:var(--text2);padding:6px 10px 0;text-align:center;min-height:16px}
+#syncmodal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;align-items:center;justify-content:center;padding:20px}
+.sync-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);max-width:440px;width:100%;padding:20px}
+.sync-card h3{font-size:16px;margin-bottom:8px}
+.sync-card p{font-size:13px;color:var(--text2);margin-bottom:8px}
+.sync-card .sync-note{background:var(--accent-soft);color:var(--accent);border-radius:9px;padding:8px 11px;font-size:12.5px}
+.sync-card input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface2);outline:none;font-size:14px;margin:8px 0 12px}
+.sync-card input:focus{border-color:var(--accent)}
+.sync-btns{display:flex;gap:8px;flex-wrap:wrap}
+#sync-msg{font-size:12.5px;color:var(--text2);margin-top:10px;min-height:16px}
+
 /* mobile */
 #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:19}
 @media(max-width:760px){
@@ -230,9 +242,11 @@ button.chip:hover{border-color:var(--text2)}
     <div id="catlist"></div>
     <div class="sidebar-footer">
       <button id="themebtn">🌗 Tema</button>
+      <button id="syncbtn">☁️ Senkron</button>
       <button id="exportbtn">⬇︎ Yedek</button>
       <button id="importbtn">⬆︎ Geri Yükle</button>
     </div>
+    <div id="syncstat"></div>
     <input type="file" id="importfile" accept=".json" style="display:none">
   </nav>
   <div id="overlay"></div>
@@ -254,6 +268,20 @@ button.chip:hover{border-color:var(--text2)}
 </div>
 <div id="pop"></div>
 <div id="lightbox"><img alt=""><div id="lb-name"></div></div>
+<div id="syncmodal">
+  <div class="sync-card">
+    <h3>☁️ Bulut Senkronu</h3>
+    <p>Kendine bir <b>senkron anahtarı</b> belirle (örn. uzun bir cümle). Aynı anahtarı diğer cihazlarına da girersen notların otomatik eşitlenir.</p>
+    <p class="sync-note">🔒 Verilerin buluta gitmeden önce cihazında <b>AES-256 ile şifrelenir</b> — anahtarı bilmeyen hiç kimse (sunucu dahil) okuyamaz. Anahtarı unutursan buluttaki veriye erişilemez, o yüzden not et!</p>
+    <input id="sync-pass" type="text" autocomplete="off" placeholder="Senkron anahtarın (en az 8 karakter)">
+    <div class="sync-btns">
+      <button class="tool" id="sync-connect">Bağlan ve Eşitle</button>
+      <button class="tool danger" id="sync-disconnect" style="display:none">Bağlantıyı Kes</button>
+      <button class="tool" id="sync-close">Kapat</button>
+    </div>
+    <div id="sync-msg"></div>
+  </div>
+</div>
 
 <script>
 "use strict";
@@ -276,7 +304,7 @@ function seed(){
 }
 let S; try{ S=JSON.parse(localStorage.getItem(LS_KEY))||seed(); }catch(e){ S=seed(); }
 S.notes.forEach(n=>{ if(!n.files)n.files=[]; if(!n.subs)n.subs=[]; });
-const save=()=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(S)); }catch(e){ console.error(e); } };
+const save=()=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(S)); }catch(e){ console.error(e); } scheduleSync(); };
 
 let view={type:"active",catId:null};
 let expandedId=null, editSnapshot=null, searchQ="";
@@ -854,8 +882,7 @@ async function doExport(){
   data._audio={};
   for(const n of S.notes) for(const a of [...n.audios,...n.files]){
     try{ const blob=await idbGet(a.id);
-      if(blob) data._audio[a.id]=await new Promise(res=>{ const fr=new FileReader();
-        fr.onload=()=>res(fr.result); fr.readAsDataURL(blob); });
+      if(blob) data._audio[a.id]=await blobToDataURL(blob);
     }catch(e){}
   }
   const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
@@ -880,6 +907,148 @@ async function doImport(file){
     save(); render();
   }catch(e){ alert("Geri yükleme hatası: "+e.message); }
 }
+
+/* ================= CLOUD SYNC (uçtan uca şifreli) ================= */
+/* Yayıncı ayarı: Supabase proje URL'i ve anon key (README'deki kurulum rehberine bak).
+   Veriler sunucuya HER ZAMAN şifrelenmiş gider; anon key gizli değildir. */
+const SYNC_CFG={
+  url:"",   // örn: "https://abcdefgh.supabase.co"
+  anon:""   // Supabase anon (public) key
+};
+let syncBusy=false, syncTimer=0;
+const te=new TextEncoder(), tdec=new TextDecoder();
+const b64buf=b=>{const u=new Uint8Array(b);let s="";for(let i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s)};
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const blobToDataURL=bl=>new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(bl)});
+async function syncId(pass){
+  const h=await crypto.subtle.digest("SHA-256",te.encode("nbmd:"+pass));
+  return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("");
+}
+async function syncCryptoKey(pass){
+  const km=await crypto.subtle.importKey("raw",te.encode(pass),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    {name:"PBKDF2",salt:te.encode("nbmd-sync-v1"),iterations:150000,hash:"SHA-256"},
+    km,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+}
+async function encStr(key,s){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,te.encode(s));
+  const out=new Uint8Array(12+ct.byteLength); out.set(iv); out.set(new Uint8Array(ct),12);
+  return b64buf(out.buffer);
+}
+async function decStr(key,s){
+  const raw=unb64(s);
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:raw.slice(0,12)},key,raw.slice(12));
+  return tdec.decode(pt);
+}
+const sbHeaders=()=>({apikey:SYNC_CFG.anon,Authorization:"Bearer "+SYNC_CFG.anon,"Content-Type":"application/json"});
+async function sbGet(id){
+  const r=await fetch(`${SYNC_CFG.url}/rest/v1/notebookmd?id=eq.${encodeURIComponent(id)}&select=id,data`,{headers:sbHeaders()});
+  if(!r.ok)throw new Error("sunucu "+r.status);
+  return (await r.json())[0]||null;
+}
+async function sbList(prefix){
+  const r=await fetch(`${SYNC_CFG.url}/rest/v1/notebookmd?id=like.${encodeURIComponent(prefix+"%")}&select=id`,{headers:sbHeaders()});
+  if(!r.ok)throw new Error("sunucu "+r.status);
+  return (await r.json()).map(x=>x.id);
+}
+async function sbPut(rows){
+  const r=await fetch(`${SYNC_CFG.url}/rest/v1/notebookmd`,
+    {method:"POST",headers:{...sbHeaders(),Prefer:"resolution=merge-duplicates"},body:JSON.stringify(rows)});
+  if(!r.ok)throw new Error("sunucu "+r.status);
+}
+function unionLog(a,b){
+  const seen=new Set(a.map(l=>l.t+"|"+l.a));
+  for(const l of (b||[])) if(!seen.has(l.t+"|"+l.a)){ a.push(l); seen.add(l.t+"|"+l.a); }
+  a.sort((x,y)=>x.t-y.t); return a;
+}
+function mergeRemote(remote){
+  // Silme olmadığı için birleştirme güvenli: notlar birleşim, çakışmada yeni olan kazanır, loglar daima birleşir.
+  const byId=new Map(S.notes.map(n=>[n.id,n]));
+  for(const rn of remote.notes||[]){
+    if(!rn.files)rn.files=[]; if(!rn.subs)rn.subs=[];
+    const ln=byId.get(rn.id);
+    if(!ln) S.notes.push(rn);
+    else{
+      const lg=unionLog([...ln.log],rn.log);
+      if((rn.updatedAt||0)>(ln.updatedAt||0)) Object.assign(ln,rn);
+      ln.log=lg;
+    }
+  }
+  for(const c of remote.cats||[]) if(!S.cats.some(x=>x.id===c.id)) S.cats.push(c);
+  unionLog(S.appLog,remote.appLog);
+}
+function setSyncStat(t){ const el=$("#syncstat"); if(el) el.textContent=t; }
+function scheduleSync(){
+  if(!S.syncPass||syncBusy)return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>syncNow(),4000);
+}
+async function syncNow(manual){
+  if(!S.syncPass||syncBusy)return;
+  if(!SYNC_CFG.url||!SYNC_CFG.anon){ setSyncStat("☁️ Senkron sunucusu tanımlı değil"); return; }
+  syncBusy=true; setSyncStat("☁️ Eşitleniyor…");
+  try{
+    const id=await syncId(S.syncPass), key=await syncCryptoKey(S.syncPass);
+    const remote=await sbGet(id);
+    if(remote){
+      let rs;
+      try{ rs=JSON.parse(await decStr(key,remote.data)); }
+      catch(e){ throw new Error("şifre çözülemedi — anahtar farklı olabilir"); }
+      mergeRemote(rs);
+    }
+    save(); render();
+    // --- blob senkronu (ses + dosyalar) ---
+    const localIds=[]; S.notes.forEach(n=>{n.audios.forEach(a=>localIds.push(a.id)); n.files.forEach(f=>localIds.push(f.id));});
+    const remoteIds=(await sbList(id+":")).map(x=>x.slice(id.length+1));
+    const rows=[];
+    for(const bid of localIds){
+      const have=await idbGet(bid);
+      if(have && !remoteIds.includes(bid)){
+        const du=await blobToDataURL(have);
+        rows.push({id:id+":"+bid,data:await encStr(key,du)});
+      }
+      if(!have && remoteIds.includes(bid)){
+        const row=await sbGet(id+":"+bid);
+        if(row){ const du=await decStr(key,row.data); const res=await fetch(du); await idbPut(bid,await res.blob()); }
+      }
+    }
+    rows.push({id,data:await encStr(key,JSON.stringify({notes:S.notes,cats:S.cats,appLog:S.appLog}))});
+    await sbPut(rows);
+    S.lastSync=Date.now(); save();
+    setSyncStat("☁️ Eşitlendi ✓ "+fmtTime(Date.now()));
+    if(manual) $("#sync-msg")&&($("#sync-msg").textContent="Eşitleme başarılı ✓");
+  }catch(e){
+    console.error("sync",e);
+    setSyncStat("☁️ ⚠️ "+(navigator.onLine?e.message:"çevrimdışı — sonra denenecek"));
+    if(manual&&$("#sync-msg")) $("#sync-msg").textContent="Hata: "+e.message;
+  }
+  syncBusy=false;
+}
+const syncModal=$("#syncmodal");
+function openSyncModal(){
+  $("#sync-pass").value=S.syncPass||"";
+  $("#sync-disconnect").style.display=S.syncPass?"inline-flex":"none";
+  $("#sync-msg").textContent=S.syncPass?("Senkron açık. Son eşitleme: "+(S.lastSync?fmtDT(S.lastSync):"—")):"";
+  syncModal.style.display="flex";
+}
+$("#syncbtn").onclick=openSyncModal;
+$("#sync-close").onclick=()=>syncModal.style.display="none";
+syncModal.addEventListener("click",e=>{ if(e.target===syncModal) syncModal.style.display="none"; });
+$("#sync-connect").onclick=()=>{
+  const p=$("#sync-pass").value.trim();
+  if(p.length<8){ $("#sync-msg").textContent="Anahtar en az 8 karakter olmalı."; return; }
+  S.syncPass=p;
+  appLog("☁️ Bulut senkronu açıldı"); save();
+  $("#sync-disconnect").style.display="inline-flex";
+  syncNow(true);
+};
+$("#sync-disconnect").onclick=()=>{
+  S.syncPass=null; appLog("☁️ Bulut senkronu kapatıldı"); save();
+  setSyncStat(""); $("#sync-disconnect").style.display="none";
+  $("#sync-msg").textContent="Senkron kapatıldı. Buluttaki veriler durur; yerel verilere dokunulmaz.";
+};
+setInterval(()=>syncNow(),90000);
 
 /* ================= THEME ================= */
 function applyTheme(){
@@ -956,6 +1125,7 @@ applyTheme();
   if(!last||Date.now()-last.t>60000){ appLog("🔓 Oturum açıldı"); save(); }
 })();
 render();
+if(S.syncPass){ setSyncStat("☁️ Senkron açık"); syncNow(); }
 </script>
 </body>
 </html>

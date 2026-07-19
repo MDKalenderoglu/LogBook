@@ -15,6 +15,7 @@
 - 🕘 **Tam günlük** — her ekleme, düzenleme, değişiklik tarihiyle loglanır
 - 🌗 **Açık / koyu tema** — göz yormayan, ılık tonlar
 - 💾 **Yedekleme** — tek dosyalık JSON yedek al, başka cihazda geri yükle
+- ☁️ **Otomatik bulut senkronu** — hesap yok, kayıt yok: kendi belirlediğin bir "senkron anahtarı"nı iki cihaza da gir, notların kendiliğinden eşitlensin. Veriler buluta gitmeden önce cihazında AES-256 ile şifrelenir; anahtarı bilmeyen hiç kimse okuyamaz
 
 ## 🚀 Kurulum (30 saniye)
 
@@ -39,7 +40,7 @@ Artık ana ekranınızda kendi simgesiyle, tam ekran bir uygulama olarak durur.
 
 **Tamamen sizin cihazınızda.** Notlar tarayıcınızın yerel deposunda (localStorage), ses kayıtları ve dosyalar yine tarayıcının kendi veritabanında (IndexedDB) saklanır. Hiçbir sunucuya gönderilmez, kimse göremez.
 
-Bu yüzden **her cihazın verisi kendine aittir** — telefondaki notlar bilgisayarda otomatik görünmez. Cihazlar arası taşıma için:
+Cihazlar arası eşitleme için sol alttaki **☁️ Senkron** düğmesine tıklayıp kendine bir senkron anahtarı belirle; aynı anahtarı diğer cihazlarına da gir — notların otomatik eşitlenir (uçtan uca şifreli). Senkron kullanmıyorsan elle taşıma da mümkün:
 
 1. Kaynak cihazda sol alttaki **⬇︎ Yedek** düğmesiyle JSON dosyası indirin (ses ve dosya ekleri dahildir).
 2. Bu dosyayı hedef cihaza gönderin (AirDrop, e-posta, WhatsApp…).
