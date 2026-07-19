@@ -8,7 +8,7 @@
 
 - ⚡ **Tek tuşla not** — yaz, Enter'a bas, kaydedildi (otomatik tarih-saat damgasıyla)
 - 🎤 **Ses kaydı** — dalga formlu şık oynatıcıyla
-- 📎 **Dosya ekleri** — görsel, PDF, Word, her tür dosya; sürükle-bırak veya yapıştır. Görseller ve PDF'ler uygulamanın **içinde** görüntülenir
+- 📎 **Dosya ekleri** — görsel, PDF, Word, her tür dosya; sürükle-bırak veya yapıştır. Görseller ve PDF'ler uygulamanın **içinde** görüntülenir; ekler ↑↓ ile sıralanır, 🗑 ile kaldırılır (kaldırma günlüğe işlenir)
 - ✏️ **Kalemle üzerine yaz (OneNote tarzı)** — PDF ve görsellerin üzerine Apple Pencil veya fareyle çizin, not alın; 4 renk + fosforlu + silgi + geri al. Parmakla kaydırırsınız, kalemle çizersiniz. Uzun belgelerde her zaman erişilebilen sabit **✕ Kapat** çubuğu
 - ⏳ **Deadline geri sayımı** — "3 saat kaldı" gibi canlı sayaç; yaklaşınca sarı, geçince kırmızı
 - 🏷 **İç içe kategoriler** — kategorileri istediğiniz kadar derinlikte alt kategorilere ayırın (Genel › Toplantılar › Haftalık…); üst kategori seçince alt notlar da görünür

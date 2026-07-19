@@ -178,6 +178,10 @@ button.chip:hover{border-color:var(--text2)}
 .files{display:flex;flex-direction:column;gap:12px;margin-top:12px}
 .fbox{width:100%}
 .frow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fctl{display:flex;gap:4px;margin-left:auto}
+.fctl .fchip{padding:5px 9px;font-size:13px}
+.fctl .fchip:disabled{opacity:.3;cursor:default}
+.fctl .fdel:hover{border-color:var(--red);color:var(--red)}
 .fimg img{max-width:100%;max-height:360px;border-radius:10px;border:1px solid var(--border);cursor:zoom-in;display:block}
 .fmeta{font-size:11.5px;color:var(--text2);margin-top:4px}
 .fpdf{display:none;margin-top:8px}
@@ -592,7 +596,7 @@ function bindNotes(){
     const imgs=n.files.filter(f=>(f.type||"").startsWith("image/")).slice(0,4);
     for(const f of imgs){
       const url=await fileURL(f.id); if(!url)continue;
-      const im=document.createElement("img"); im.src=url; im.alt=f.name;
+      const im=document.createElement("img"); im.src=url; im.alt=f.name; im.draggable=false;
       im.onclick=e=>{ e.stopPropagation(); openLightbox(url,f.name); };
       w.appendChild(im);
     }
@@ -701,7 +705,9 @@ function bindEditor(){
   $("#ed-fileinput").onchange=e=>{ if(e.target.files.length) addFiles(n,e.target.files); e.target.value=""; };
   const edEl=$("#editor-"+n.id);
   edEl.ondragover=e=>e.preventDefault();
-  edEl.ondrop=e=>{ e.preventDefault(); if(e.dataTransfer.files.length) addFiles(n,e.dataTransfer.files); };
+  edEl.ondrop=e=>{ e.preventDefault();
+    // Yalnızca DIŞARIDAN gelen gerçek dosyalar eklenir; sayfa içi görsel sürüklemesi kopya oluşturmasın
+    if([...(e.dataTransfer.types||[])].includes("Files")&&e.dataTransfer.files.length) addFiles(n,e.dataTransfer.files); };
   c.onpaste=e=>{ const fs=[...(e.clipboardData?.files||[])]; if(fs.length){ e.preventDefault(); addFiles(n,fs); } };
   renderSubs(n);
   renderAudios(n);
@@ -738,8 +744,18 @@ function renderSubs(n){
 
 /* ---------- file attachments ---------- */
 async function addFiles(n,fileList){
-  for(const f of [...fileList]){
+  let files=[...fileList].filter(f=>f&&f.size>0);
+  // Pano yapıştırmasında macOS/Safari AYNI görseli birden çok formatta verir (png+jpeg+tiff).
+  // Hepsi görselse ve adları jenerikse ("image.png" gibi) en uygun TEK formatı al — "1 yapıştırdım 3 eklendi" olmasın.
+  const jenerik=f=>!f.name||/^(image|pasted|grafik|resim|blob)[\s.-]?/i.test(f.name);
+  if(files.length>1&&files.every(f=>(f.type||"").startsWith("image/")&&jenerik(f))){
+    files=[ files.find(f=>f.type==="image/png")||files.find(f=>f.type==="image/jpeg")
+           ||files.find(f=>f.type!=="image/tiff")||files[0] ];
+  }
+  for(const f of files){
     if(f.size>50*1024*1024){ alert("“"+f.name+"” 50 MB sınırını aşıyor, eklenmedi."); continue; }
+    if(n.files.some(x=>x.name===f.name&&x.size===f.size)){
+      alert("“"+f.name+"” bu notta zaten ekli — tekrar eklenmedi."); continue; }
     const id=uid();
     try{ await idbPut(id,f); }catch(e){ alert("Dosya kaydedilemedi: "+e.message); continue; }
     const name=f.name||("pano-gorseli-"+new Date().toISOString().slice(0,16).replace(/[T:]/g,"-")+".png");
@@ -763,16 +779,38 @@ function renderFiles(n){
     const isAud=t.startsWith("audio/"), isVid=t.startsWith("video/");
     const box=document.createElement("div"); box.className="fbox";
     w.appendChild(box);
+    const idx=n.files.indexOf(f);
+    const ctl=`<span class="fctl">
+        <button class="fchip fmv" data-mv="-1" title="Yukarı taşı" ${idx===0?"disabled":""}>↑</button>
+        <button class="fchip fmv" data-mv="1" title="Aşağı taşı" ${idx===n.files.length-1?"disabled":""}>↓</button>
+        <button class="fchip fdel" title="Ekten kaldır">🗑</button></span>`;
+    const bindCtl=()=>{
+      box.querySelectorAll(".fmv").forEach(b=>b.onclick=()=>{
+        const i=n.files.indexOf(f), j=i+Number(b.dataset.mv);
+        if(i<0||j<0||j>=n.files.length)return;
+        n.files.splice(i,1); n.files.splice(j,0,f);
+        save(); render();
+      });
+      box.querySelector(".fdel").onclick=()=>{
+        if(!confirm("“"+f.name+"” bu nottan kaldırılsın mı?\n(İşlem günlüğe kaydedilir.)"))return;
+        const i=n.files.indexOf(f); if(i>-1)n.files.splice(i,1);
+        noteLog(n,"🗑 Dosya kaldırıldı: "+f.name);
+        appLog("Dosya kaldırıldı: “"+titleOf(n)+"” ← "+f.name,n.id);
+        save(); render();
+      };
+    };
     if(isImg){
       const hasInk=f.ink&&Object.values(f.ink).some(a=>a&&a.length);
       box.innerHTML=`<div class="frow">
           <span class="fmeta" style="flex:1">🖼 ${esc(f.name)} · ${fmtSize(f.size)}${hasInk?" · ✏️ çizimli":""} · büyütmek için tıkla</span>
           <button class="fchip fann" title="Kalemle üzerine yaz (Apple Pencil / fare)">✏️ Çiz</button>
+          ${ctl}
         </div><div class="fimg"></div><div class="fpdf"></div>`;
+      bindCtl();
       const holder=box.querySelector(".fpdf");
       fileURL(f.id).then(url=>{
         if(!url){ box.querySelector(".fimg").textContent="Dosya bulunamadı"; return; }
-        const img=document.createElement("img"); img.src=url; img.alt=esc(f.name);
+        const img=document.createElement("img"); img.src=url; img.alt=esc(f.name); img.draggable=false;
         img.onclick=()=>openLightbox(url,f.name);
         box.querySelector(".fimg").appendChild(img);
       });
@@ -789,7 +827,9 @@ function renderFiles(n){
           <button class="fchip fann" title="Kalemle üzerine yaz (Apple Pencil / fare)">✏️ Çiz</button>
           <button class="fchip fnew" title="Yeni sekmede aç">↗</button>
           <button class="fchip fdl" title="İndir">⬇︎ İndir</button>
+          ${ctl}
         </div><div class="fpdf"></div>`;
+      bindCtl();
       box.querySelector(".fnew").onclick=async()=>{
         const url=await fileURL(f.id);
         if(url) window.open(url,"_blank"); else alert("Dosya bulunamadı.");
@@ -823,7 +863,11 @@ function renderFiles(n){
       };
       box.querySelector(".fdl").onclick=()=>downloadFile(f);
     } else if(isAud||isVid){
-      box.innerHTML=`<div class="fmeta">${isAud?"🎵":"🎬"} ${esc(f.name)} · ${fmtSize(f.size)}</div>`;
+      box.innerHTML=`<div class="frow">
+          <span class="fmeta" style="flex:1">${isAud?"🎵":"🎬"} ${esc(f.name)} · ${fmtSize(f.size)}</span>
+          ${ctl}
+        </div>`;
+      bindCtl();
       fileURL(f.id).then(url=>{
         if(!url)return;
         const m=document.createElement(isAud?"audio":"video");
@@ -831,10 +875,12 @@ function renderFiles(n){
         box.appendChild(m);
       });
     } else {
-      const el=document.createElement("button"); el.className="fchip";
-      el.innerHTML=`${fileIcon(f)} <span>${esc(f.name)}<br><small>${fmtSize(f.size)} · ${fmtDT(f.t)} · indir/aç</small></span>`;
-      box.appendChild(el);
-      el.onclick=()=>downloadFile(f);
+      box.innerHTML=`<div class="frow">
+          <button class="fchip fopen">${fileIcon(f)} <span>${esc(f.name)}<br><small>${fmtSize(f.size)} · ${fmtDT(f.t)} · indir/aç</small></span></button>
+          ${ctl}
+        </div>`;
+      bindCtl();
+      box.querySelector(".fopen").onclick=()=>downloadFile(f);
     }
   }
 }
@@ -982,8 +1028,9 @@ async function openImageAnnot(n,f,holder){
   holder.appendChild(makeCloseBar(holder,"✏️ "+f.name));
   const info=document.createElement("div"); info.className="fmeta"; info.textContent="Görsel yükleniyor…";
   holder.appendChild(info);
-  const url=await fileURL(f.id);
-  if(!url){ info.textContent="⚠️ Dosya bulunamadı"; return; }
+  let url=null;
+  try{ url=await fileURL(f.id); }catch(e){ info.textContent="⚠️ Dosya okunamadı: "+e.message; return; }
+  if(!url){ info.textContent="⚠️ Dosya bulunamadı — bu ek başka cihazda eklendiyse önce eşitlenmesini bekle."; return; }
   const img=new Image();
   img.onload=()=>{
     info.remove();
@@ -999,7 +1046,7 @@ async function openImageAnnot(n,f,holder){
     wrap.appendChild(cv); wrap.appendChild(ov); holder.appendChild(wrap);
     eng.registerPage("1",ov,W,H);
   };
-  img.onerror=()=>{ info.textContent="⚠️ Görsel yüklenemedi"; };
+  img.onerror=()=>{ info.textContent="⚠️ Görsel açılamadı — dosya biçimi tarayıcıda desteklenmiyor olabilir (ör. TIFF/HEIC). Görseli 🗑 ile kaldırıp PNG veya JPEG olarak yeniden ekleyebilirsin."; };
   img.src=url;
 }
 
@@ -1296,7 +1343,8 @@ function getToken(interactive){
     tokenClient.callback=async t=>{
       if(t.error){
         const friendly={interaction_required:"Google girişi gerekiyor",login_required:"Google girişi gerekiyor",
-          access_denied:"izin verilmedi",consent_required:"Google izni gerekiyor"};
+          access_denied:"izin verilmedi",consent_required:"Google izni gerekiyor",
+          invalid_request:"bu adres Google'da yetkili değil — uygulamayı yayın adresinden (github.io) veya localhost:8000'den aç"};
         return rej(new Error(friendly[t.error]||t.error_description||t.error));
       }
       gTok={access_token:t.access_token,exp:Date.now()+(Number(t.expires_in)||3600)*1000};
@@ -1438,6 +1486,15 @@ const syncModal=$("#syncmodal");
 const syncMsg=t=>{ const el=$("#sync-msg"); if(el) el.textContent=t; };
 function renderSyncModal(){
   const body=$("#sync-body"), btns=$("#sync-btns");
+  if(location.protocol==="file:"){
+    // Google, güvenlik gereği file:// sayfalardan OAuth girişine izin vermez ("Erişim engellendi / invalid_request").
+    body.innerHTML=`<p>⚠️ <b>Senkron, dosyayı çift tıklayarak açınca çalışamaz.</b></p>
+      <p class="sync-note">Google güvenlik kuralı gereği giriş yalnızca bir <b>web adresi</b> üzerinden yapılabilir; bilgisayardan açılan dosyalara izin verilmez ("Erişim engellendi" hatasının nedeni budur).</p>
+      <p class="sync-note">Çözüm: uygulamayı yayın adresinden (GitHub Pages) ya da <b>http://localhost:8000</b> üzerinden aç. Not alma, dosya ekleme ve Yedek/Geri Yükle bu haliyle de eksiksiz çalışır.</p>`;
+    btns.innerHTML=`<button class="tool" id="sync-close">Anladım</button>`;
+    $("#sync-close").onclick=()=>syncModal.style.display="none";
+    return;
+  }
   if(!S.syncOn){
     body.innerHTML=`<p>Google hesabınla giriş yap; notların Drive'ının <b>gizli uygulama alanında</b> saklanır ve tüm cihazlarında otomatik eşitlenir.</p>
       <p class="sync-note">🔒 Veriler yalnızca senin Google Drive'ında durur. Uygulama Drive'daki diğer dosyalarını <b>göremez ve onlara dokunamaz</b>.</p>`;
