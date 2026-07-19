@@ -1,0 +1,5 @@
+#!/bin/sh
+# NoteBookMD baslatici: uygulamayi varsayilan tarayicida acar. Sunucu/kurulum gerekmez.
+HTML="$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd)/NoteBookMD.html"
+[ -f "$HTML" ] || HTML="/Users/mdkalenderoglu/Desktop/MD_Kalenderoglu/Antigravity/NoteBookMD/NoteBookMD.html"
+exec open "$HTML"
