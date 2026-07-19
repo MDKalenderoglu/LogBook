@@ -42,7 +42,7 @@ input,textarea,select{font:inherit;color:inherit}
   display:flex;flex-direction:column;padding:14px 10px;gap:2px;overflow-y:auto;
   transition:transform .25s ease;
 }
-.brand{display:flex;align-items:center;gap:8px;padding:6px 10px 14px;font-weight:700;font-size:16px}
+.brand{display:flex;align-items:center;gap:8px;padding:6px 10px 14px;font-weight:700;font-size:16px;cursor:pointer}
 .brand .logo{width:26px;height:26px;border-radius:7px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
 .navitem{
   display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;width:100%;
@@ -55,6 +55,14 @@ input,textarea,select{font:inherit;color:inherit}
 .navsec button{margin-left:auto;color:var(--text2);font-size:15px;line-height:1;padding:0 4px;border-radius:5px}
 .navsec button:hover{color:var(--accent)}
 .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.navitem .tw{width:13px;flex-shrink:0;color:var(--text2);font-size:10px;text-align:center;transition:transform .15s}
+.navitem .tw.open{transform:rotate(90deg)}
+.navitem.subcat{padding-left:36px;font-size:13.5px}
+.navitem .subadd{margin-left:2px;opacity:0;font-size:14px;color:var(--text2);line-height:1}
+.navitem:hover .subadd{opacity:1}
+.navitem .subadd:hover{color:var(--accent)}
+.subcat-row{padding:2px 10px 4px 36px}
+.subcat-row input{width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:7px;background:var(--surface);outline:none;font-size:12.5px}
 #newcat-row{display:none;padding:4px 10px}
 #newcat-row input{width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);outline:none;font-size:13px}
 .sidebar-footer{margin-top:auto;padding-top:12px;display:flex;gap:6px;padding-left:6px;padding-right:6px}
@@ -172,6 +180,14 @@ button.chip:hover{border-color:var(--text2)}
 .fmeta{font-size:11.5px;color:var(--text2);margin-top:4px}
 .fpdf{display:none;margin-top:8px}
 .fpdf iframe{width:100%;height:520px;border:1px solid var(--border);border-radius:10px;background:#fff}
+/* PDF üzerine kalemle çizim */
+.inkbar{display:flex;gap:6px;align-items:center;margin:8px 0;flex-wrap:wrap}
+.inkbar .hint{margin-left:auto}
+.inkc{width:26px;height:26px;border-radius:50%;border:2.5px solid transparent;flex-shrink:0}
+.inkc.on{border-color:var(--text)}
+.inkpage{position:relative;margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff}
+.inkpage canvas{display:block;width:100%}
+.inkpage .inkoverlay{position:absolute;left:0;top:0;width:100%;height:100%;touch-action:pan-y pinch-zoom;cursor:crosshair}
 .fbox audio{width:100%;margin-top:2px}
 .fbox video{max-width:100%;max-height:360px;border-radius:10px;border:1px solid var(--border);display:block}
 .fchip{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--border);border-radius:9px;background:var(--surface2);font-size:12.5px;font-weight:600;color:var(--text);max-width:100%;text-align:left}
@@ -403,7 +419,7 @@ function visibleNotes(){
   let arr=S.notes.filter(n=>{
     if(view.type==="active") return !n.done;
     if(view.type==="done") return n.done;
-    if(view.type==="cat") return n.cat===view.catId && !n.done;
+    if(view.type==="cat") return inCatTree(n.cat,view.catId) && !n.done;
     return false;
   });
   if(searchQ){ const q=searchQ.toLowerCase();
@@ -416,20 +432,51 @@ function visibleNotes(){
   });
 }
 
+const kidsOf=id=>S.cats.filter(k=>k.parent===id);
+const inCatTree=(noteCat,catId)=>noteCat===catId||(catOf(noteCat)||{}).parent===catId;
+let subAddFor=null;
 function renderSidebar(){
-  document.querySelectorAll(".navitem").forEach(b=>{
+  document.querySelectorAll(".navitem[data-view]").forEach(b=>{
     b.classList.toggle("active", b.dataset.view===view.type && view.type!=="cat");
   });
   $("#c-active").textContent=S.notes.filter(n=>!n.done).length||"";
   $("#c-done").textContent=S.notes.filter(n=>n.done).length||"";
-  $("#catlist").innerHTML=S.cats.map(c=>{
-    const cnt=S.notes.filter(n=>n.cat===c.id&&!n.done).length;
-    return `<button class="navitem ${view.type==="cat"&&view.catId===c.id?"active":""}" data-cat="${c.id}">
-      <span class="dot" style="background:${c.color}"></span>${esc(c.name)}<span class="count">${cnt||""}</span></button>`;
-  }).join("");
+  const catBtn=(c,sub)=>{
+    const cnt=sub?S.notes.filter(n=>n.cat===c.id&&!n.done).length
+              :S.notes.filter(n=>!n.done&&inCatTree(n.cat,c.id)).length;
+    const kids=sub?[]:kidsOf(c.id);
+    return `<button class="navitem ${sub?"subcat":""} ${view.type==="cat"&&view.catId===c.id?"active":""}" data-cat="${c.id}">
+      ${!sub?(kids.length?`<span class="tw ${c.open?"open":""}" data-tw="${c.id}">▶</span>`:`<span class="tw"></span>`):""}
+      <span class="dot" style="background:${c.color}"></span>${esc(c.name)}
+      <span class="count">${cnt||""}</span>
+      ${!sub?`<span class="subadd" data-subadd="${c.id}" title="Alt kategori ekle">＋</span>`:""}
+    </button>`;
+  };
+  $("#catlist").innerHTML=S.cats.filter(c=>!c.parent).map(c=>
+    catBtn(c,false)
+    +((c.open||subAddFor===c.id)?kidsOf(c.id).map(k=>catBtn(k,true)).join(""):"")
+    +(subAddFor===c.id?`<div class="subcat-row"><input id="subcat-input" placeholder="Alt kategori adı, Enter"></div>`:"")
+  ).join("");
   $("#catlist").querySelectorAll("[data-cat]").forEach(b=>{
-    b.onclick=()=>{ setView({type:"cat",catId:b.dataset.cat}); };
+    b.onclick=e=>{
+      const tw=e.target.closest("[data-tw]"), sa=e.target.closest("[data-subadd]");
+      if(tw){ const c=catOf(tw.dataset.tw); c.open=!c.open; save(); renderSidebar(); return; }
+      if(sa){ subAddFor=subAddFor===sa.dataset.subadd?null:sa.dataset.subadd; renderSidebar();
+        $("#subcat-input")?.focus(); return; }
+      setView({type:"cat",catId:b.dataset.cat});
+    };
   });
+  const si=$("#subcat-input");
+  if(si) si.onkeydown=e=>{
+    if(e.key==="Enter"&&si.value.trim()){
+      const parent=catOf(subAddFor);
+      S.cats.push({id:uid(),name:si.value.trim(),color:parent.color,parent:parent.id});
+      parent.open=true;
+      appLog("🏷 Yeni alt kategori: "+parent.name+" › "+si.value.trim());
+      subAddFor=null; save(); render();
+    }
+    if(e.key==="Escape"){ subAddFor=null; renderSidebar(); }
+  };
 }
 
 function noteCardHTML(n){
@@ -488,7 +535,11 @@ function editorHTML(n){
 
 function renderMain(){
   const titles={active:"Aktif Notlar",done:"Tamamlananlar",log:"Günlük"};
-  $("#viewtitle").textContent=view.type==="cat"?(catOf(view.catId)?.name||""):titles[view.type];
+  $("#viewtitle").textContent=view.type==="cat"?(()=>{
+    const c=catOf(view.catId); if(!c)return "";
+    const p=c.parent?catOf(c.parent):null;
+    return p?p.name+" › "+c.name:c.name;
+  })():titles[view.type];
   $("#quickadd").style.display=view.type==="log"||view.type==="done"?"none":"flex";
   const list=$("#list");
   if(view.type==="log"){ list.innerHTML=timelineHTML(); bindTimeline(); return; }
@@ -701,8 +752,10 @@ function renderFiles(n){
         box.querySelector(".fimg").appendChild(img);
       });
     } else if(isPdf){
+      const hasInk=f.ink&&Object.values(f.ink).some(a=>a&&a.length);
       box.innerHTML=`<div class="frow">
-          <button class="fchip fview">📄 <span>${esc(f.name)}<br><small>${fmtSize(f.size)} · içeride görüntüle / gizle</small></span></button>
+          <button class="fchip fview">📄 <span>${esc(f.name)}<br><small>${fmtSize(f.size)}${hasInk?" · ✏️ çizimli":""} · görüntüle / gizle</small></span></button>
+          <button class="fchip fann" title="Kalemle üzerine yaz (Apple Pencil / fare)">✏️ Çiz</button>
           <button class="fchip fnew" title="Yeni sekmede aç">↗</button>
           <button class="fchip fdl" title="İndir">⬇︎ İndir</button>
         </div><div class="fpdf"></div>`;
@@ -712,16 +765,19 @@ function renderFiles(n){
       };
       const holder=box.querySelector(".fpdf");
       box.querySelector(".fview").onclick=async()=>{
-        if(holder.style.display!=="block"){
-          if(!holder.firstChild){
-            const url=await fileURL(f.id);
-            if(!url){ alert("Dosya bulunamadı."); return; }
-            const fr=document.createElement("iframe");
-            fr.src=url; fr.title=esc(f.name);
-            holder.appendChild(fr);
-          }
-          holder.style.display="block";
-        } else holder.style.display="none";
+        if(holder.style.display==="block"&&holder.dataset.mode==="frame"){ holder.style.display="none"; return; }
+        holder.dataset.mode="frame"; holder.innerHTML="";
+        const url=await fileURL(f.id);
+        if(!url){ alert("Dosya bulunamadı."); return; }
+        const fr=document.createElement("iframe");
+        fr.src=url; fr.title=esc(f.name);
+        holder.appendChild(fr); holder.style.display="block";
+      };
+      box.querySelector(".fann").onclick=()=>{
+        if(holder.style.display==="block"&&holder.dataset.mode==="ink"){
+          holder.style.display="none"; holder.innerHTML=""; return;
+        }
+        openPdfAnnot(n,f,holder);
       };
       box.querySelector(".fdl").onclick=()=>downloadFile(f);
     } else if(isAud||isVid){
@@ -740,6 +796,133 @@ function renderFiles(n){
     }
   }
 }
+/* ---------- PDF üzerine kalemle çizim (OneNote tarzı) ---------- */
+/* pdf.js yalnızca ilk "Çiz" tıklamasında indirilir; service worker önbelleğe alır. */
+let pdfjsLoading=null;
+function loadPdfjs(){
+  if(window.pdfjsLib) return Promise.resolve();
+  if(pdfjsLoading) return pdfjsLoading;
+  pdfjsLoading=new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    s.onload=()=>{ pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; res(); };
+    s.onerror=()=>{ pdfjsLoading=null; rej(new Error("Çizim motoru indirilemedi — internet bağlantısı gerekli (bir kez)")); };
+    document.head.appendChild(s);
+  });
+  return pdfjsLoading;
+}
+async function openPdfAnnot(n,f,holder){
+  holder.dataset.mode="ink"; holder.innerHTML=""; holder.style.display="block";
+  const info=document.createElement("div"); info.className="fmeta"; info.textContent="Çizim modu hazırlanıyor…";
+  holder.appendChild(info);
+  let pdf;
+  try{
+    await loadPdfjs();
+    const blob=await idbGet(f.id); if(!blob) throw new Error("Dosya bulunamadı");
+    pdf=await pdfjsLib.getDocument({data:await blob.arrayBuffer()}).promise;
+  }catch(e){ info.textContent="⚠️ "+e.message; return; }
+  info.remove();
+  if(!f.ink) f.ink={};
+  let color="#1B4FD8", alpha=1, width=0.004, eraser=false, lastPage=null, inkLogged=false;
+  const bar=document.createElement("div"); bar.className="inkbar";
+  bar.innerHTML=`
+    <button class="inkc on" data-c="#1B4FD8" style="background:#1B4FD8" title="Mavi kalem"></button>
+    <button class="inkc" data-c="#C4442E" style="background:#C4442E" title="Kırmızı kalem"></button>
+    <button class="inkc" data-c="#1B1A18" style="background:#1B1A18" title="Siyah kalem"></button>
+    <button class="inkc" data-c="#F2C94C" style="background:#F2C94C" title="Fosforlu"></button>
+    <button class="tool" data-eraser>🧽 Silgi</button>
+    <button class="tool" data-undo>↩︎ Geri Al</button>
+    <span class="hint">kalem/fare çizer · parmak kaydırır</span>`;
+  holder.appendChild(bar);
+  bar.querySelectorAll(".inkc").forEach(b=>b.onclick=()=>{
+    color=b.dataset.c; eraser=false;
+    alpha=color==="#F2C94C"?0.45:1; width=color==="#F2C94C"?0.014:0.004;
+    bar.querySelectorAll(".inkc").forEach(x=>x.classList.toggle("on",x===b));
+    bar.querySelector("[data-eraser]").classList.remove("rec");
+  });
+  bar.querySelector("[data-eraser]").onclick=e=>{ eraser=!eraser; e.currentTarget.classList.toggle("rec",eraser); };
+  bar.querySelector("[data-undo]").onclick=()=>{
+    if(lastPage!=null&&(f.ink[lastPage]||[]).length){ f.ink[lastPage].pop(); redraw(lastPage); inkSaved(); }
+  };
+  const pages={};
+  function drawStroke(ctx,s,W,H){
+    ctx.strokeStyle=s.c; ctx.lineWidth=Math.max(1,s.w*W); ctx.lineCap="round"; ctx.lineJoin="round";
+    ctx.globalAlpha=s.a||1;
+    ctx.beginPath();
+    s.pts.forEach((p,i)=> i?ctx.lineTo(p[0]*W,p[1]*H):ctx.moveTo(p[0]*W,p[1]*H));
+    ctx.stroke(); ctx.globalAlpha=1;
+  }
+  function redraw(p){
+    const pg=pages[p]; if(!pg)return;
+    const ctx=pg.ov.getContext("2d");
+    ctx.clearRect(0,0,pg.W,pg.H);
+    for(const s of (f.ink[p]||[])) drawStroke(ctx,s,pg.W,pg.H);
+  }
+  let inkTimer=0;
+  function inkSaved(){
+    n.updatedAt=Date.now();
+    if(!inkLogged){ inkLogged=true;
+      noteLog(n,"✏️ PDF üzerine çizim: "+f.name);
+      appLog("PDF üzerine çizim: “"+titleOf(n)+"” ← "+f.name,n.id);
+    }
+    clearTimeout(inkTimer); inkTimer=setTimeout(()=>save(),800);
+  }
+  function eraseAt(p,[x,y]){
+    const arr=f.ink[p]||[];
+    for(let i=arr.length-1;i>=0;i--){
+      if(arr[i].pts.some(pt=>Math.hypot(pt[0]-x,pt[1]-y)<0.02)){
+        arr.splice(i,1); redraw(p); inkSaved(); break;
+      }
+    }
+  }
+  function attachInk(p,ov){
+    let cur=null;
+    const pos=e=>{ const r=ov.getBoundingClientRect();
+      return [(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]; };
+    ov.addEventListener("pointerdown",e=>{
+      if(e.pointerType==="touch") return; // parmak = kaydırma
+      e.preventDefault();
+      try{ ov.setPointerCapture(e.pointerId); }catch(err){}
+      lastPage=p;
+      if(eraser){ eraseAt(p,pos(e)); return; }
+      cur={c:color,w:width,a:alpha,pts:[pos(e)]};
+    });
+    ov.addEventListener("pointermove",e=>{
+      if(e.pointerType==="touch") return;
+      if(eraser){ if(e.buttons) eraseAt(p,pos(e)); return; }
+      if(!cur) return;
+      cur.pts.push(pos(e));
+      const pg=pages[p], ctx=pg.ov.getContext("2d"), k=cur.pts.length;
+      ctx.strokeStyle=cur.c; ctx.lineWidth=Math.max(1,cur.w*pg.W); ctx.lineCap="round"; ctx.globalAlpha=cur.a;
+      ctx.beginPath();
+      ctx.moveTo(cur.pts[k-2][0]*pg.W,cur.pts[k-2][1]*pg.H);
+      ctx.lineTo(cur.pts[k-1][0]*pg.W,cur.pts[k-1][1]*pg.H);
+      ctx.stroke(); ctx.globalAlpha=1;
+    });
+    const up=()=>{
+      if(cur&&cur.pts.length>1){ (f.ink[p]=f.ink[p]||[]).push(cur); inkSaved(); }
+      cur=null; redraw(p);
+    };
+    ov.addEventListener("pointerup",up);
+    ov.addEventListener("pointercancel",up);
+  }
+  const cw=Math.max(holder.clientWidth,320), dpr=devicePixelRatio||1;
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const vp0=page.getViewport({scale:1});
+    const vp=page.getViewport({scale:cw/vp0.width*dpr});
+    const wrap=document.createElement("div"); wrap.className="inkpage";
+    const cv=document.createElement("canvas"); cv.width=vp.width; cv.height=vp.height;
+    const ov=document.createElement("canvas"); ov.className="inkoverlay"; ov.width=vp.width; ov.height=vp.height;
+    wrap.appendChild(cv); wrap.appendChild(ov); holder.appendChild(wrap);
+    // Kayıtlı çizimler ve kalem dinleyicileri render'ı BEKLEMEDEN bağlanır:
+    // yavaş cihazda bile araç anında hazır, eski çizimler hemen görünür.
+    pages[p]={ov,W:vp.width,H:vp.height};
+    redraw(p); attachInk(p,ov);
+    await page.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;
+  }
+}
+
 const lb=$("#lightbox");
 function openLightbox(url,name){
   lb.querySelector("img").src=url;
@@ -752,8 +935,11 @@ function bindEditorKeepFocus(){ /* re-render sonrası editor tekrar bağlanır (
 /* ---------- category popover ---------- */
 const pop=$("#pop");
 function openCatPop(anchor,noteId){
-  pop.innerHTML=S.cats.map(c=>
-    `<button data-pick="${c.id}"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}</button>`).join("");
+  pop.innerHTML=S.cats.filter(c=>!c.parent).map(c=>
+    `<button data-pick="${c.id}"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}</button>`
+    +kidsOf(c.id).map(k=>
+    `<button data-pick="${k.id}" style="padding-left:26px"><span class="dot" style="background:${k.color}"></span>${esc(k.name)}</button>`).join("")
+  ).join("");
   const r=anchor.getBoundingClientRect();
   pop.style.display="block";
   pop.style.left=Math.min(r.left,innerWidth-170)+"px";
@@ -1229,6 +1415,7 @@ document.querySelectorAll(".navitem[data-view]").forEach(b=>{
   b.onclick=()=>setView({type:b.dataset.view});
 });
 $("#hamburger").onclick=()=>{ $("#sidebar").classList.add("open"); $("#overlay").classList.add("show"); };
+$(".brand").onclick=()=>location.reload(); // logo → yenile + ana sayfa
 $("#overlay").onclick=()=>{ $("#sidebar").classList.remove("open"); $("#overlay").classList.remove("show"); };
 
 $("#addcat").onclick=()=>{

@@ -1,6 +1,6 @@
 /* LogBook service worker — çevrimdışı çalışma için uygulama kabuğunu önbelleğe alır.
    Strateji: önce ağ (her zaman güncel sürüm), ağ yoksa önbellek. */
-const CACHE = "logbook-v1";
+const CACHE = "logbook-v2";
 const SHELL = ["./", "./index.html", "./NoteBookMD.html", "./manifest.webmanifest",
   "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 
@@ -15,6 +15,16 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   const u = new URL(e.request.url);
+  // pdf.js (çizim motoru): bir kez indir, sonra hep önbellekten — çevrimdışı çizim çalışsın
+  const isPdfjs = u.hostname === "cdnjs.cloudflare.com" && u.pathname.includes("/pdf.js/");
+  if (isPdfjs) {
+    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+      const copy = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, copy));
+      return res;
+    })));
+    return;
+  }
   if (u.origin !== location.origin) return; // Google API/GSI istekleri SW'ye takılmasın
   e.respondWith(
     fetch(e.request).then(r => {
