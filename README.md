@@ -15,7 +15,7 @@
 - 🕘 **Tam günlük** — her ekleme, düzenleme, değişiklik tarihiyle loglanır
 - 🌗 **Açık / koyu tema** — göz yormayan, ılık tonlar
 - 💾 **Yedekleme** — tek dosyalık JSON yedek al, başka cihazda geri yükle
-- ☁️ **Otomatik bulut senkronu** — hesap yok, kayıt yok: kendi belirlediğin bir "senkron anahtarı"nı iki cihaza da gir, notların kendiliğinden eşitlensin. Veriler buluta gitmeden önce cihazında AES-256 ile şifrelenir; anahtarı bilmeyen hiç kimse okuyamaz
+- ☁️ **Otomatik bulut senkronu** — Google hesabınla tek tık giriş yap; notların kendi Google Drive'ının **gizli uygulama alanında** saklanır ve tüm cihazlarında otomatik eşitlenir. Uygulama Drive'daki diğer dosyalarını göremez, onlara dokunamaz
 
 ## 🚀 Kurulum (30 saniye)
 
@@ -38,9 +38,9 @@ Artık ana ekranınızda kendi simgesiyle, tam ekran bir uygulama olarak durur.
 
 ## 🔒 Verileriniz nerede?
 
-**Tamamen sizin cihazınızda.** Notlar tarayıcınızın yerel deposunda (localStorage), ses kayıtları ve dosyalar yine tarayıcının kendi veritabanında (IndexedDB) saklanır. Hiçbir sunucuya gönderilmez, kimse göremez.
+**Varsayılan olarak tamamen sizin cihazınızda.** Notlar tarayıcınızın yerel deposunda (localStorage), ses kayıtları ve dosyalar yine tarayıcının kendi veritabanında (IndexedDB) saklanır.
 
-Cihazlar arası eşitleme için sol alttaki **☁️ Senkron** düğmesine tıklayıp kendine bir senkron anahtarı belirle; aynı anahtarı diğer cihazlarına da gir — notların otomatik eşitlenir (uçtan uca şifreli). Senkron kullanmıyorsan elle taşıma da mümkün:
+Cihazlar arası eşitleme istiyorsanız sol alttaki **☁️ Senkron** düğmesine tıklayıp Google hesabınızla giriş yapın — notlarınız kendi Google Drive'ınızın gizli uygulama alanında (`appDataFolder`) saklanır ve her değişiklik otomatik eşitlenir. Bu alan normal Drive arayüzünde görünmez, sadece bu uygulama erişebilir; siz bağlantıyı kesene kadar orada kalır. Senkron kullanmıyorsan elle taşıma da mümkün:
 
 1. Kaynak cihazda sol alttaki **⬇︎ Yedek** düğmesiyle JSON dosyası indirin (ses ve dosya ekleri dahildir).
 2. Bu dosyayı hedef cihaza gönderin (AirDrop, e-posta, WhatsApp…).

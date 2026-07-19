@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="NoteBookMD">
 <title>NoteBookMD</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%9D%3C/text%3E%3C/svg%3E">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
   --bg:#FAF9F6; --surface:#FFFFFF; --surface2:#F3F1EC; --border:#E8E5DF;
@@ -207,7 +208,7 @@ button.chip:hover{border-color:var(--text2)}
 #pop button:hover{background:var(--surface2)}
 
 /* sync */
-#syncstat{font-size:11px;color:var(--text2);padding:6px 10px 0;text-align:center;min-height:16px}
+#syncstat{font-size:11px;color:var(--text2);padding:6px 10px 0;text-align:center;min-height:16px;cursor:pointer}
 #syncmodal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;align-items:center;justify-content:center;padding:20px}
 .sync-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);max-width:440px;width:100%;padding:20px}
 .sync-card h3{font-size:16px;margin-bottom:8px}
@@ -271,14 +272,8 @@ button.chip:hover{border-color:var(--text2)}
 <div id="syncmodal">
   <div class="sync-card">
     <h3>☁️ Bulut Senkronu</h3>
-    <p>Kendine bir <b>senkron anahtarı</b> belirle (örn. uzun bir cümle). Aynı anahtarı diğer cihazlarına da girersen notların otomatik eşitlenir.</p>
-    <p class="sync-note">🔒 Verilerin buluta gitmeden önce cihazında <b>AES-256 ile şifrelenir</b> — anahtarı bilmeyen hiç kimse (sunucu dahil) okuyamaz. Anahtarı unutursan buluttaki veriye erişilemez, o yüzden not et!</p>
-    <input id="sync-pass" type="text" autocomplete="off" placeholder="Senkron anahtarın (en az 8 karakter)">
-    <div class="sync-btns">
-      <button class="tool" id="sync-connect">Bağlan ve Eşitle</button>
-      <button class="tool danger" id="sync-disconnect" style="display:none">Bağlantıyı Kes</button>
-      <button class="tool" id="sync-close">Kapat</button>
-    </div>
+    <div id="sync-body"></div>
+    <div class="sync-btns" id="sync-btns"></div>
     <div id="sync-msg"></div>
   </div>
 </div>
@@ -908,55 +903,79 @@ async function doImport(file){
   }catch(e){ alert("Geri yükleme hatası: "+e.message); }
 }
 
-/* ================= CLOUD SYNC (uçtan uca şifreli) ================= */
-/* Yayıncı ayarı: Supabase proje URL'i ve anon key (README'deki kurulum rehberine bak).
-   Veriler sunucuya HER ZAMAN şifrelenmiş gider; anon key gizli değildir. */
-const SYNC_CFG={
-  url:"",   // örn: "https://abcdefgh.supabase.co"
-  anon:""   // Supabase anon (public) key
-};
-let syncBusy=false, syncTimer=0;
-const te=new TextEncoder(), tdec=new TextDecoder();
-const b64buf=b=>{const u=new Uint8Array(b);let s="";for(let i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s)};
-const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+/* ================= CLOUD SYNC (Google Drive) ================= */
+/* Yayıncı ayarı: Google Cloud Console'dan alınan OAuth Client ID (GOOGLE-KURULUM.md rehberine bak).
+   Client ID gizli değildir. Veriler kullanıcının KENDİ Drive'ının gizli uygulama alanında
+   (appDataFolder) durur — uygulama Drive'daki diğer dosyaları göremez. */
+const GOOGLE_CLIENT_ID="616517211151-oe2g0e2r32hpqfclrj83qmr9u8d3aujq.apps.googleusercontent.com";
+const DRIVE_SCOPE="https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email";
+const DRIVE_API="https://www.googleapis.com/drive/v3";
+const DRIVE_UP="https://www.googleapis.com/upload/drive/v3";
+let syncBusy=false, syncTimer=0, tokenClient=null;
 const blobToDataURL=bl=>new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(bl)});
-async function syncId(pass){
-  const h=await crypto.subtle.digest("SHA-256",te.encode("nbmd:"+pass));
-  return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("");
+
+/* --- Google girişi (GIS token modeli) --- */
+let gTok=null; try{ gTok=JSON.parse(localStorage.getItem("nbmd_gtok"))||null; }catch(e){}
+const tokenValid=()=>!!(gTok&&Date.now()<gTok.exp-60000);
+const gisReady=()=>!!(window.google&&google.accounts&&google.accounts.oauth2);
+function dropToken(){ gTok=null; try{ localStorage.removeItem("nbmd_gtok"); }catch(e){} }
+function getToken(interactive){
+  return new Promise((res,rej)=>{
+    if(tokenValid()) return res(gTok.access_token);
+    if(!GOOGLE_CLIENT_ID) return rej(new Error("uygulamada Google Client ID tanımlı değil"));
+    if(!gisReady()) return rej(new Error("Google bağlantısı yüklenemedi"));
+    if(!tokenClient) tokenClient=google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID,scope:DRIVE_SCOPE,callback:()=>{}});
+    tokenClient.callback=async t=>{
+      if(t.error) return rej(new Error(t.error_description||t.error));
+      gTok={access_token:t.access_token,exp:Date.now()+(Number(t.expires_in)||3600)*1000};
+      try{ localStorage.setItem("nbmd_gtok",JSON.stringify(gTok)); }catch(e){}
+      if(!S.gEmail){ try{
+        const r=await fetch("https://www.googleapis.com/oauth2/v3/userinfo",{headers:{Authorization:"Bearer "+gTok.access_token}});
+        if(r.ok) S.gEmail=(await r.json()).email||"";
+      }catch(e){} }
+      res(gTok.access_token);
+    };
+    tokenClient.error_callback=e=>rej(new Error(e&&e.type==="popup_closed"?"giriş penceresi kapatıldı":"Google giriş penceresi açılamadı"));
+    tokenClient.requestAccessToken(interactive?{prompt:"select_account"}:{prompt:"",login_hint:S.gEmail||""});
+  });
 }
-async function syncCryptoKey(pass){
-  const km=await crypto.subtle.importKey("raw",te.encode(pass),"PBKDF2",false,["deriveKey"]);
-  return crypto.subtle.deriveKey(
-    {name:"PBKDF2",salt:te.encode("nbmd-sync-v1"),iterations:150000,hash:"SHA-256"},
-    km,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+
+/* --- Drive REST yardımcıları (appDataFolder) --- */
+const gh=t=>({Authorization:"Bearer "+t});
+async function gFetch(url,opt){
+  const r=await fetch(url,opt);
+  if(r.status===401){ dropToken(); throw new Error("Google oturumu doldu"); }
+  if(!r.ok) throw new Error("Drive hatası ("+r.status+")");
+  return r;
 }
-async function encStr(key,s){
-  const iv=crypto.getRandomValues(new Uint8Array(12));
-  const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,te.encode(s));
-  const out=new Uint8Array(12+ct.byteLength); out.set(iv); out.set(new Uint8Array(ct),12);
-  return b64buf(out.buffer);
+async function driveList(t,q){
+  let files=[],pt="";
+  do{
+    const u=DRIVE_API+"/files?spaces=appDataFolder&pageSize=1000&fields=nextPageToken,files(id,name)&q="+encodeURIComponent(q)+(pt?"&pageToken="+pt:"");
+    const j=await(await gFetch(u,{headers:gh(t)})).json();
+    files=files.concat(j.files||[]); pt=j.nextPageToken||"";
+  }while(pt);
+  return files;
 }
-async function decStr(key,s){
-  const raw=unb64(s);
-  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:raw.slice(0,12)},key,raw.slice(12));
-  return tdec.decode(pt);
+const driveDownload=(t,id)=>gFetch(DRIVE_API+"/files/"+id+"?alt=media",{headers:gh(t)});
+async function driveUpload(t,name,blob,existingId){
+  if(existingId){
+    await gFetch(DRIVE_UP+"/files/"+existingId+"?uploadType=media",
+      {method:"PATCH",headers:{...gh(t),"Content-Type":blob.type||"application/octet-stream"},body:blob});
+    return existingId;
+  }
+  const bnd="nbmd"+Date.now().toString(36);
+  const body=new Blob([
+    "--"+bnd+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+
+    JSON.stringify({name,parents:["appDataFolder"]})+
+    "\r\n--"+bnd+"\r\nContent-Type: "+(blob.type||"application/octet-stream")+"\r\n\r\n",
+    blob, "\r\n--"+bnd+"--"]);
+  const j=await(await gFetch(DRIVE_UP+"/files?uploadType=multipart&fields=id",
+    {method:"POST",headers:{...gh(t),"Content-Type":"multipart/related; boundary="+bnd},body})).json();
+  return j.id;
 }
-const sbHeaders=()=>({apikey:SYNC_CFG.anon,Authorization:"Bearer "+SYNC_CFG.anon,"Content-Type":"application/json"});
-async function sbGet(id){
-  const r=await fetch(`${SYNC_CFG.url}/rest/v1/notebookmd?id=eq.${encodeURIComponent(id)}&select=id,data`,{headers:sbHeaders()});
-  if(!r.ok)throw new Error("sunucu "+r.status);
-  return (await r.json())[0]||null;
-}
-async function sbList(prefix){
-  const r=await fetch(`${SYNC_CFG.url}/rest/v1/notebookmd?id=like.${encodeURIComponent(prefix+"%")}&select=id`,{headers:sbHeaders()});
-  if(!r.ok)throw new Error("sunucu "+r.status);
-  return (await r.json()).map(x=>x.id);
-}
-async function sbPut(rows){
-  const r=await fetch(`${SYNC_CFG.url}/rest/v1/notebookmd`,
-    {method:"POST",headers:{...sbHeaders(),Prefer:"resolution=merge-duplicates"},body:JSON.stringify(rows)});
-  if(!r.ok)throw new Error("sunucu "+r.status);
-}
+let fidCache={}; try{ fidCache=JSON.parse(localStorage.getItem("nbmd_gfid"))||{}; }catch(e){}
+const saveFid=()=>{ try{ localStorage.setItem("nbmd_gfid",JSON.stringify(fidCache)); }catch(e){} };
 function unionLog(a,b){
   const seen=new Set(a.map(l=>l.t+"|"+l.a));
   for(const l of (b||[])) if(!seen.has(l.t+"|"+l.a)){ a.push(l); seen.add(l.t+"|"+l.a); }
@@ -980,74 +999,90 @@ function mergeRemote(remote){
 }
 function setSyncStat(t){ const el=$("#syncstat"); if(el) el.textContent=t; }
 function scheduleSync(){
-  if(!S.syncPass||syncBusy)return;
+  if(!S.syncOn||syncBusy)return;
   clearTimeout(syncTimer);
   syncTimer=setTimeout(()=>syncNow(),4000);
 }
 async function syncNow(manual){
-  if(!S.syncPass||syncBusy)return;
-  if(!SYNC_CFG.url||!SYNC_CFG.anon){ setSyncStat("☁️ Senkron sunucusu tanımlı değil"); return; }
+  if(!S.syncOn||syncBusy)return;
   syncBusy=true; setSyncStat("☁️ Eşitleniyor…");
   try{
-    const id=await syncId(S.syncPass), key=await syncCryptoKey(S.syncPass);
-    const remote=await sbGet(id);
-    if(remote){
-      let rs;
-      try{ rs=JSON.parse(await decStr(key,remote.data)); }
-      catch(e){ throw new Error("şifre çözülemedi — anahtar farklı olabilir"); }
-      mergeRemote(rs);
+    const t=await getToken(!!manual);
+    let stateId=fidCache.state||null;
+    if(!stateId){
+      const f=await driveList(t,"name='notebookmd.json'");
+      if(f.length){ stateId=f[0].id; fidCache.state=stateId; saveFid(); }
+    }
+    if(stateId){
+      try{ mergeRemote(await(await driveDownload(t,stateId)).json()); }
+      catch(e){
+        if(String(e.message).includes("404")){ stateId=null; delete fidCache.state; saveFid(); }
+        else throw e;
+      }
     }
     save(); render();
-    // --- blob senkronu (ses + dosyalar) ---
+    // --- blob senkronu (ses + dosyalar): sadece eksikler aktarılır ---
     const localIds=[]; S.notes.forEach(n=>{n.audios.forEach(a=>localIds.push(a.id)); n.files.forEach(f=>localIds.push(f.id));});
-    const remoteIds=(await sbList(id+":")).map(x=>x.slice(id.length+1));
-    const rows=[];
+    const remoteBlobs=new Map((await driveList(t,"name contains 'blob-'")).map(f=>[f.name.slice(5),f.id]));
+    let gotNew=false;
     for(const bid of localIds){
       const have=await idbGet(bid);
-      if(have && !remoteIds.includes(bid)){
-        const du=await blobToDataURL(have);
-        rows.push({id:id+":"+bid,data:await encStr(key,du)});
-      }
-      if(!have && remoteIds.includes(bid)){
-        const row=await sbGet(id+":"+bid);
-        if(row){ const du=await decStr(key,row.data); const res=await fetch(du); await idbPut(bid,await res.blob()); }
+      if(have && !remoteBlobs.has(bid)) await driveUpload(t,"blob-"+bid,have);
+      else if(!have && remoteBlobs.has(bid)){
+        await idbPut(bid,await(await driveDownload(t,remoteBlobs.get(bid))).blob());
+        gotNew=true;
       }
     }
-    rows.push({id,data:await encStr(key,JSON.stringify({notes:S.notes,cats:S.cats,appLog:S.appLog}))});
-    await sbPut(rows);
+    const stateBlob=new Blob([JSON.stringify({notes:S.notes,cats:S.cats,appLog:S.appLog})],{type:"application/json"});
+    fidCache.state=await driveUpload(t,"notebookmd.json",stateBlob,stateId); saveFid();
     S.lastSync=Date.now(); save();
     setSyncStat("☁️ Eşitlendi ✓ "+fmtTime(Date.now()));
-    if(manual) $("#sync-msg")&&($("#sync-msg").textContent="Eşitleme başarılı ✓");
+    if(manual) syncMsg("Eşitleme başarılı ✓");
+    if(gotNew) render();
   }catch(e){
     console.error("sync",e);
-    setSyncStat("☁️ ⚠️ "+(navigator.onLine?e.message:"çevrimdışı — sonra denenecek"));
-    if(manual&&$("#sync-msg")) $("#sync-msg").textContent="Hata: "+e.message;
+    setSyncStat("☁️ ⚠️ "+(navigator.onLine?e.message+" — tekrar denemek için tıkla":"çevrimdışı — bağlanınca eşitlenecek"));
+    if(manual) syncMsg("Hata: "+e.message);
   }
   syncBusy=false;
 }
 const syncModal=$("#syncmodal");
-function openSyncModal(){
-  $("#sync-pass").value=S.syncPass||"";
-  $("#sync-disconnect").style.display=S.syncPass?"inline-flex":"none";
-  $("#sync-msg").textContent=S.syncPass?("Senkron açık. Son eşitleme: "+(S.lastSync?fmtDT(S.lastSync):"—")):"";
-  syncModal.style.display="flex";
+const syncMsg=t=>{ const el=$("#sync-msg"); if(el) el.textContent=t; };
+function renderSyncModal(){
+  const body=$("#sync-body"), btns=$("#sync-btns");
+  if(!S.syncOn){
+    body.innerHTML=`<p>Google hesabınla giriş yap; notların Drive'ının <b>gizli uygulama alanında</b> saklanır ve tüm cihazlarında otomatik eşitlenir.</p>
+      <p class="sync-note">🔒 Veriler yalnızca senin Google Drive'ında durur. Uygulama Drive'daki diğer dosyalarını <b>göremez ve onlara dokunamaz</b>.</p>`;
+    btns.innerHTML=`<button class="tool" id="sync-google" style="background:var(--accent);border-color:var(--accent);color:#fff">Google ile giriş yap</button>
+      <button class="tool" id="sync-close">Kapat</button>`;
+    $("#sync-google").onclick=async()=>{
+      syncMsg("Google giriş penceresi açılıyor…");
+      try{
+        await getToken(true);
+        S.syncOn=true; appLog("☁️ Google Drive senkronu açıldı"); save();
+        renderSyncModal(); syncNow(true);
+      }catch(e){ syncMsg("Hata: "+e.message); }
+    };
+  }else{
+    body.innerHTML=`<p>Bağlı hesap: <b>${esc(S.gEmail||"Google")}</b></p>
+      <p class="sync-note">Her değişiklik otomatik eşitlenir. Son eşitleme: ${S.lastSync?fmtDT(S.lastSync):"—"}</p>`;
+    btns.innerHTML=`<button class="tool" id="sync-now">↻ Şimdi Eşitle</button>
+      <button class="tool danger" id="sync-off">Bağlantıyı Kes</button>
+      <button class="tool" id="sync-close">Kapat</button>`;
+    $("#sync-now").onclick=()=>syncNow(true);
+    $("#sync-off").onclick=()=>{
+      try{ if(gTok&&gisReady()) google.accounts.oauth2.revoke(gTok.access_token,()=>{}); }catch(e){}
+      dropToken();
+      S.syncOn=false; S.gEmail=""; appLog("☁️ Bulut senkronu kapatıldı"); save();
+      setSyncStat(""); renderSyncModal();
+      syncMsg("Senkron kapatıldı. Drive'daki veriler durur; yerel verilere dokunulmaz.");
+    };
+  }
+  $("#sync-close").onclick=()=>syncModal.style.display="none";
 }
-$("#syncbtn").onclick=openSyncModal;
-$("#sync-close").onclick=()=>syncModal.style.display="none";
+$("#syncbtn").onclick=()=>{ renderSyncModal(); syncMsg(""); syncModal.style.display="flex"; };
 syncModal.addEventListener("click",e=>{ if(e.target===syncModal) syncModal.style.display="none"; });
-$("#sync-connect").onclick=()=>{
-  const p=$("#sync-pass").value.trim();
-  if(p.length<8){ $("#sync-msg").textContent="Anahtar en az 8 karakter olmalı."; return; }
-  S.syncPass=p;
-  appLog("☁️ Bulut senkronu açıldı"); save();
-  $("#sync-disconnect").style.display="inline-flex";
-  syncNow(true);
-};
-$("#sync-disconnect").onclick=()=>{
-  S.syncPass=null; appLog("☁️ Bulut senkronu kapatıldı"); save();
-  setSyncStat(""); $("#sync-disconnect").style.display="none";
-  $("#sync-msg").textContent="Senkron kapatıldı. Buluttaki veriler durur; yerel verilere dokunulmaz.";
-};
+$("#syncstat").onclick=()=>{ if(S.syncOn&&!syncBusy) syncNow(true); };
 setInterval(()=>syncNow(),90000);
 
 /* ================= THEME ================= */
@@ -1125,7 +1160,16 @@ applyTheme();
   if(!last||Date.now()-last.t>60000){ appLog("🔓 Oturum açıldı"); save(); }
 })();
 render();
-if(S.syncPass){ setSyncStat("☁️ Senkron açık"); syncNow(); }
+if(S.syncPass!==undefined) delete S.syncPass; // eski "senkron anahtarı" modeli kaldırıldı
+if(S.syncOn){
+  setSyncStat("☁️ Senkron açık");
+  let gisTry=0;
+  (function waitGis(){
+    if(tokenValid()||gisReady()) syncNow();
+    else if(++gisTry<40) setTimeout(waitGis,250);
+    else setSyncStat("☁️ ⚠️ Google yüklenemedi — tekrar denemek için tıkla");
+  })();
+}
 </script>
 </body>
 </html>
