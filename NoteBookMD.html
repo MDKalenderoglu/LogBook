@@ -137,6 +137,7 @@ button.chip:hover{border-color:var(--text2)}
 .tool:hover{color:var(--accent);border-color:var(--accent)}
 .tool.danger:hover{color:var(--red);border-color:var(--red)}
 .tool.rec{background:var(--red);border-color:var(--red);color:#fff;animation:pulse 1.4s infinite}
+.qa-btn.dicting,.tool.dicting{background:var(--red);border-color:var(--red);color:#fff;animation:pulse 1.4s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
 
 /* audio players */
@@ -263,7 +264,8 @@ button.chip:hover{border-color:var(--text2)}
     <div id="content"><div class="inner">
       <form id="quickadd" autocomplete="off">
         <input id="qa-input" enterkeyhint="done" placeholder="Hızlı not al…  (Enter ile kaydet)">
-        <button type="button" class="qa-btn" id="qa-mic" title="Sesli not">🎤</button>
+        <button type="button" class="qa-btn" id="qa-dictate" title="Söyle, yazıya dökülsün">🗣</button>
+        <button type="button" class="qa-btn" id="qa-mic" title="Sesli not (kayıt)">🎤</button>
         <button type="submit" class="qa-btn primary" id="qa-add" title="Ekle">＋</button>
       </form>
       <div id="list"></div>
@@ -466,6 +468,7 @@ function editorHTML(n){
       ${n.deadline?`<button class="tool danger" id="ed-dl-clear">✕ Kaldır</button>`:""}
     </div>
     <div class="editor-row">
+      <button class="tool" id="ed-dictate">🗣 Sesle Yaz</button>
       <button class="tool" id="ed-rec">🎤 Ses Kaydet</button>
       <button class="tool" id="ed-file">📎 Dosya Ekle</button>
       <button class="tool" id="ed-history">🕘 Geçmiş (${n.log.length+(n.revs?n.revs.length:0)})</button>
@@ -560,6 +563,7 @@ function finalizeEdit(){
   }
 }
 function collapseNote(skipRender){
+  stopDictation();
   finalizeEdit();
   if(recState.active) stopRecording();
   stopAllPlayers();
@@ -598,6 +602,9 @@ function bindEditor(){
       el.style.display="block";
     } else el.style.display="none";
   };
+  const dictBtn=$("#ed-dictate");
+  if(!SR) dictBtn.style.display="none";
+  else dictBtn.onclick=()=>startDictation($("#ed-content"),dictBtn);
   $("#ed-rec").onclick=()=>startRecording(n);
   $("#ed-stop").onclick=()=>stopRecording();
   $("#ed-file").onclick=()=>$("#ed-fileinput").click();
@@ -761,6 +768,7 @@ function stopAllPlayers(){ players.forEach(p=>{ try{p.audio.pause()}catch(e){} }
 
 async function startRecording(n){
   if(recState.active)return;
+  stopDictation(); // mikrofon çakışmasın
   let stream;
   try{ stream=await navigator.mediaDevices.getUserMedia({audio:true}); }
   catch(e){ alert("Mikrofon izni alınamadı: "+e.message); return; }
@@ -876,6 +884,46 @@ async function setupPlayer(el,a){
     const r=cv.getBoundingClientRect(); const d=audio.duration&&isFinite(audio.duration)?audio.duration:a.dur;
     if(d){ audio.currentTime=((e.clientX-r.left)/r.width)*d; draw(audio.currentTime/d); }
   };
+}
+
+/* ================= DİKTE (sesten yazıya, Türkçe) ================= */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const dict={active:false,rec:null,target:null,btn:null,base:"",finals:""};
+function stopDictation(){
+  if(!dict.active)return;
+  dict.active=false;
+  try{ dict.rec.stop(); }catch(e){}
+  if(dict.btn) dict.btn.classList.remove("dicting");
+  if(dict.target) dict.target.dispatchEvent(new Event("input"));
+}
+function startDictation(target,btn){
+  if(!SR){ alert("Bu tarayıcı sesten yazıya çevirmeyi desteklemiyor. Chrome, Edge veya Safari kullan."); return; }
+  if(dict.active){ const same=dict.btn===btn; stopDictation(); if(same) return; }
+  if(recState.active) stopRecording(); // mikrofon çakışmasın
+  const r=new SR();
+  r.lang="tr-TR"; r.continuous=true; r.interimResults=true;
+  const sep=target.value&&!/\s$/.test(target.value)?" ":"";
+  Object.assign(dict,{active:true,rec:r,target,btn,base:target.value+sep,finals:""});
+  btn.classList.add("dicting");
+  r.onresult=e=>{
+    let interim="";
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal) dict.finals+=t.trim()+" ";
+      else interim+=t;
+    }
+    dict.target.value=dict.base+dict.finals+interim;
+    dict.target.dispatchEvent(new Event("input"));
+    if(dict.target.tagName==="TEXTAREA") dict.target.scrollTop=dict.target.scrollHeight;
+  };
+  r.onerror=e=>{
+    if(e.error==="not-allowed"||e.error==="service-not-allowed"){
+      stopDictation(); alert("Mikrofon izni verilmedi — tarayıcı ayarlarından izin ver.");
+    }
+  };
+  // Motor sessizlikte kendini kapatır; kullanıcı durdurmadıysa kaldığı yerden sürdür
+  r.onend=()=>{ if(dict.active){ try{ r.start(); }catch(e){ stopDictation(); } } };
+  try{ r.start(); }catch(e){ stopDictation(); alert("Dikte başlatılamadı: "+e.message); }
 }
 
 /* ================= TIMELINE ================= */
@@ -1184,6 +1232,7 @@ $("#search").oninput=e=>{ searchQ=e.target.value.trim(); renderMain(); };
 
 /* quick add */
 function quickAdd(){
+  stopDictation();
   const inp=$("#qa-input"), v=inp.value.trim();
   if(!v)return;
   newNote(v); inp.value=""; render(); inp.focus();
@@ -1194,6 +1243,8 @@ $("#qa-mic").onclick=()=>{
   render(); expandNote(n.id);
   setTimeout(()=>startRecording(n),100);
 };
+if(!SR) $("#qa-dictate").style.display="none";
+$("#qa-dictate").onclick=()=>startDictation($("#qa-input"),$("#qa-dictate"));
 
 $("#exportbtn").onclick=doExport;
 $("#importbtn").onclick=()=>$("#importfile").click();
