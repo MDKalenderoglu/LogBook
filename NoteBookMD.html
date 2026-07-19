@@ -777,7 +777,7 @@ function renderFiles(n){
             const vp0=page.getViewport({scale:1});
             const vp=page.getViewport({scale:cw/vp0.width*dpr});
             const cv=document.createElement("canvas"); cv.width=vp.width; cv.height=vp.height;
-            const wrap=document.createElement("div"); wrap.className="inkpage" style="margin-bottom:10px;border:none;border-radius:0";
+            const wrap=document.createElement("div"); wrap.className="inkpage"; wrap.style.cssText="margin-bottom:10px;border:none;border-radius:0";
             wrap.appendChild(cv); holder.appendChild(wrap);
             await page.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;
           }
@@ -1479,25 +1479,29 @@ setInterval(()=>{
 
 /* ================= INIT ================= */
 function render(){ renderSidebar(); renderMain(); }
-applyTheme();
-(function sessionLog(){
-  const last=[...S.appLog].reverse().find(e=>e.a==="🔓 Oturum açıldı");
-  if(!last||Date.now()-last.t>60000){ appLog("🔓 Oturum açıldı"); save(); }
-})();
-render();
-/* PWA: çevrimdışı kabuk (yalnızca http/https'te; file:// açılışta atlanır) */
-if("serviceWorker" in navigator && location.protocol.startsWith("http"))
-  navigator.serviceWorker.register("sw.js").catch(()=>{});
-if(S.syncPass!==undefined) delete S.syncPass; // eski "senkron anahtarı" modeli kaldırıldı
-if(S.syncOn){
-  setSyncStat("☁️ Senkron açık");
-  let gisTry=0;
-  (function waitGis(){
-    if(tokenValid()||gisReady()) syncNow();
-    else if(++gisTry<40) setTimeout(waitGis,250);
-    else setSyncStat("☁️ ⚠️ Google yüklenemedi — tekrar denemek için tıkla");
+function init(){
+  applyTheme();
+  (function sessionLog(){
+    const last=[...S.appLog].reverse().find(e=>e.a==="🔓 Oturum açıldı");
+    if(!last||Date.now()-last.t>60000){ appLog("🔓 Oturum açıldı"); save(); }
   })();
+  render();
+  /* PWA: çevrimdışı kabuk (yalnızca http/https'te; file:// açılışta atlanır) */
+  if("serviceWorker" in navigator && location.protocol.startsWith("http"))
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  if(S.syncPass!==undefined) delete S.syncPass; // eski "senkron anahtarı" modeli kaldırıldı
+  if(S.syncOn){
+    setSyncStat("☁️ Senkron açık");
+    let gisTry=0;
+    (function waitGis(){
+      if(tokenValid()||gisReady()) syncNow();
+      else if(++gisTry<40) setTimeout(waitGis,250);
+      else setSyncStat("☁️ ⚠️ Google yüklenemedi — tekrar denemek için tıkla");
+    })();
+  }
 }
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init);
+else init();
 </script>
 </body>
 </html>
