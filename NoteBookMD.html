@@ -100,6 +100,8 @@ input,textarea,select{font:inherit;color:inherit}
   background:var(--surface);border:1px solid var(--border);border-radius:12px;
   margin-bottom:10px;box-shadow:var(--shadow);overflow:hidden;
 }
+/* Editör açıkken overflow serbest — PDF/görsel sabit (sticky) kapatma çubuğu yapışabilsin */
+.note.exp{overflow:visible}
 .note-head{display:flex;align-items:flex-start;gap:11px;padding:13px 15px;cursor:pointer}
 .chk{
   width:21px;height:21px;border-radius:50%;border:1.6px solid var(--text2);flex-shrink:0;margin-top:2px;
@@ -181,7 +183,12 @@ button.chip:hover{border-color:var(--text2)}
 .fpdf{display:none;margin-top:8px}
 .fpdf iframe{width:100%;height:520px;border:1px solid var(--border);border-radius:10px;background:#fff}
 /* PDF üzerine kalemle çizim */
-.inkbar{display:flex;gap:6px;align-items:center;margin:8px 0;flex-wrap:wrap}
+.inkclose{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--border);border-radius:9px;
+  padding:6px 8px;margin-bottom:8px;box-shadow:var(--shadow)}
+.inkclose-lbl{flex:1;font-size:12.5px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inkclose [data-close]{background:var(--accent);color:#fff;border-radius:7px;padding:6px 12px;font-weight:600}
+.inkbar{position:sticky;top:44px;z-index:5;background:var(--bg);display:flex;gap:6px;align-items:center;margin:8px 0;flex-wrap:wrap;padding:4px 0}
 .inkbar .hint{margin-left:auto}
 .inkc{width:26px;height:26px;border-radius:50%;border:2.5px solid transparent;flex-shrink:0}
 .inkc.on{border-color:var(--text)}
@@ -433,7 +440,14 @@ function visibleNotes(){
 }
 
 const kidsOf=id=>S.cats.filter(k=>k.parent===id);
-const inCatTree=(noteCat,catId)=>noteCat===catId||(catOf(noteCat)||{}).parent===catId;
+// noteCat, catId'nin kendisi mi yoksa herhangi bir derinlikteki alt-torunu mu? (sınırsız iç içe)
+function inCatTree(noteCat,catId){
+  let c=catOf(noteCat), guard=0;
+  while(c&&guard++<50){ if(c.id===catId) return true; c=c.parent?catOf(c.parent):null; }
+  return false;
+}
+// Bir kategorinin kök seviyesine kadar derinliği (girinti için)
+function catDepth(id){ let c=catOf(id),d=0,g=0; while(c&&c.parent&&g++<50){ c=catOf(c.parent); d++; } return d; }
 let subAddFor=null;
 function renderSidebar(){
   document.querySelectorAll(".navitem[data-view]").forEach(b=>{
@@ -441,22 +455,28 @@ function renderSidebar(){
   });
   $("#c-active").textContent=S.notes.filter(n=>!n.done).length||"";
   $("#c-done").textContent=S.notes.filter(n=>n.done).length||"";
-  const catBtn=(c,sub)=>{
-    const cnt=sub?S.notes.filter(n=>n.cat===c.id&&!n.done).length
-              :S.notes.filter(n=>!n.done&&inCatTree(n.cat,c.id)).length;
-    const kids=sub?[]:kidsOf(c.id);
-    return `<button class="navitem ${sub?"subcat":""} ${view.type==="cat"&&view.catId===c.id?"active":""}" data-cat="${c.id}">
-      ${!sub?(kids.length?`<span class="tw ${c.open?"open":""}" data-tw="${c.id}">▶</span>`:`<span class="tw"></span>`):""}
+  const catBtn=(c,depth)=>{
+    const cnt=S.notes.filter(n=>!n.done&&inCatTree(n.cat,c.id)).length;
+    const kids=kidsOf(c.id);
+    return `<button class="navitem ${depth?"subcat":""} ${view.type==="cat"&&view.catId===c.id?"active":""}" data-cat="${c.id}" style="padding-left:${10+depth*18}px">
+      ${kids.length?`<span class="tw ${c.open?"open":""}" data-tw="${c.id}">▶</span>`:`<span class="tw"></span>`}
       <span class="dot" style="background:${c.color}"></span>${esc(c.name)}
       <span class="count">${cnt||""}</span>
-      ${!sub?`<span class="subadd" data-subadd="${c.id}" title="Alt kategori ekle">＋</span>`:""}
+      <span class="subadd" data-subadd="${c.id}" title="Alt kategori ekle">＋</span>
     </button>`;
   };
-  $("#catlist").innerHTML=S.cats.filter(c=>!c.parent).map(c=>
-    catBtn(c,false)
-    +((c.open||subAddFor===c.id)?kidsOf(c.id).map(k=>catBtn(k,true)).join(""):"")
-    +(subAddFor===c.id?`<div class="subcat-row"><input id="subcat-input" placeholder="Alt kategori adı, Enter"></div>`:"")
-  ).join("");
+  function renderCatTree(c,depth){
+    let html=catBtn(c,depth);
+    if(c.open||subAddFor===c.id||kidsOf(c.id).some(k=>inSubAddChain(k.id))){
+      html+=kidsOf(c.id).map(k=>renderCatTree(k,depth+1)).join("");
+      if(subAddFor===c.id)
+        html+=`<div class="subcat-row" style="padding-left:${34+depth*18}px"><input id="subcat-input" placeholder="Alt kategori adı, Enter"></div>`;
+    }
+    return html;
+  }
+  // subAddFor bir alt-torunda ise, atalarını açık göster
+  function inSubAddChain(id){ let c=catOf(id),g=0; while(c&&g++<50){ if(c.id===subAddFor) return true; c=c.parent?catOf(c.parent):null; } return false; }
+  $("#catlist").innerHTML=S.cats.filter(c=>!c.parent).map(c=>renderCatTree(c,0)).join("");
   $("#catlist").querySelectorAll("[data-cat]").forEach(b=>{
     b.onclick=e=>{
       const tw=e.target.closest("[data-tw]"), sa=e.target.closest("[data-subadd]");
@@ -483,7 +503,7 @@ function noteCardHTML(n){
   const cat=catOf(n.cat);
   const dl=n.deadline&&!n.done?timeLeft(n.deadline):null;
   const exp=expandedId===n.id;
-  return `<div class="note ${n.done?"done":""}" id="note-${n.id}">
+  return `<div class="note ${n.done?"done":""} ${exp?"exp":""}" id="note-${n.id}">
     <div class="note-head" data-open="${n.id}">
       <button class="chk" data-done="${n.id}" title="${n.done?"Yeniden aç":"Tamamlandı"}">✓</button>
       <div class="note-body">
@@ -744,13 +764,24 @@ function renderFiles(n){
     const box=document.createElement("div"); box.className="fbox";
     w.appendChild(box);
     if(isImg){
-      box.innerHTML=`<div class="fimg"></div><div class="fmeta">🖼 ${esc(f.name)} · ${fmtSize(f.size)} · büyütmek için tıkla</div>`;
+      const hasInk=f.ink&&Object.values(f.ink).some(a=>a&&a.length);
+      box.innerHTML=`<div class="frow">
+          <span class="fmeta" style="flex:1">🖼 ${esc(f.name)} · ${fmtSize(f.size)}${hasInk?" · ✏️ çizimli":""} · büyütmek için tıkla</span>
+          <button class="fchip fann" title="Kalemle üzerine yaz (Apple Pencil / fare)">✏️ Çiz</button>
+        </div><div class="fimg"></div><div class="fpdf"></div>`;
+      const holder=box.querySelector(".fpdf");
       fileURL(f.id).then(url=>{
-        if(!url){ box.querySelector(".fmeta").textContent="Dosya bulunamadı"; return; }
+        if(!url){ box.querySelector(".fimg").textContent="Dosya bulunamadı"; return; }
         const img=document.createElement("img"); img.src=url; img.alt=esc(f.name);
         img.onclick=()=>openLightbox(url,f.name);
         box.querySelector(".fimg").appendChild(img);
       });
+      box.querySelector(".fann").onclick=()=>{
+        if(holder.style.display==="block"&&holder.dataset.mode==="ink"){
+          holder.style.display="none"; holder.innerHTML=""; holder.dataset.mode=""; return;
+        }
+        openImageAnnot(n,f,holder);
+      };
     } else if(isPdf){
       const hasInk=f.ink&&Object.values(f.ink).some(a=>a&&a.length);
       box.innerHTML=`<div class="frow">
@@ -767,6 +798,7 @@ function renderFiles(n){
       box.querySelector(".fview").onclick=async()=>{
         if(holder.style.display==="block"&&holder.dataset.mode==="view"){ holder.style.display="none"; return; }
         holder.dataset.mode="view"; holder.innerHTML=""; holder.style.display="block";
+        holder.appendChild(makeCloseBar(holder,"📄 "+f.name));
         try{
           await loadPdfjs();
           const blob=await idbGet(f.id); if(!blob) throw new Error("Dosya bulunamadı");
@@ -821,19 +853,19 @@ function loadPdfjs(){
   });
   return pdfjsLoading;
 }
-async function openPdfAnnot(n,f,holder){
-  holder.dataset.mode="ink"; holder.innerHTML=""; holder.style.display="block";
-  const info=document.createElement("div"); info.className="fmeta"; info.textContent="Çizim modu hazırlanıyor…";
-  holder.appendChild(info);
-  let pdf;
-  try{
-    await loadPdfjs();
-    const blob=await idbGet(f.id); if(!blob) throw new Error("Dosya bulunamadı");
-    pdf=await pdfjsLib.getDocument({data:await blob.arrayBuffer()}).promise;
-  }catch(e){ info.textContent="⚠️ "+e.message; return; }
-  info.remove();
+/* Sabit (sticky) kapatma çubuğu — uzun PDF/görselde en üste çıkmadan kapatılabilsin. */
+function makeCloseBar(holder,label){
+  const b=document.createElement("div"); b.className="inkclose";
+  b.innerHTML=`<span class="inkclose-lbl">${label||""}</span><button class="tool" data-close>✕ Kapat</button>`;
+  b.querySelector("[data-close]").onclick=()=>{ holder.style.display="none"; holder.innerHTML=""; holder.dataset.mode=""; };
+  return b;
+}
+/* Ortak çizim motoru — PDF sayfaları ve görseller aynı kalem/silgi/geri-al mantığını paylaşır.
+   registerPage(anahtar, overlayCanvas, W, H) ile her katman bağlanır; f.ink[anahtar] içine 0-1 normalize vuruşlar yazılır. */
+function makeInkEngine(n,f,label){
   if(!f.ink) f.ink={};
-  let color="#1B4FD8", alpha=1, width=0.004, eraser=false, lastPage=null, inkLogged=false;
+  let color="#1B4FD8", alpha=1, width=0.004, eraser=false, lastPage=null, inkLogged=false, inkTimer=0;
+  const pages={};
   const bar=document.createElement("div"); bar.className="inkbar";
   bar.innerHTML=`
     <button class="inkc on" data-c="#1B4FD8" style="background:#1B4FD8" title="Mavi kalem"></button>
@@ -843,7 +875,6 @@ async function openPdfAnnot(n,f,holder){
     <button class="tool" data-eraser>🧽 Silgi</button>
     <button class="tool" data-undo>↩︎ Geri Al</button>
     <span class="hint">kalem/fare çizer · parmak kaydırır</span>`;
-  holder.appendChild(bar);
   bar.querySelectorAll(".inkc").forEach(b=>b.onclick=()=>{
     color=b.dataset.c; eraser=false;
     alpha=color==="#F2C94C"?0.45:1; width=color==="#F2C94C"?0.014:0.004;
@@ -854,7 +885,6 @@ async function openPdfAnnot(n,f,holder){
   bar.querySelector("[data-undo]").onclick=()=>{
     if(lastPage!=null&&(f.ink[lastPage]||[]).length){ f.ink[lastPage].pop(); redraw(lastPage); inkSaved(); }
   };
-  const pages={};
   function drawStroke(ctx,s,W,H){
     ctx.strokeStyle=s.c; ctx.lineWidth=Math.max(1,s.w*W); ctx.lineCap="round"; ctx.lineJoin="round";
     ctx.globalAlpha=s.a||1;
@@ -868,12 +898,11 @@ async function openPdfAnnot(n,f,holder){
     ctx.clearRect(0,0,pg.W,pg.H);
     for(const s of (f.ink[p]||[])) drawStroke(ctx,s,pg.W,pg.H);
   }
-  let inkTimer=0;
   function inkSaved(){
     n.updatedAt=Date.now();
     if(!inkLogged){ inkLogged=true;
-      noteLog(n,"✏️ PDF üzerine çizim: "+f.name);
-      appLog("PDF üzerine çizim: “"+titleOf(n)+"” ← "+f.name,n.id);
+      noteLog(n,"✏️ "+label+" üzerine çizim: "+f.name);
+      appLog(label+" üzerine çizim: “"+titleOf(n)+"” ← "+f.name,n.id);
     }
     clearTimeout(inkTimer); inkTimer=setTimeout(()=>save(),800);
   }
@@ -916,6 +945,23 @@ async function openPdfAnnot(n,f,holder){
     ov.addEventListener("pointerup",up);
     ov.addEventListener("pointercancel",up);
   }
+  function registerPage(p,ov,W,H){ pages[p]={ov,W,H}; redraw(p); attachInk(p,ov); }
+  return {bar, registerPage};
+}
+async function openPdfAnnot(n,f,holder){
+  holder.dataset.mode="ink"; holder.innerHTML=""; holder.style.display="block";
+  holder.appendChild(makeCloseBar(holder,"✏️ "+f.name));
+  const info=document.createElement("div"); info.className="fmeta"; info.textContent="Çizim modu hazırlanıyor…";
+  holder.appendChild(info);
+  let pdf;
+  try{
+    await loadPdfjs();
+    const blob=await idbGet(f.id); if(!blob) throw new Error("Dosya bulunamadı");
+    pdf=await pdfjsLib.getDocument({data:await blob.arrayBuffer()}).promise;
+  }catch(e){ info.textContent="⚠️ "+e.message; return; }
+  info.remove();
+  const eng=makeInkEngine(n,f,"PDF");
+  holder.appendChild(eng.bar);
   const cw=Math.max(holder.clientWidth,320), dpr=devicePixelRatio||1;
   for(let p=1;p<=pdf.numPages;p++){
     const page=await pdf.getPage(p);
@@ -925,12 +971,36 @@ async function openPdfAnnot(n,f,holder){
     const cv=document.createElement("canvas"); cv.width=vp.width; cv.height=vp.height;
     const ov=document.createElement("canvas"); ov.className="inkoverlay"; ov.width=vp.width; ov.height=vp.height;
     wrap.appendChild(cv); wrap.appendChild(ov); holder.appendChild(wrap);
-    // Kayıtlı çizimler ve kalem dinleyicileri render'ı BEKLEMEDEN bağlanır:
-    // yavaş cihazda bile araç anında hazır, eski çizimler hemen görünür.
-    pages[p]={ov,W:vp.width,H:vp.height};
-    redraw(p); attachInk(p,ov);
+    // Kayıtlı çizimler ve kalem dinleyicileri render'ı BEKLEMEDEN bağlanır.
+    eng.registerPage(p,ov,vp.width,vp.height);
     await page.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;
   }
+}
+/* Görsel üzerine Apple Pencil / fare ile çizim — PDF ile aynı motor, tek "sayfa" (anahtar 1). */
+async function openImageAnnot(n,f,holder){
+  holder.dataset.mode="ink"; holder.innerHTML=""; holder.style.display="block";
+  holder.appendChild(makeCloseBar(holder,"✏️ "+f.name));
+  const info=document.createElement("div"); info.className="fmeta"; info.textContent="Görsel yükleniyor…";
+  holder.appendChild(info);
+  const url=await fileURL(f.id);
+  if(!url){ info.textContent="⚠️ Dosya bulunamadı"; return; }
+  const img=new Image();
+  img.onload=()=>{
+    info.remove();
+    const eng=makeInkEngine(n,f,"Görsel");
+    holder.appendChild(eng.bar);
+    const cw=Math.max(holder.clientWidth,320), dpr=devicePixelRatio||1;
+    const scale=cw/img.naturalWidth*dpr;
+    const W=Math.round(img.naturalWidth*scale), H=Math.round(img.naturalHeight*scale);
+    const wrap=document.createElement("div"); wrap.className="inkpage";
+    const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    const ov=document.createElement("canvas"); ov.className="inkoverlay"; ov.width=W; ov.height=H;
+    cv.getContext("2d").drawImage(img,0,0,W,H);
+    wrap.appendChild(cv); wrap.appendChild(ov); holder.appendChild(wrap);
+    eng.registerPage("1",ov,W,H);
+  };
+  img.onerror=()=>{ info.textContent="⚠️ Görsel yüklenemedi"; };
+  img.src=url;
 }
 
 const lb=$("#lightbox");

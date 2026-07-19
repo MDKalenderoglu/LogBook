@@ -1,6 +1,6 @@
 /* LogBook service worker — çevrimdışı çalışma için uygulama kabuğunu önbelleğe alır.
    Strateji: önce ağ (her zaman güncel sürüm), ağ yoksa önbellek. */
-const CACHE = "logbook-v2";
+const CACHE = "logbook-v3";
 const SHELL = ["./", "./index.html", "./NoteBookMD.html", "./manifest.webmanifest",
   "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 

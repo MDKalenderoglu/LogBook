@@ -9,8 +9,9 @@
 - ⚡ **Tek tuşla not** — yaz, Enter'a bas, kaydedildi (otomatik tarih-saat damgasıyla)
 - 🎤 **Ses kaydı** — dalga formlu şık oynatıcıyla
 - 📎 **Dosya ekleri** — görsel, PDF, Word, her tür dosya; sürükle-bırak veya yapıştır. Görseller ve PDF'ler uygulamanın **içinde** görüntülenir
+- ✏️ **Kalemle üzerine yaz (OneNote tarzı)** — PDF ve görsellerin üzerine Apple Pencil veya fareyle çizin, not alın; 4 renk + fosforlu + silgi + geri al. Parmakla kaydırırsınız, kalemle çizersiniz. Uzun belgelerde her zaman erişilebilen sabit **✕ Kapat** çubuğu
 - ⏳ **Deadline geri sayımı** — "3 saat kaldı" gibi canlı sayaç; yaklaşınca sarı, geçince kırmızı
-- 🏷 **Tek tıkla kategori** — notları anında kategorilere ayır
+- 🏷 **İç içe kategoriler** — kategorileri istediğiniz kadar derinlikte alt kategorilere ayırın (Genel › Toplantılar › Haftalık…); üst kategori seçince alt notlar da görünür
 - 📜 **Düzenleme tarihçesi** — her değişiklikte önceki sürüm saklanır; Geçmiş'ten tek tıkla eski hali görüntülenir
 - 📲 **Kurulabilir uygulama (PWA)** — telefonda "Ana Ekrana Ekle" deyin, kendi ikonuyla tam ekran, çevrimdışı bile açılır
 - ☑ **Alt maddeler** — not içinde tikli mini görev listesi (2/5 ilerleme göstergesiyle)
