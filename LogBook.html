@@ -68,6 +68,10 @@ input,textarea,select{font:inherit;color:inherit}
 .sidebar-footer{margin-top:auto;padding-top:12px;display:flex;gap:6px;padding-left:6px;padding-right:6px}
 .sidebar-footer button{flex:1;padding:7px 4px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:12.5px;color:var(--text2)}
 .sidebar-footer button:hover{color:var(--text);border-color:var(--text2)}
+.credit{text-align:center;font-size:10.5px;color:var(--text2);opacity:.55;padding:8px 0 2px;letter-spacing:.02em}
+.credit a{color:inherit;text-decoration:none}
+.credit:hover{opacity:.9}
+.credit a:hover{color:var(--accent)}
 
 /* ---------- Main ---------- */
 #main{flex:1;display:flex;flex-direction:column;min-width:0}
@@ -281,6 +285,7 @@ button.chip:hover{border-color:var(--text2)}
       <button id="importbtn">⬆︎ Geri Yükle</button>
     </div>
     <div id="syncstat"></div>
+    <div class="credit"><a href="https://github.com/MDKalenderoglu/LogBook" target="_blank" rel="noopener">MDKalenderoglu</a> tarafından ✱</div>
     <input type="file" id="importfile" accept=".json" style="display:none">
   </nav>
   <div id="overlay"></div>
@@ -1295,7 +1300,7 @@ async function doExport(){
   const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
   const aEl=document.createElement("a");
   aEl.href=URL.createObjectURL(blob);
-  aEl.download="NoteBookMD-yedek-"+new Date().toISOString().slice(0,10)+".json";
+  aEl.download="LogBook-yedek-"+new Date().toISOString().slice(0,10)+".json";
   aEl.click();
   appLog("📦 Yedek dosyası indirildi"); save(); render();
 }
