@@ -12,11 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Subheading button** in the editor, replacing the undiscoverable `##` shortcut. It marks or unmarks the line at the cursor
 - **Clear everything** — a two-step reset for wiping test data, guarded by a detailed confirmation and a typed keyword. When sync is on, it asks separately whether to wipe the Drive copy; declining leaves Drive untouched so the data can be recovered by reconnecting
 
+- **Collapsible sidebar** — collapse it to a 64px icon rail and back; categories keep their identity as colored initial badges. The preference is stored per device and the rail is disabled on mobile, where the sidebar already slides away
+
 ### Changed
 
 - Quick-add now fills the note **title** instead of the body, so the first thing typed becomes the heading and details can be added underneath
 - Editor hint text moved to the bottom of the editor and no longer mentions `##`
 - Subheadings now render without a space after `##`
+- Sidebar footer laid out as a grid so the buttons no longer overflow; **Clear everything** spans the full width in red
 
 ## [1.0.0] — 2026-07-20
 
