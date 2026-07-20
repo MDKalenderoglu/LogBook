@@ -1,6 +1,6 @@
 /* LogBook service worker — çevrimdışı çalışma için uygulama kabuğunu önbelleğe alır.
    Strateji: önce ağ (her zaman güncel sürüm), ağ yoksa önbellek. */
-const CACHE = "logbook-v7";
+const CACHE = "logbook-v8";
 const SHELL = ["./", "./index.html", "./LogBook.html", "./manifest.webmanifest",
   "./assets/icon-192.png", "./assets/icon-512.png", "./assets/icon-maskable-512.png", "./assets/apple-touch-icon.png"];
 
@@ -26,8 +26,11 @@ self.addEventListener("fetch", e => {
     return;
   }
   if (u.origin !== location.origin) return; // Google API/GSI istekleri SW'ye takılmasın
+  // HTML'i tarayıcı HTTP önbelleğini ATLAYARAK çek: GitHub Pages'in max-age=600
+  // başlığı yüzünden yeni sürüm 10 dakika gecikmesin.
+  const isDoc = e.request.mode === "navigate" || u.pathname.endsWith(".html") || u.pathname.endsWith("/");
   e.respondWith(
-    fetch(e.request).then(r => {
+    fetch(isDoc ? new Request(e.request, { cache: "reload" }) : e.request).then(r => {
       const copy = r.clone();
       caches.open(CACHE).then(c => c.put(e.request, copy));
       return r;
