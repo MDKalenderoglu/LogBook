@@ -61,6 +61,15 @@ input,textarea,select{font:inherit;color:inherit}
 .navitem .subadd{margin-left:2px;opacity:0;font-size:14px;color:var(--text2);line-height:1}
 .navitem:hover .subadd{opacity:1}
 .navitem .subadd:hover{color:var(--accent)}
+.navitem .catedit{margin-left:2px;opacity:0;font-size:14px;color:var(--text2);line-height:1}
+.navitem:hover .catedit{opacity:1}
+.navitem .catedit:hover{color:var(--accent)}
+#pop .swatches{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px 4px}
+#pop .swatches span{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+#pop .swatches span:hover{transform:scale(1.15)}
+#pop .swatches span.on{border-color:var(--text)}
+#pop .sep{height:1px;background:var(--border);margin:6px 4px}
+#pop input.rename{width:calc(100% - 20px);margin:4px 10px 6px;padding:6px 8px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px}
 .subcat-row{padding:2px 10px 4px 36px}
 .subcat-row input{width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:7px;background:var(--surface);outline:none;font-size:12.5px}
 #newcat-row{display:none;padding:4px 10px}
@@ -283,6 +292,7 @@ button.chip:hover{border-color:var(--text2)}
       <button id="syncbtn">☁️ Senkron</button>
       <button id="exportbtn">⬇︎ Yedek</button>
       <button id="importbtn">⬆︎ Geri Yükle</button>
+      <button id="wipebtn" title="Her şeyi temizle">🧹 Temizle</button>
     </div>
     <div id="syncstat"></div>
     <div class="credit"><a href="https://github.com/MDKalenderoglu/LogBook" target="_blank" rel="noopener">MDKalenderoglu</a> tarafından ✱</div>
@@ -352,7 +362,7 @@ function renderContent(t){
   for(const line of (t||"").split("\n")){
     const d=line.match(/^⏱\s+(.*)/);
     if(d){ out+=`<div class="pdate">${esc(d[1])}</div>`; continue; }
-    const m=line.match(/^(#{1,3})\s+(.*)/);
+    const m=line.match(/^(#{1,3})\s*(.*)/);
     if(m) out+=`<div class="ph${m[1].length}">${linkify(esc(m[2]))}</div>`;
     else out+=linkify(esc(line))+"\n";
   }
@@ -408,6 +418,10 @@ async function idbPut(id,blob){ const db=await idbOpen(); return new Promise((re
 async function idbGet(id){ const db=await idbOpen(); return new Promise((res,rej)=>{
   const r=db.transaction("audio").objectStore("audio").get(id);
   r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+});}
+async function idbClear(){ const db=await idbOpen(); return new Promise((res,rej)=>{
+  const tx=db.transaction("audio","readwrite"); tx.objectStore("audio").clear();
+  tx.oncomplete=res; tx.onerror=()=>rej(tx.error);
 });}
 
 /* ================= CRUD ================= */
@@ -472,6 +486,7 @@ function renderSidebar(){
       <span class="dot" style="background:${c.color}"></span>${esc(c.name)}
       <span class="count">${cnt||""}</span>
       <span class="subadd" data-subadd="${c.id}" title="Alt kategori ekle">＋</span>
+      <span class="catedit" data-catedit="${c.id}" title="Düzenle: ad, renk, sil">⋯</span>
     </button>`;
   };
   function renderCatTree(c,depth){
@@ -488,8 +503,10 @@ function renderSidebar(){
   $("#catlist").innerHTML=S.cats.filter(c=>!c.parent).map(c=>renderCatTree(c,0)).join("");
   $("#catlist").querySelectorAll("[data-cat]").forEach(b=>{
     b.onclick=e=>{
-      const tw=e.target.closest("[data-tw]"), sa=e.target.closest("[data-subadd]");
+      const tw=e.target.closest("[data-tw]"), sa=e.target.closest("[data-subadd]"),
+            ce=e.target.closest("[data-catedit]");
       if(tw){ const c=catOf(tw.dataset.tw); c.open=!c.open; save(); renderSidebar(); return; }
+      if(ce){ openCatEditPop(ce,ce.dataset.catedit); return; }
       if(sa){ subAddFor=subAddFor===sa.dataset.subadd?null:sa.dataset.subadd; renderSidebar();
         $("#subcat-input")?.focus(); return; }
       setView({type:"cat",catId:b.dataset.cat});
@@ -540,7 +557,6 @@ function editorHTML(n){
   return `<div class="editor" id="editor-${n.id}">
     <input class="title" id="ed-title" placeholder="Başlık" value="${esc(n.title)}">
     <textarea id="ed-content" placeholder="Notunu yaz…">${esc(n.content)}</textarea>
-    <div class="hint">İpucu: satıra <b>##</b> ile başlarsan alt başlık olur · linkler otomatik tıklanabilir · dosya sürükle/yapıştır olur · uzun aradan sonra dönünce araya otomatik tarih düşülür (⏱ satırı)</div>
     <div id="ed-subs"></div>
     <div class="editor-row">
       <label>⏰ Bitiş:</label>
@@ -548,6 +564,7 @@ function editorHTML(n){
       ${n.deadline?`<button class="tool danger" id="ed-dl-clear">✕ Kaldır</button>`:""}
     </div>
     <div class="editor-row">
+      <button class="tool" id="ed-head">🔠 Alt Başlık</button>
       <button class="tool" id="ed-dictate">🗣 Sesle Yaz</button>
       <button class="tool" id="ed-rec">🎤 Ses Kaydet</button>
       <button class="tool" id="ed-file">📎 Dosya Ekle</button>
@@ -559,6 +576,7 @@ function editorHTML(n){
     <div class="audios" id="ed-audios"></div>
     <div class="files" id="ed-files"></div>
     <div class="nlog" id="ed-log" style="display:none"></div>
+    <div class="hint">İpucu: linkler otomatik tıklanabilir · dosya sürükle/yapıştır olur · uzun aradan sonra dönünce araya otomatik tarih düşülür (⏱ satırı)</div>
   </div>`;
 }
 
@@ -700,6 +718,18 @@ function bindEditor(){
       });
       el.style.display="block";
     } else el.style.display="none";
+  };
+  // Alt başlık: imlecin bulunduğu satırı "## " ile işaretler (varsa geri alır)
+  $("#ed-head").onclick=()=>{
+    const pos=c.selectionStart, v=c.value;
+    const ls=v.lastIndexOf("\n",pos-1)+1;
+    let le=v.indexOf("\n",ls); if(le<0) le=v.length;
+    const line=v.slice(ls,le), isH=/^##\s*/.test(line);
+    const nl=isH?line.replace(/^##\s*/,""):"## "+line;
+    c.value=v.slice(0,ls)+nl+v.slice(le);
+    const caret=ls+nl.length;
+    c.focus(); c.setSelectionRange(caret,caret);
+    n.content=c.value; n.updatedAt=Date.now(); save();
   };
   const dictBtn=$("#ed-dictate");
   if(!SR) dictBtn.style.display="none";
@@ -1066,6 +1096,58 @@ function bindEditorKeepFocus(){ /* re-render sonrası editor tekrar bağlanır (
 
 /* ---------- category popover ---------- */
 const pop=$("#pop");
+/* Kategori düzenleme: renk, yeniden adlandırma, silme */
+function openCatEditPop(anchor,catId){
+  const c=catOf(catId); if(!c)return;
+  const kids=kidsOf(catId), notes=S.notes.filter(n=>n.cat===catId);
+  pop.innerHTML=
+    `<div class="swatches">${CAT_COLORS.map(col=>
+      `<span data-col="${col}" class="${col===c.color?"on":""}" style="background:${col}"></span>`).join("")}</div>`+
+    `<input class="rename" id="cat-rename" value="${esc(c.name)}" placeholder="Kategori adı">`+
+    `<div class="sep"></div>`+
+    `<button data-act="del" style="color:var(--red)">🗑 Kategoriyi sil</button>`;
+  const r=anchor.getBoundingClientRect();
+  pop.style.display="block";
+  pop.style.left=Math.min(r.left,innerWidth-190)+"px";
+  pop.style.top=(r.bottom+6)+"px";
+
+  pop.querySelectorAll("[data-col]").forEach(s=>{
+    s.onclick=()=>{
+      c.color=s.dataset.col;
+      appLog("🎨 Kategori rengi değişti: "+c.name);
+      save(); renderSidebar(); render();
+      pop.style.display="none";
+    };
+  });
+
+  const ri=$("#cat-rename");
+  ri.onkeydown=e=>{
+    if(e.key==="Enter"&&ri.value.trim()){
+      const old=c.name; c.name=ri.value.trim();
+      appLog("✎ Kategori adı: "+old+" → "+c.name);
+      save(); pop.style.display="none"; render();
+    }
+    if(e.key==="Escape") pop.style.display="none";
+  };
+
+  pop.querySelector("[data-act=del]").onclick=()=>{
+    if(S.cats.length<=1){ alert("Son kategori silinemez."); return; }
+    // Notlar sahipsiz kalmasın: "Genel" siliniyorsa kalan ilk kategoriye taşı
+    let fb=S.cats.find(x=>x.id==="genel"&&x.id!==catId)||S.cats.find(x=>x.id!==catId);
+    const parts=[];
+    if(notes.length) parts.push(notes.length+" not “"+fb.name+"”e taşınacak");
+    if(kids.length) parts.push(kids.length+" alt kategori bir üst seviyeye çıkacak");
+    const detail=parts.length?"\n\n"+parts.join("\n")+".":"\n\nİçi boş.";
+    if(!confirm("“"+c.name+"” kategorisi silinsin mi?"+detail+"\n\nNotların kendisi SİLİNMEZ.")) return;
+    notes.forEach(n=>{ n.cat=fb.id; noteLog(n,"🏷 Kategori silindi → "+fb.name); });
+    kids.forEach(k=>{ k.parent=c.parent||null; });
+    S.cats=S.cats.filter(x=>x.id!==catId);
+    appLog("🗑 Kategori silindi: "+c.name+(notes.length?" ("+notes.length+" not “"+fb.name+"”e taşındı)":""));
+    if(view.type==="cat"&&view.catId===catId) view={type:"active"};
+    save(); pop.style.display="none"; render();
+  };
+}
+
 function openCatPop(anchor,noteId){
   const catOpt=(c,depth)=>
     `<button data-pick="${c.id}" style="padding-left:${10+depth*16}px"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}</button>`
@@ -1090,7 +1172,7 @@ function openCatPop(anchor,noteId){
   });
 }
 document.addEventListener("click",e=>{
-  if(!pop.contains(e.target)&&!e.target.closest("[data-catpick]")) pop.style.display="none";
+  if(!pop.contains(e.target)&&!e.target.closest("[data-catpick]")&&!e.target.closest("[data-catedit]")) pop.style.display="none";
 });
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&expandedId&&!recState.active) collapseNote();
@@ -1384,6 +1466,7 @@ async function driveList(t,q){
   return files;
 }
 const driveDownload=(t,id)=>gFetch(DRIVE_API+"/files/"+id+"?alt=media",{headers:gh(t)});
+const driveDelete=(t,id)=>gFetch(DRIVE_API+"/files/"+id,{method:"DELETE",headers:gh(t)});
 async function driveUpload(t,name,blob,existingId){
   if(existingId){
     await gFetch(DRIVE_UP+"/files/"+existingId+"?uploadType=media",
@@ -1582,7 +1665,8 @@ function quickAdd(){
   stopDictation();
   const inp=$("#qa-input"), v=inp.value.trim();
   if(!v)return;
-  newNote(v); inp.value=""; render(); inp.focus();
+  // İlk yazılan şey BAŞLIK olur; kullanıcı isterse altını sonradan detaylandırır
+  newNote("",v); inp.value=""; render(); inp.focus();
 }
 $("#quickadd").addEventListener("submit",e=>{ e.preventDefault(); quickAdd(); });
 $("#qa-mic").onclick=()=>{
@@ -1592,6 +1676,62 @@ $("#qa-mic").onclick=()=>{
 };
 if(!SR) $("#qa-dictate").style.display="none";
 $("#qa-dictate").onclick=()=>startDictation($("#qa-input"),$("#qa-dictate"));
+
+/* ================= HER ŞEYİ TEMİZLE ================= */
+async function doWipe(){
+  const nN=S.notes.length, nC=S.cats.length,
+        nF=S.notes.reduce((s,n)=>s+n.files.length+n.audios.length,0);
+  if(!nN&&!nF&&nC<=5&&!confirm("Görünüşe göre veri yok. Yine de sıfırlansın mı?")) return;
+
+  // 1. onay — ne gideceğini açıkça söyle
+  if(!confirm("HER ŞEY TEMİZLENSİN Mİ?\n\n"+
+    "• "+nN+" not (tamamlananlar ve tüm düzenleme geçmişi dahil)\n"+
+    "• "+nF+" ek dosya / ses kaydı\n"+
+    "• "+nC+" kategori\n\n"+
+    "Bu işlem GERİ ALINAMAZ. Devam etmeden önce ⬇︎ Yedek almak isteyebilirsin.")) return;
+
+  // Drive seçeneği — varsayılan HAYIR
+  let wipeDrive=false;
+  if(S.syncOn){
+    wipeDrive=confirm("Google Drive'daki veriler de silinsin mi?\n\n"+
+      "• TAMAM → Drive'daki kopya da silinir. Diğer cihazların da bir sonraki eşitlemede boşalır. Geri dönüşü YOKTUR.\n"+
+      "• İptal → Yalnızca bu cihaz temizlenir; Drive'daki veri durur.\n\n"+
+      "Emin değilsen İptal'e bas.");
+  }
+
+  // 2. onay — yazarak doğrulama
+  const word=wipeDrive?"HEPSİNİ SİL":"TEMİZLE";
+  const typed=prompt("Son onay.\n\n"+
+    (wipeDrive?"Bu cihaz VE Google Drive'daki tüm veriler silinecek.\n\n":"Bu cihazdaki tüm veriler silinecek.\n\n")+
+    "Onaylamak için şunu yaz: "+word);
+  if((typed||"").trim()!==word){ alert("İptal edildi — hiçbir şey silinmedi."); return; }
+
+  try{
+    if(wipeDrive){
+      const t=await getToken(false);
+      const files=await driveList(t,"");
+      for(const f of files){ try{ await driveDelete(t,f.id); }catch(e){} }
+    }
+  }catch(e){
+    if(!confirm("Drive temizlenemedi ("+e.message+").\n\nYine de bu cihaz temizlensin mi?")) return;
+  }
+
+  try{ await idbClear(); }catch(e){}
+  fidCache={}; try{ localStorage.removeItem("nbmd_gfid"); }catch(e){}
+  // Senkron kapatılır: açık kalsaydı Drive'daki veri geri inip temizliği boşa çıkarırdı
+  const hadSync=S.syncOn;
+  try{ if(gTok&&gisReady()) google.accounts.oauth2.revoke(gTok.access_token,()=>{}); }catch(e){}
+  dropToken();
+
+  S=seed();
+  S.appLog.push({t:Date.now(),a:"🧹 Her şey temizlendi"+(wipeDrive?" (cihaz + Drive)":" (yalnızca bu cihaz)"),noteId:null});
+  expandedId=null; view={type:"active"}; searchQ="";
+  save(); setSyncStat(""); render();
+
+  alert("Temizlendi."+(wipeDrive?"\n\nDrive'daki veriler de silindi.":
+    hadSync?"\n\nDrive'daki veriler DURUYOR. Senkronu tekrar açarsan notların geri gelir.":""));
+}
+$("#wipebtn").onclick=doWipe;
 
 $("#exportbtn").onclick=doExport;
 $("#importbtn").onclick=()=>$("#importfile").click();
