@@ -1,62 +1,73 @@
-# 📝 LogBook
+# 📝 LogBook — hiçbir fikrini kaybetme
 
-**Hızlı not + görev uygulaması.** OneNote'un not alma gücü ile Microsoft To-Do'nun görev pratikliğini birleştirir. Kurulum yok, internet şartı yok — verileriniz kendi cihazınızda kalır; isterseniz Google hesabınızla tüm cihazlarınıza eşitlenir.
+**Not defteri + görev listesi + karar günlüğü, tek uygulamada.** OneNote'un gücü, To-Do'nun pratikliği — ama bir farkla: **LogBook'ta hiçbir şey silinmez.** Her düzenlemenin öncesi saklanır, ne zaman ne eklediğin tarihiyle durur. Fikir değiştirmek serbest; geçmişini kaybetmek yok.
 
-**LogBook'un farkı: hiçbir şey silinmez.** Her düzenlemede önceki sürüm saklanır, ne eklediğiniz/çıkardığınız tarihiyle loglanır — fikir değiştirmek serbest, geçmişi kaybetmek yok.
+> 🚀 **Hemen dene, kurulum yok:** <https://mdkalenderoglu.github.io/LogBook/>
+>
+> Linki aç, yazmaya başla. Üyelik yok, ücret yok, reklam yok. Verilerin kendi cihazında kalır.
 
-## ✨ Özellikler
+---
 
-- ⚡ **Tek tuşla not** — yaz, Enter'a bas, kaydedildi (otomatik tarih-saat damgasıyla)
-- 🎤 **Ses kaydı** — dalga formlu şık oynatıcıyla
-- 📎 **Dosya ekleri** — görsel, PDF, Word, her tür dosya; sürükle-bırak veya yapıştır. Görseller ve PDF'ler uygulamanın **içinde** görüntülenir; ekler ↑↓ ile sıralanır, 🗑 ile kaldırılır (kaldırma günlüğe işlenir)
-- ✏️ **Kalemle üzerine yaz (OneNote tarzı)** — PDF ve görsellerin üzerine Apple Pencil veya fareyle çizin, not alın; 4 renk + fosforlu + silgi + geri al. Parmakla kaydırırsınız, kalemle çizersiniz. Uzun belgelerde her zaman erişilebilen sabit **✕ Kapat** çubuğu
-- ⏳ **Deadline geri sayımı** — "3 saat kaldı" gibi canlı sayaç; yaklaşınca sarı, geçince kırmızı
-- 🏷 **İç içe kategoriler** — kategorileri istediğiniz kadar derinlikte alt kategorilere ayırın (Genel › Toplantılar › Haftalık…); üst kategori seçince alt notlar da görünür
-- 📜 **Düzenleme tarihçesi** — her değişiklikte önceki sürüm saklanır; Geçmiş'ten tek tıkla eski hali görüntülenir
-- 📲 **Kurulabilir uygulama (PWA)** — telefonda "Ana Ekrana Ekle" deyin, kendi ikonuyla tam ekran, çevrimdışı bile açılır
-- ☑ **Alt maddeler** — not içinde tikli mini görev listesi (2/5 ilerleme göstergesiyle)
-- 📑 **Alt başlıklar** — satıra `## ` ile başla, başlık olsun; linkler otomatik tıklanabilir
-- ✅ **Biten işler arşivi** — tik at, arşive gitsin; **hiçbir şey silinmez**
-- 🕘 **Tam günlük** — her ekleme, düzenleme, değişiklik tarihiyle loglanır
-- 🌗 **Açık / koyu tema** — göz yormayan, ılık tonlar
-- 💾 **Yedekleme** — tek dosyalık JSON yedek al, başka cihazda geri yükle
-- ☁️ **Otomatik bulut senkronu** — Google hesabınla tek tık giriş yap; notların kendi Google Drive'ının **gizli uygulama alanında** saklanır ve tüm cihazlarında otomatik eşitlenir. Uygulama Drive'daki diğer dosyalarını göremez, onlara dokunamaz
+## Neden LogBook?
 
-## 🚀 Kurulum (30 saniye)
+| Sen ne yaşıyorsun? | LogBook ne yapıyor? |
+|---|---|
+| "Bu kararı geçen ay neden değiştirmiştim?" | Her düzenlemede önceki sürüm saklanır; Geçmiş'ten tek tıkla eski hâlini oku |
+| "Toplantıda PDF'in üzerine not almak istiyorum" | PDF'i ve görselleri uygulama **içinde** aç, **Apple Pencil** ya da fareyle üzerine çiz |
+| "Notlarım telefonda ayrı, bilgisayarda ayrı" | Google hesabınla tek tık giriş; tüm cihazların kendiliğinden eşitlenir |
+| "Uygulama kurmak, hesap açmak istemiyorum" | Linki aç, bitti. İstersen ana ekrana ekle, gerçek uygulama gibi çalışsın |
+| "Yazmaya üşeniyorum" | 🗣 Türkçe konuş, yazıya dökülsün; ya da 🎤 sesli not bırak |
 
-### Bilgisayar (Mac veya Windows)
+## ✨ Neler var?
 
-1. Bu sayfanın üstündeki yeşil **Code** düğmesine, sonra **Download ZIP**'e tıklayın.
-2. İnen ZIP dosyasını çift tıklayıp açın.
-3. **`NoteBookMD.html`** dosyasına çift tıklayın. Bu kadar! Uygulama tarayıcınızda açılır.
+- ⚡ **Tek tuşla not** — yaz, Enter'a bas, tarih damgasıyla kaydedildi
+- ✏️ **Kalemle çizim (OneNote tarzı)** — PDF ve görsellerin üzerine Apple Pencil / fareyle yaz; 4 renk, fosforlu, silgi, geri al. Parmak kaydırır, kalem çizer. Uzun belgelerde hep görünen **✕ Kapat** çubuğu
+- 📜 **Düzenleme tarihçesi** — silmek yok, üzerine yazmak yok; her sürüm tarihiyle durur
+- 🗣 **Türkçe dikte** — konuş, metne dönüşsün (hızlı notta ve editörde)
+- 🎤 **Ses kaydı** — dalga formlu oynatıcıyla notun içinde
+- 📎 **Her tür dosya eki** — sürükle-bırak veya yapıştır; görsel ve PDF'ler uygulama içinde açılır; ekleri ↑↓ sırala, 🗑 kaldır (kaldırma bile günlüğe işlenir)
+- 🏷 **İç içe kategoriler** — Genel › Toplantılar › Haftalık… istediğin kadar derin; üst kategori alt notları da gösterir
+- ⏳ **Deadline geri sayımı** — "3 saat kaldı" canlı sayaç; yaklaşınca sarı, geçince kırmızı
+- ☑ **Alt maddeler** — not içinde tikli mini görev listesi (2/5 ilerleme)
+- ⏱ **Otomatik tarih ayracı** — uzun aradan sonra döndüğünde notun devamına tarih düşülür: ne zaman ne düşündüğün belli olur
+- 🕘 **Tam günlük** — her ekleme, düzenleme, tamamlama tarihiyle kayıtta
+- 🌗 **Açık / koyu tema** — göz yormayan ılık tonlar
+- ☁️ **Google Drive senkronu** — notların kendi Drive'ının **gizli uygulama alanında**; uygulama diğer dosyalarını göremez
+- 💾 **Tek dosyalık yedek** — sesler ve ekler dahil her şey tek JSON'da; başka cihazda tek tıkla geri yükle
+- 📲 **Kurulabilir (PWA)** — ana ekrana ekle, kendi ikonuyla tam ekran, **çevrimdışı bile açılır**
 
-> 🍎 Mac kullanıcıları: klasördeki **NoteBookMD.app**'i Dock'a sürükleyerek gerçek bir uygulama gibi tek tıkla açabilirsiniz. İlk açılışta macOS uyarı verirse: simgeye sağ tıklayın → **Aç** deyin (bir kere yeterli).
+## 📲 Kurulum — 30 saniye, her cihazda
 
-### Telefon ve tablet (iPhone, iPad, Android)
+**Önce linki aç:** <https://mdkalenderoglu.github.io/LogBook/>
 
-Bu repo GitHub Pages ile yayınlandıysa site linkini telefonunuzun tarayıcısında açın, sonra:
+| Cihaz | Yapman gereken |
+|---|---|
+| **iPhone / iPad** (Safari) | Paylaş düğmesi (□↑) → **Ana Ekrana Ekle** |
+| **Android** (Chrome) | Menü (⋮) → **Ana ekrana ekle** / **Uygulamayı yükle** |
+| **Windows PC** (Chrome/Edge) | Adres çubuğundaki **yükle simgesi** (⊕/monitör) → Yükle |
+| **Mac** (Safari) | Dosya → **Dock'a Ekle** · (Chrome: adres çubuğundan Yükle) |
 
-- **iPhone/iPad:** Paylaş düğmesi → **Ana Ekrana Ekle**
-- **Android:** Menü (⋮) → **Ana ekrana ekle**
+Artık kendi ikonuyla, tam ekran, gerçek bir uygulama gibi açılır — internet yokken bile.
 
-Artık ana ekranınızda kendi simgesiyle, tam ekran bir uygulama olarak durur.
+> 💻 **İnternetsiz kullanım (ZIP):** GitHub'dan **Code → Download ZIP** indir, `NoteBookMD.html`'e çift tıkla. Not alma, ekler, yedekleme hepsi çalışır. Yalnızca Google senkronu web adresi ister (Google güvenlik kuralı).
 
-## 🔒 Verileriniz nerede?
+## 🔒 Verilerin nerede?
 
-**Varsayılan olarak tamamen sizin cihazınızda.** Notlar tarayıcınızın yerel deposunda (localStorage), ses kayıtları ve dosyalar yine tarayıcının kendi veritabanında (IndexedDB) saklanır.
+**Varsayılan: yüzde yüz kendi cihazında.** Notlar tarayıcının yerel deposunda, sesler ve dosyalar tarayıcının veritabanında. Hiçbir sunucuya gönderilmez.
 
-Cihazlar arası eşitleme istiyorsanız sol alttaki **☁️ Senkron** düğmesine tıklayıp Google hesabınızla giriş yapın — notlarınız kendi Google Drive'ınızın gizli uygulama alanında (`appDataFolder`) saklanır ve her değişiklik otomatik eşitlenir. Bu alan normal Drive arayüzünde görünmez, sadece bu uygulama erişebilir; siz bağlantıyı kesene kadar orada kalır. Senkron kullanmıyorsan elle taşıma da mümkün:
+Cihazlar arası eşitleme istersen sol alttan **☁️ Senkron** → Google girişi. Notların kendi Google Drive'ının `appDataFolder` denen gizli bölmesine yazılır: normal Drive arayüzünde görünmez, yalnızca bu uygulama erişebilir, uygulama da Drive'daki **başka hiçbir dosyanı göremez**. Bağlantıyı kestiğinde veriler sende kalır.
 
-1. Kaynak cihazda sol alttaki **⬇︎ Yedek** düğmesiyle JSON dosyası indirin (ses ve dosya ekleri dahildir).
-2. Bu dosyayı hedef cihaza gönderin (AirDrop, e-posta, WhatsApp…).
-3. Hedef cihazda **⬆︎ Geri Yükle** ile açın.
+**Yedekleme mimarisi (kemer + pantolon askısı):**
+1. **Anlık:** her tuş vuruşu cihaza kaydedilir
+2. **Bulut:** değişiklikten 4 sn sonra + 90 sn'de bir + her açılışta Drive'a eşitlenir; çakışmada hiçbir tarihçe kaybolmaz (loglar ve eski sürümler daima birleşir)
+3. **Elle:** **⬇︎ Yedek** ile sesler-ekler dahil tek JSON indir; AirDrop/e-posta ile taşı, **⬆︎ Geri Yükle** ile aç — geri yükleme cihazın senkron bağlantısını bozmaz
 
-> ⚠️ Önemli: Tarayıcı geçmişini/site verilerini temizlerseniz notlarınız da silinir. Arada bir **Yedek** almayı alışkanlık edinin.
+> ⚠️ Tarayıcı site verilerini temizlersen yerel notlar da gider. Senkronu açık tut ya da arada bir **Yedek** al.
 
-## 🛠 Teknik
+## 🛠 Teknik (meraklısına)
 
-Tek bir HTML dosyası. Framework yok, bağımlılık yok, derleme yok. `NoteBookMD.html` = uygulamanın tamamı. `index.html` aynı dosyanın kopyasıdır (GitHub Pages'in siteyi kökten sunabilmesi için).
+Tek HTML dosyası. Framework yok, derleme yok, sunucu yok, izleme yok. `NoteBookMD.html` = uygulamanın tamamı (`index.html` aynı dosyanın kopyası). Service worker çevrimdışı kabuk sağlar; PDF motoru (pdf.js) ilk kullanımda bir kez indirilir, sonra önbellekten çalışır.
 
 ## 📄 Lisans
 
-MIT — özgürce kullanın, paylaşın, geliştirin.
+MIT — özgürce kullan, paylaş, geliştir.

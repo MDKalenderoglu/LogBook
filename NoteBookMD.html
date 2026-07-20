@@ -34,7 +34,7 @@ body{
 }
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 input,textarea,select{font:inherit;color:inherit}
-#app{display:flex;height:100dvh}
+#app{display:flex;height:100vh;height:100dvh}
 
 /* ---------- Sidebar ---------- */
 #sidebar{
@@ -255,7 +255,7 @@ button.chip:hover{border-color:var(--text2)}
 /* mobile */
 #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:19}
 @media(max-width:760px){
-  #sidebar{position:fixed;z-index:20;height:100dvh;transform:translateX(-100%);box-shadow:var(--shadow)}
+  #sidebar{position:fixed;z-index:20;height:100vh;height:100dvh;transform:translateX(-100%);box-shadow:var(--shadow)}
   #sidebar.open{transform:translateX(0)}
   #overlay.show{display:block}
   #hamburger{display:block}
