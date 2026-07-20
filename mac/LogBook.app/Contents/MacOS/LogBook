@@ -1,0 +1,7 @@
+#!/bin/sh
+# LogBook baslatici: uygulamayi varsayilan tarayicida acar. Sunucu/kurulum gerekmez.
+DIR="$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd)"
+for CAND in "$DIR/LogBook.html" "$DIR/../LogBook.html" "$DIR/index.html" "$DIR/../index.html"; do
+  [ -f "$CAND" ] && exec open "$CAND"
+done
+exec open "https://mdkalenderoglu.github.io/LogBook/"

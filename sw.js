@@ -1,8 +1,8 @@
 /* LogBook service worker — çevrimdışı çalışma için uygulama kabuğunu önbelleğe alır.
    Strateji: önce ağ (her zaman güncel sürüm), ağ yoksa önbellek. */
-const CACHE = "logbook-v4";
-const SHELL = ["./", "./index.html", "./NoteBookMD.html", "./manifest.webmanifest",
-  "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
+const CACHE = "logbook-v5";
+const SHELL = ["./", "./index.html", "./LogBook.html", "./manifest.webmanifest",
+  "./assets/icon-192.png", "./assets/icon-512.png", "./assets/icon-maskable-512.png", "./assets/apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

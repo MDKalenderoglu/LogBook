@@ -49,7 +49,7 @@
 
 Artık kendi ikonuyla, tam ekran, gerçek bir uygulama gibi açılır — internet yokken bile.
 
-> 💻 **İnternetsiz kullanım (ZIP):** GitHub'dan **Code → Download ZIP** indir, `NoteBookMD.html`'e çift tıkla. Not alma, ekler, yedekleme hepsi çalışır. Yalnızca Google senkronu web adresi ister (Google güvenlik kuralı).
+> 💻 **İnternetsiz kullanım (ZIP):** GitHub'dan **Code → Download ZIP** indir, `LogBook.html`'e çift tıkla. Not alma, ekler, yedekleme hepsi çalışır. Yalnızca Google senkronu web adresi ister (Google güvenlik kuralı). 🍎 Mac'te `mac/LogBook.app`'i Dock'a sürükleyip tek tıkla açabilirsin (ilk açılışta sağ tık → Aç).
 
 ## 🔒 Verilerin nerede?
 
@@ -66,7 +66,17 @@ Cihazlar arası eşitleme istersen sol alttan **☁️ Senkron** → Google giri
 
 ## 🛠 Teknik (meraklısına)
 
-Tek HTML dosyası. Framework yok, derleme yok, sunucu yok, izleme yok. `NoteBookMD.html` = uygulamanın tamamı (`index.html` aynı dosyanın kopyası). Service worker çevrimdışı kabuk sağlar; PDF motoru (pdf.js) ilk kullanımda bir kez indirilir, sonra önbellekten çalışır.
+Tek HTML dosyası. Framework yok, derleme yok, sunucu yok, izleme yok. `index.html` = uygulamanın tamamı (`LogBook.html` aynı dosyanın çift-tıklanabilir kopyası). Service worker çevrimdışı kabuk sağlar; PDF motoru (pdf.js) ilk kullanımda bir kez indirilir, sonra önbellekten çalışır.
+
+```
+LogBook/
+├── index.html            ← uygulama (tek dosya)
+├── LogBook.html          ← aynı dosya, ZIP indirenler için
+├── manifest.webmanifest  ← PWA kimliği
+├── sw.js                 ← çevrimdışı önbellek
+├── assets/               ← uygulama ikonları
+└── mac/LogBook.app       ← Mac için tek-tık başlatıcı
+```
 
 ## 📄 Lisans
 
