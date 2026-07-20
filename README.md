@@ -1,83 +1,91 @@
-# 📝 LogBook — hiçbir fikrini kaybetme
+# LogBook
 
-**Not defteri + görev listesi + karar günlüğü, tek uygulamada.** OneNote'un gücü, To-Do'nun pratikliği — ama bir farkla: **LogBook'ta hiçbir şey silinmez.** Her düzenlemenin öncesi saklanır, ne zaman ne eklediğin tarihiyle durur. Fikir değiştirmek serbest; geçmişini kaybetmek yok.
+**A notebook, task list, and decision journal in one page — where nothing is ever overwritten.**
 
-> 🚀 **Hemen dene, kurulum yok:** <https://mdkalenderoglu.github.io/LogBook/>
->
-> Linki aç, yazmaya başla. Üyelik yok, ücret yok, reklam yok. Verilerin kendi cihazında kalır.
+[![Live demo](https://img.shields.io/badge/demo-logbook-2ea44f)](https://mdkalenderoglu.github.io/LogBook/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![PWA](https://img.shields.io/badge/PWA-installable-5a4fcf)](#install)
+[![No build step](https://img.shields.io/badge/build-none-lightgrey)](#architecture)
+
+Every edit keeps its predecessor. You can change your mind freely without losing the reasoning that got you there — which is the part most note apps throw away.
+
+**[Open the app →](https://mdkalenderoglu.github.io/LogBook/)** No sign-up, no install, no tracking. Your data stays on your device.
+
+🇹🇷 [Türkçe README](README.tr.md)
 
 ---
 
-## Neden LogBook?
+## Why
 
-| Sen ne yaşıyorsun? | LogBook ne yapıyor? |
+| The problem | What LogBook does |
 |---|---|
-| "Bu kararı geçen ay neden değiştirmiştim?" | Her düzenlemede önceki sürüm saklanır; Geçmiş'ten tek tıkla eski hâlini oku |
-| "Toplantıda PDF'in üzerine not almak istiyorum" | PDF'i ve görselleri uygulama **içinde** aç, **Apple Pencil** ya da fareyle üzerine çiz |
-| "Notlarım telefonda ayrı, bilgisayarda ayrı" | Google hesabınla tek tık giriş; tüm cihazların kendiliğinden eşitlenir |
-| "Uygulama kurmak, hesap açmak istemiyorum" | Linki aç, bitti. İstersen ana ekrana ekle, gerçek uygulama gibi çalışsın |
-| "Yazmaya üşeniyorum" | 🗣 Türkçe konuş, yazıya dökülsün; ya da 🎤 sesli not bırak |
+| "Why did I change this decision last month?" | Every edit preserves the previous version, timestamped and one click away |
+| "I want to annotate this PDF during the meeting" | Open PDFs and images *inside* the app and draw on them with Apple Pencil or a mouse |
+| "My notes are split across phone and laptop" | One-click Google sign-in; all devices converge automatically |
+| "I don't want to install anything or create an account" | Open the link and start typing. Add to home screen if you want it to feel native |
+| "Typing is a chore" | Dictate in Turkish, or drop a voice memo into the note |
 
-## ✨ Neler var?
+## Features
 
-- ⚡ **Tek tuşla not** — yaz, Enter'a bas, tarih damgasıyla kaydedildi
-- ✏️ **Kalemle çizim (OneNote tarzı)** — PDF ve görsellerin üzerine Apple Pencil / fareyle yaz; 4 renk, fosforlu, silgi, geri al. Parmak kaydırır, kalem çizer. Uzun belgelerde hep görünen **✕ Kapat** çubuğu
-- 📜 **Düzenleme tarihçesi** — silmek yok, üzerine yazmak yok; her sürüm tarihiyle durur
-- 🗣 **Türkçe dikte** — konuş, metne dönüşsün (hızlı notta ve editörde)
-- 🎤 **Ses kaydı** — dalga formlu oynatıcıyla notun içinde
-- 📎 **Her tür dosya eki** — sürükle-bırak veya yapıştır; görsel ve PDF'ler uygulama içinde açılır; ekleri ↑↓ sırala, 🗑 kaldır (kaldırma bile günlüğe işlenir)
-- 🏷 **İç içe kategoriler** — Genel › Toplantılar › Haftalık… istediğin kadar derin; üst kategori alt notları da gösterir
-- ⏳ **Deadline geri sayımı** — "3 saat kaldı" canlı sayaç; yaklaşınca sarı, geçince kırmızı
-- ☑ **Alt maddeler** — not içinde tikli mini görev listesi (2/5 ilerleme)
-- ⏱ **Otomatik tarih ayracı** — uzun aradan sonra döndüğünde notun devamına tarih düşülür: ne zaman ne düşündüğün belli olur
-- 🕘 **Tam günlük** — her ekleme, düzenleme, tamamlama tarihiyle kayıtta
-- 🌗 **Açık / koyu tema** — göz yormayan ılık tonlar
-- ☁️ **Google Drive senkronu** — notların kendi Drive'ının **gizli uygulama alanında**; uygulama diğer dosyalarını göremez
-- 💾 **Tek dosyalık yedek** — sesler ve ekler dahil her şey tek JSON'da; başka cihazda tek tıkla geri yükle
-- 📲 **Kurulabilir (PWA)** — ana ekrana ekle, kendi ikonuyla tam ekran, **çevrimdışı bile açılır**
+- **Instant capture** — type, press Enter, it's saved with a timestamp
+- **Pen annotation** — draw on PDFs and images with Apple Pencil or mouse; four colors, highlighter, eraser, undo. Finger scrolls, pen draws
+- **Full edit history** — nothing is deleted or overwritten; every version persists with its date
+- **Turkish dictation** — speech-to-text via the Web Speech API
+- **Voice notes** — recorded inline with a waveform player
+- **Attachments of any type** — drag, drop, or paste; images and PDFs open in-app; reorder or remove them (removals are logged too)
+- **Nested categories** — arbitrarily deep; a parent category also surfaces its children's notes
+- **Deadline countdown** — live "3 hours left" counter that turns amber, then red
+- **Sub-tasks** — a checkable mini-list inside any note, with progress
+- **Automatic date separators** — return to a note after a long gap and the continuation is stamped, so the chronology is visible in the text itself
+- **Complete activity log** — every addition, edit, and completion recorded with its date
+- **Light / dark theme**
+- **Google Drive sync** — stored in your Drive's hidden app folder; the app cannot see any of your other files
+- **Single-file backup** — everything including audio and attachments in one JSON
+- **Installable (PWA)** — home-screen icon, full screen, works offline
 
-## 📲 Kurulum — 30 saniye, her cihazda
+## Install
 
-**Önce linki aç:** <https://mdkalenderoglu.github.io/LogBook/>
+**Start here:** <https://mdkalenderoglu.github.io/LogBook/>
 
-| Cihaz | Yapman gereken |
+| Device | Steps |
 |---|---|
-| **iPhone / iPad** (Safari) | Paylaş düğmesi (□↑) → **Ana Ekrana Ekle** |
-| **Android** (Chrome) | Menü (⋮) → **Ana ekrana ekle** / **Uygulamayı yükle** |
-| **Windows PC** (Chrome/Edge) | Adres çubuğundaki **yükle simgesi** (⊕/monitör) → Yükle |
-| **Mac** (Safari) | Dosya → **Dock'a Ekle** · (Chrome: adres çubuğundan Yükle) |
+| **iPhone / iPad** (Safari) | Share (□↑) → **Add to Home Screen** |
+| **Android** (Chrome) | Menu (⋮) → **Install app** |
+| **Windows** (Chrome/Edge) | Install icon in the address bar → Install |
+| **macOS** (Safari) | File → **Add to Dock** · (Chrome: install from address bar) |
 
-Artık kendi ikonuyla, tam ekran, gerçek bir uygulama gibi açılır — internet yokken bile.
+It then launches full screen with its own icon, and opens even without a connection.
 
-> 💻 **İnternetsiz kullanım (ZIP):** GitHub'dan **Code → Download ZIP** indir, `LogBook.html`'e çift tıkla. Not alma, ekler, yedekleme hepsi çalışır. Yalnızca Google senkronu web adresi ister (Google güvenlik kuralı). 🍎 Mac'te `mac/LogBook.app`'i Dock'a sürükleyip tek tıkla açabilirsin (ilk açılışta sağ tık → Aç).
+> **Fully offline (ZIP):** download via **Code → Download ZIP** and double-click `LogBook.html`. Notes, attachments, and backup all work. Only Google sync requires a web origin (a Google security rule). On macOS, drag `mac/LogBook.app` to your Dock — right-click → Open on first launch.
 
-## 🔒 Verilerin nerede?
+## Where your data lives
 
-**Varsayılan: yüzde yüz kendi cihazında.** Notlar tarayıcının yerel deposunda, sesler ve dosyalar tarayıcının veritabanında. Hiçbir sunucuya gönderilmez.
+**By default, entirely on your device.** Notes live in browser local storage; audio and files in IndexedDB. Nothing is sent to any server.
 
-Cihazlar arası eşitleme istersen sol alttan **☁️ Senkron** → Google girişi. Notların kendi Google Drive'ının `appDataFolder` denen gizli bölmesine yazılır: normal Drive arayüzünde görünmez, yalnızca bu uygulama erişebilir, uygulama da Drive'daki **başka hiçbir dosyanı göremez**. Bağlantıyı kestiğinde veriler sende kalır.
+For cross-device sync, use **Sync** in the sidebar and sign in with Google. Notes are written to the `appDataFolder` of your own Google Drive — a private area invisible in the normal Drive interface, accessible only to this app. The app requests no access to the rest of your Drive. Disconnecting leaves your data intact.
 
-**Yedekleme mimarisi (kemer + pantolon askısı):**
-1. **Anlık:** her tuş vuruşu cihaza kaydedilir
-2. **Bulut:** değişiklikten 4 sn sonra + 90 sn'de bir + her açılışta Drive'a eşitlenir; çakışmada hiçbir tarihçe kaybolmaz (loglar ve eski sürümler daima birleşir)
-3. **Elle:** **⬇︎ Yedek** ile sesler-ekler dahil tek JSON indir; AirDrop/e-posta ile taşı, **⬆︎ Geri Yükle** ile aç — geri yükleme cihazın senkron bağlantısını bozmaz
+**Three layers of durability:**
 
-> ⚠️ Tarayıcı site verilerini temizlersen yerel notlar da gider. Senkronu açık tut ya da arada bir **Yedek** al.
+1. **Local** — every keystroke is persisted to the device
+2. **Cloud** — synced to Drive 4s after a change, every 90s, and on every launch. On conflict, no history is lost: logs and prior versions always merge
+3. **Manual** — export a single JSON with audio and attachments included, move it however you like, and restore it elsewhere without breaking that device's sync link
 
-## 🛠 Teknik (meraklısına)
+> ⚠️ Clearing your browser's site data also clears local notes. Keep sync on, or export a backup periodically.
 
-Tek HTML dosyası. Framework yok, derleme yok, sunucu yok, izleme yok. `index.html` = uygulamanın tamamı (`LogBook.html` aynı dosyanın çift-tıklanabilir kopyası). Service worker çevrimdışı kabuk sağlar; PDF motoru (pdf.js) ilk kullanımda bir kez indirilir, sonra önbellekten çalışır.
+## Architecture
+
+One HTML file. No framework, no build step, no server, no telemetry. `index.html` is the entire application; `LogBook.html` is a double-clickable copy of the same file. A service worker provides the offline shell, and the PDF engine (pdf.js) is fetched once on first use, then served from cache.
 
 ```
 LogBook/
-├── index.html            ← uygulama (tek dosya)
-├── LogBook.html          ← aynı dosya, ZIP indirenler için
-├── manifest.webmanifest  ← PWA kimliği
-├── sw.js                 ← çevrimdışı önbellek
-├── assets/               ← uygulama ikonları
-└── mac/LogBook.app       ← Mac için tek-tık başlatıcı
+├── index.html            # the application (single file)
+├── LogBook.html          # identical copy, for ZIP downloads
+├── manifest.webmanifest  # PWA identity
+├── sw.js                 # offline cache
+├── assets/               # application icons
+└── mac/LogBook.app       # one-click launcher for macOS
 ```
 
-## 📄 Lisans
+## License
 
-MIT — özgürce kullan, paylaş, geliştir.
+[MIT](LICENSE) — use, share, and modify freely.
