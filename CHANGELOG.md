@@ -4,6 +4,22 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] — 2026-07-25
+
+### Added
+
+- **Mentor & learning column** — a third column beside the notes, holding two areas: items to raise with a supervisor or team, and a study notebook. Entries there are ordinary notes, so writing, attachments, pen annotation, voice recording, revision history, and the activity log behave exactly as in the main list
+- **Triage marks** — every note can be classified red, amber, or green (or left unmarked), shown as a chip and a coloured edge on the card. Changes are recorded in the log, and the side column orders entries by urgency
+- **Queue for review** — a single control adds a note to the mentor list as a reference. The note itself remains in place and is never copied or moved; selecting the control again removes it from the queue
+- **Sectioned study notebook** — the learning area is a reference notebook rather than a task list: entries carry no completion state and remain where they were written. Sections nest to any depth, each with its own capture box, and entries can be reassigned between them. Deleting a section moves its entries to the parent rather than removing them
+- **Per-device panel state** — the column can be hidden on desktop and opens as an overlay on phones and tablets, with a pending-item count on the toolbar control
+
+### Fixed
+
+- On tablet widths (761–1100px) the sliding panel had no dimmed backdrop and could not be dismissed by tapping outside it
+- Hover-only controls — section ＋/⋯ and category ＋/⋯ — were unreachable on touch devices, where no hover exists. They are now shown persistently there, with larger tap targets
+- The top bar could overflow in narrow windows; the view title now truncates and the search field shrinks instead
+
 ## [1.1.0] — 2026-07-20
 
 ### Added

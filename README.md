@@ -24,10 +24,15 @@ Every edit keeps its predecessor. You can change your mind freely without losing
 | "My notes are split across phone and laptop" | One-click Google sign-in; all devices converge automatically |
 | "I don't want to install anything or create an account" | Open the link and start typing. Add to home screen if you want it to feel native |
 | "Typing is a chore" | Dictate in Turkish, or drop a voice memo into the note |
+| "Points for the next supervision meeting end up scattered" | Queue any note into a dedicated mentor list that sits beside your notes |
 
 ## Features
 
 - **Instant capture** — type, press Enter, it's saved with a timestamp
+- **Mentor & learning column** — a side panel with two areas: items to raise with a supervisor or team, and a study notebook. Both support everything a note does — text, attachments, annotation, voice, history
+- **Sectioned study notebook** — a reference notebook rather than a task list: entries carry no completion state and remain where they were written. Sections nest to any depth, each with its own capture box
+- **Triage marks** — classify a note as red, amber, or green; the card is colour-coded accordingly and the change is recorded in the log
+- **Queue for review** — add a note to the mentor list without moving or duplicating it; a second click removes it from the queue
 - **Pen annotation** — draw on PDFs and images with Apple Pencil or mouse; four colors, highlighter, eraser, undo. Finger scrolls, pen draws
 - **Full edit history** — nothing is deleted or overwritten; every version persists with its date
 - **Turkish dictation** — speech-to-text via the Web Speech API

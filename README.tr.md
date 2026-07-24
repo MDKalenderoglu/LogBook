@@ -24,10 +24,15 @@ Her düzenlemenin öncesi saklanır. Fikir değiştirmek serbest — kaybettiği
 | "Notlarım telefonda ayrı, bilgisayarda ayrı" | Google hesabınla tek tık giriş; tüm cihazların kendiliğinden eşitlenir |
 | "Uygulama kurmak, hesap açmak istemiyorum" | Linki aç, bitti. İstersen ana ekrana ekle, gerçek uygulama gibi çalışsın |
 | "Yazmaya üşeniyorum" | Türkçe konuş, yazıya dökülsün; ya da sesli not bırak |
+| "Bir sonraki görüşmede konuşacaklarım dağınık kalıyor" | Herhangi bir notu tek tıkla, notların yanındaki mentör listesine al |
 
 ## Özellikler
 
 - **Tek tuşla not** — yaz, Enter'a bas, tarih damgasıyla kaydedildi
+- **Mentör & öğrenme sütunu** — sağda iki alan: danışmana veya ekibe iletilecek maddeler ve çalışma defteri. İkisi de notun sunduğu her şeyi destekler — metin, ek dosya, çizim, ses, tarihçe
+- **Bölümlü çalışma defteri** — öğrenme alanı görev listesi değil, başvuru defteridir: kayıtların tamamlanma durumu yoktur, yazıldıkları yerde kalır. Bölümler istenen derinlikte iç içe kurulur, her birinin kendi yazma kutusu vardır
+- **Triyaj işareti** — notu kırmızı, sarı veya yeşil olarak sınıflandır; kart buna göre renklenir, değişiklik günlüğe işlenir
+- **Görüşme listesine al** — notu taşımadan ve çoğaltmadan mentör listesine ekle; ikinci tıkta listeden çıkar
 - **Kalemle çizim** — PDF ve görsellerin üzerine Apple Pencil / fareyle yaz; 4 renk, fosforlu, silgi, geri al. Parmak kaydırır, kalem çizer
 - **Düzenleme tarihçesi** — silmek yok, üzerine yazmak yok; her sürüm tarihiyle durur
 - **Türkçe dikte** — konuş, metne dönüşsün (Web Speech API)
