@@ -360,6 +360,20 @@ button.chip:hover{border-color:var(--text2)}
 .rqa.mini input{font-size:12.5px;padding:5px 0}
 .rqa.mini .qa-btn{width:26px;height:26px;font-size:13px}
 .lsec-loose{margin-top:6px}
+/* Defterin ana alandaki geniş görünümü */
+.nbhead{display:flex;align-items:center;gap:10px;margin:10px 0 12px}
+.nbhint{font-size:12.5px;color:var(--text2)}
+.nbhead .tool{margin-left:auto;white-space:nowrap}
+@media(max-width:520px){ .nbhint{display:none} }
+.nbcapture{margin-bottom:14px}
+.nbcapture .rqa.mini{background:var(--surface);border-style:solid;box-shadow:var(--shadow);padding:4px 4px 4px 12px}
+.nbcapture .rqa.mini input{font-size:14.5px;padding:8px 0}
+.nbcapture .rqa.mini .qa-btn{width:34px;height:34px;font-size:16px}
+#list .lsec-h{font-size:14.5px;padding:8px 10px}
+#list .lsec-h .tw{width:14px;font-size:10px}
+#list .lsec-body{margin:2px 0 12px 10px;padding-left:12px}
+#list .lsec{margin-left:calc(var(--d,0) * 14px)}
+#list .rqa.mini{margin:2px 0 8px}
 /* Defter kaydında tik yok: gövde sola dayansın */
 .note.nb .note-head{padding-left:15px}
 #pop .popnote{font-size:12px;color:var(--text2);padding:6px 10px;max-width:200px}
@@ -425,6 +439,7 @@ button.chip:hover{border-color:var(--text2)}
       <button id="collapsebtn" title="Kenar çubuğunu daralt/genişlet">▨</button></div>
     <button class="navitem" data-view="active" title="Aktif Notlar"><span class="ico">📥</span><span class="lbl">Aktif Notlar</span><span class="count" id="c-active"></span></button>
     <button class="navitem" data-view="done" title="Tamamlananlar"><span class="ico">✅</span><span class="lbl">Tamamlananlar</span><span class="count" id="c-done"></span></button>
+    <button class="navitem" data-view="learn" title="Çalışma Defteri"><span class="ico">📚</span><span class="lbl">Çalışma Defteri</span><span class="count" id="c-learn-nav"></span></button>
     <button class="navitem" data-view="log" title="Günlük (Log)"><span class="ico">🕘</span><span class="lbl">Günlük (Log)</span></button>
     <div class="navsec"><span class="lbl">Kategoriler</span><button id="addcat" title="Kategori ekle">＋</button></div>
     <div id="newcat-row"><input id="newcat-input" placeholder="Kategori adı, Enter'a bas"></div>
@@ -473,6 +488,7 @@ button.chip:hover{border-color:var(--text2)}
     <div class="rsec">
       <div class="rsec-h"><span>📚 Çalışma Defteri</span>
         <button id="addlsec" class="rsec-btn" title="Yeni bölüm aç (ör. İstatistik, Vaka notları)">＋ Bölüm</button>
+        <button id="learn-expand" class="rsec-btn" title="Defteri ana alanda geniş görünümde aç">⤢</button>
         <span class="count" id="c-learn"></span></div>
       <form class="rqa" id="learn-add" autocomplete="off">
         <input id="learn-input" enterkeyhint="done" placeholder="Deftere yeni kayıt…">
@@ -680,6 +696,7 @@ function renderSidebar(){
   });
   $("#c-active").textContent=S.notes.filter(n=>!n.done&&!n.panel).length||"";
   $("#c-done").textContent=S.notes.filter(n=>n.done).length||"";
+  $("#c-learn-nav").textContent=S.notes.filter(n=>n.panel==="learn"&&!n.done).length||"";
   const catBtn=(c,depth)=>{
     const cnt=S.notes.filter(n=>!n.done&&!n.panel&&inCatTree(n.cat,c.id)).length;
     const kids=kidsOf(c.id);
@@ -796,15 +813,16 @@ function editorHTML(n){
 }
 
 function renderMain(){
-  const titles={active:"Aktif Notlar",done:"Tamamlananlar",log:"Günlük"};
+  const titles={active:"Aktif Notlar",done:"Tamamlananlar",log:"Günlük",learn:"Çalışma Defteri"};
   $("#viewtitle").textContent=view.type==="cat"?(()=>{
     const c=catOf(view.catId); if(!c)return "";
     const p=c.parent?catOf(c.parent):null;
     return p?p.name+" › "+c.name:c.name;
   })():titles[view.type];
-  $("#quickadd").style.display=view.type==="log"||view.type==="done"?"none":"flex";
+  $("#quickadd").style.display=view.type==="log"||view.type==="done"||view.type==="learn"?"none":"flex";
   const list=$("#list");
   if(view.type==="log"){ list.innerHTML=timelineHTML(); bindTimeline(); return; }
+  if(view.type==="learn"){ list.innerHTML=learnViewHTML(); return; }
   const notes=visibleNotes();
   if(!notes.length){
     list.innerHTML=`<div class="empty"><div class="big">${view.type==="done"?"🗂":"🍃"}</div>${
@@ -876,6 +894,18 @@ function learnHTML(){
     roots.map(s=>secTreeHTML(s,0)).join("")+
     (kok.length?`<div class="lsec-loose">${kok.map(noteCardHTML).join("")}</div>`:"");
 }
+/* Defterin ana alandaki geniş görünümü — uzun çalışma notları dar sütuna sığmıyordu.
+   Aynı ağaç bileşenleri kullanılır; kök yazma kutusu ve ＋ Bölüm düğmesi burada da olur. */
+function learnViewHTML(){
+  const bos=!S.notes.some(n=>n.panel==="learn"&&!n.done)&&!secKids(null).length&&secAddFor!=="root";
+  return `<div class="nbhead">
+      <div class="nbhint">Kayıtlar tamamlanmaz, yazıldıkları yerde kalır.</div>
+      <button class="tool" data-addsec="root">＋ Bölüm</button>
+    </div>
+    <div class="nbcapture">${secQuickAdd(null).replace("＋ Bu bölüme yaz…","Deftere yeni kayıt…")}</div>
+    ${bos?`<div class="empty"><div class="big">📚</div>Defter boş — üstteki kutuya yaz ya da
+      ＋ Bölüm ile konu başlığı (ör. “İstatistik”, “Vaka notları”) aç.</div>`:learnHTML()}`;
+}
 function renderRight(){
   const mine=panelNotes("mentor"), refs=mentorRefs();
   const bekleyen=mine.length+refs.length;
@@ -888,26 +918,33 @@ function renderRight(){
   $("#mentor-list").innerHTML=(mine.length||refs.length)
     ? refs.map(mrefHTML).join("")+mine.map(noteCardHTML).join("")
     : `<div class="rempty">Danışmana veya ekibe iletilecek maddeler burada toplanır. Herhangi bir nottaki 🎓 düğmesi o notu bu listeye ekler.</div>`;
-  $("#learn-list").innerHTML=learnHTML();
+  // Defter ana alanda açıkken panelde tekrar çizilmez (aynı kayıt iki kez render edilmesin)
+  $("#learn-list").innerHTML=view.type==="learn"
+    ? `<div class="rempty">Çalışma defteri ana alanda açık — kayıtları orada düzenle.</div>`
+    : learnHTML();
+  $("#learn-add").style.display=view.type==="learn"?"none":"flex";
   // Panelde bir not açıksa sütunu genişlet (editör sıkışmasın)
   const openInPanel=!!(expandedId&&S.notes.find(x=>x.id===expandedId)?.panel);
   $("#rightbar").classList.toggle("wide",openInPanel);
-  bindRight();
 }
-function bindRight(){
-  const rb=$("#rightbar");
+// Defter ağacı hem sağ panelde hem ana alanda çizilebildiği için bağlama belge genelinde
+function bindPanels(){
+  const rb=document;
   rb.querySelectorAll("[data-reveal]").forEach(b=>b.onclick=()=>revealNote(b.dataset.reveal));
   rb.querySelectorAll("[data-unmentor]").forEach(b=>b.onclick=()=>toggleMentor(b.dataset.unmentor));
+  rb.querySelectorAll("[data-addsec]").forEach(b=>b.onclick=()=>{
+    secAddFor=secAddFor==="root"?null:"root"; refreshPanels(); $("#lsec-input")?.focus();
+  });
   // bölüm başlığı: aç/kapa · ＋ alt bölüm · ⋯ düzenle
   rb.querySelectorAll("[data-lsec]").forEach(h=>{
     h.onclick=e=>{
       const add=e.target.closest("[data-lsadd]"), ed=e.target.closest("[data-lsedit]");
       if(add){ const id=add.dataset.lsadd; secAddFor=secAddFor===id?null:id;
         const s=secOf(id); if(secAddFor&&s&&!s.open){ s.open=true; save(); }
-        refreshRight(); $("#lsec-input")?.focus(); return; }
+        refreshPanels(); $("#lsec-input")?.focus(); return; }
       if(ed){ openSecEditPop(ed,ed.dataset.lsedit); return; }
       const s=secOf(h.dataset.lsec); if(!s)return;
-      s.open=!s.open; save(); refreshRight();
+      s.open=!s.open; save(); refreshPanels();
     };
   });
   // yeni bölüm adı kutusu
@@ -921,7 +958,7 @@ function bindRight(){
       appLog("📒 Çalışma defteri — yeni bölüm: "+(parent?secOf(parent).name+" › ":"")+yeni.name);
       secAddFor=null; save(); render();
     }
-    if(e.key==="Escape"){ secAddFor=null; refreshRight(); }
+    if(e.key==="Escape"){ secAddFor=null; refreshPanels(); }
   };
   // bölüm içi hızlı ekleme
   rb.querySelectorAll("[data-lsform]").forEach(f=>{
@@ -935,15 +972,22 @@ function bindRight(){
     };
   });
 }
-function renderLists(){ renderMain(); renderRight(); bindNotes(); }
+function renderLists(){ renderMain(); renderRight(); bindNotes(); bindPanels(); }
 // Yalnız sağ sütunu tazele — kart düğmeleri (triyaj/mentör/bölüm/aç) yeniden bağlanmalı,
 // yoksa bölüm aç/kapa sonrası paneldeki kartlar tıklanamaz hale gelir.
-function refreshRight(){ renderRight(); bindNotes(); }
+function refreshRight(){ renderRight(); bindNotes(); bindPanels(); }
+// Defter ana alandayken bölüm işlemleri ana listeyi de tazelemeli
+function refreshPanels(){ view.type==="learn"?renderLists():refreshRight(); }
 
 /* Bir notu bulunduğu yerde aç: paneldeyse panelde, ana listedeyse doğru görünüme geçerek */
 function revealNote(id){
   const n=S.notes.find(x=>x.id===id); if(!n)return;
-  if(n.panel){
+  if(n.panel==="learn"){
+    // Defter kaydı: panel açıksa orada, değilse (özellikle telefonda) geniş defter görünümünde aç
+    if(view.type!=="learn"&&(matchMedia("(max-width:1100px)").matches||!rightVisible())){
+      if(expandedId) collapseNote(true); view={type:"learn"};
+    }
+  }else if(n.panel){
     if(matchMedia("(max-width:1100px)").matches) openRight(true);
   }else{
     const okView=n.done?view.type==="done":(view.type==="active"||(view.type==="cat"&&inCatTree(n.cat,view.catId)));
@@ -2156,7 +2200,8 @@ function panelAdd(panel,inputId){
 }
 $("#mentor-add").addEventListener("submit",e=>{ e.preventDefault(); panelAdd("mentor","mentor-input"); });
 $("#learn-add").addEventListener("submit",e=>{ e.preventDefault(); panelAdd("learn","learn-input"); });
-$("#addlsec").onclick=()=>{ secAddFor=secAddFor==="root"?null:"root"; refreshRight(); $("#lsec-input")?.focus(); };
+$("#learn-expand").onclick=()=>{ setView({type:"learn"}); if(matchMedia("(max-width:1100px)").matches) openRight(false); };
+$("#addlsec").onclick=()=>{ secAddFor=secAddFor==="root"?null:"root"; refreshPanels(); $("#lsec-input")?.focus(); };
 if(!SR){ $("#mentor-dictate").style.display="none"; $("#learn-dictate").style.display="none"; }
 else{
   $("#mentor-dictate").onclick=()=>startDictation($("#mentor-input"),$("#mentor-dictate"));

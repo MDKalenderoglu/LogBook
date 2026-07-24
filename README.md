@@ -30,7 +30,7 @@ Every edit keeps its predecessor. You can change your mind freely without losing
 
 - **Instant capture** — type, press Enter, it's saved with a timestamp
 - **Mentor & learning column** — a side panel with two areas: items to raise with a supervisor or team, and a study notebook. Both support everything a note does — text, attachments, annotation, voice, history
-- **Sectioned study notebook** — a reference notebook rather than a task list: entries carry no completion state and remain where they were written. Sections nest to any depth, each with its own capture box
+- **Sectioned study notebook** — a reference notebook rather than a task list: entries carry no completion state and remain where they were written. Sections nest to any depth, each with its own capture box, and the notebook also opens full width in the main area
 - **Triage marks** — classify a note as red, amber, or green; the card is colour-coded accordingly and the change is recorded in the log
 - **Queue for review** — add a note to the mentor list without moving or duplicating it; a second click removes it from the queue
 - **Pen annotation** — draw on PDFs and images with Apple Pencil or mouse; four colors, highlighter, eraser, undo. Finger scrolls, pen draws
