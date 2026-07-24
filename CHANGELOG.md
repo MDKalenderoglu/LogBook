@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sectioned study notebook** — the learning area is a reference notebook rather than a task list: entries carry no completion state and remain where they were written. Sections nest to any depth, each with its own capture box, and entries can be reassigned between them. Deleting a section moves its entries to the parent rather than removing them
 - **Per-device panel state** — the column can be hidden on desktop and opens as an overlay on phones and tablets, with a pending-item count on the toolbar control
 
+### Changed
+
+- Interface wording in the side column moved to a more formal register: *Mentöre Söyleyeceklerim* → *Danışmana İletilecekler*, *Öğrendiklerim* → *Çalışma Defteri*, with matching log entries and empty states
+
 ### Fixed
 
 - On tablet widths (761–1100px) the sliding panel had no dimmed backdrop and could not be dismissed by tapping outside it

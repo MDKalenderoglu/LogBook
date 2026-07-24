@@ -446,7 +446,7 @@ button.chip:hover{border-color:var(--text2)}
       <button id="hamburger">☰</button>
       <div id="viewtitle">Aktif Notlar</div>
       <input id="search" placeholder="Ara…">
-      <button id="rightbtn" title="Mentör &amp; Öğrendiklerim paneli">🎓</button>
+      <button id="rightbtn" title="Danışman &amp; Çalışma Defteri paneli">🎓</button>
     </div>
     <div id="content"><div class="inner">
       <form id="quickadd" autocomplete="off">
@@ -459,23 +459,23 @@ button.chip:hover{border-color:var(--text2)}
     </div></div>
   </div>
   <aside id="rightbar">
-    <div class="rhead"><span>🎓 Mentör &amp; Öğrenme</span>
+    <div class="rhead"><span>🎓 Danışman &amp; Çalışma Defteri</span>
       <button id="rightclose" title="Paneli kapat">✕</button></div>
     <div class="rsec">
-      <div class="rsec-h"><span>🎯 Mentöre Söyleyeceklerim</span><span class="count" id="c-mentor"></span></div>
+      <div class="rsec-h"><span>🎯 Danışmana İletilecekler</span><span class="count" id="c-mentor"></span></div>
       <form class="rqa" id="mentor-add" autocomplete="off">
-        <input id="mentor-input" enterkeyhint="done" placeholder="Hocaya / ekibe söyleyeceğim…">
+        <input id="mentor-input" enterkeyhint="done" placeholder="Danışmana / ekibe iletilecek madde…">
         <button type="button" class="qa-btn sm" id="mentor-dictate" title="Söyle, yazıya dökülsün">🗣</button>
         <button type="submit" class="qa-btn sm primary" title="Ekle">＋</button>
       </form>
       <div id="mentor-list"></div>
     </div>
     <div class="rsec">
-      <div class="rsec-h"><span>📚 Öğrendiklerim</span>
+      <div class="rsec-h"><span>📚 Çalışma Defteri</span>
         <button id="addlsec" class="rsec-btn" title="Yeni bölüm aç (ör. İstatistik, Vaka notları)">＋ Bölüm</button>
         <span class="count" id="c-learn"></span></div>
       <form class="rqa" id="learn-add" autocomplete="off">
-        <input id="learn-input" enterkeyhint="done" placeholder="Bugün ne öğrendim…">
+        <input id="learn-input" enterkeyhint="done" placeholder="Deftere yeni kayıt…">
         <button type="button" class="qa-btn sm" id="learn-dictate" title="Söyle, yazıya dökülsün">🗣</button>
         <button type="submit" class="qa-btn sm primary" title="Ekle">＋</button>
       </form>
@@ -611,7 +611,7 @@ function newNote(content,title,panel,sec){
   appLog((panel?PANEL_ICO[panel]+" "+PANEL_LBL[panel]+" — yeni kayıt: ":"Yeni not: ")+"“"+(title||content||"").slice(0,40)+"”",n.id);
   save(); return n;
 }
-const PANEL_LBL={mentor:"Mentöre Söyleyeceklerim",learn:"Öğrendiklerim"};
+const PANEL_LBL={mentor:"Danışmana İletilecekler",learn:"Çalışma Defteri"};
 const PANEL_ICO={mentor:"🎯",learn:"📚"};
 
 /* ---- Öğrendiklerim defterinin bölümleri (OneNote tarzı, sınırsız iç içe) ----
@@ -749,7 +749,7 @@ function noteCardHTML(n){
           <button class="chip ${tri?"tri-"+n.triage:""}" data-triage="${n.id}"
             title="Triyaj: ${tri?esc(tri.l):"işaretsiz"}">${tri?tri.e+" "+tri.s:"⚪ Triyaj"}</button>
           ${n.panel!=="mentor"?`<button class="chip mshare ${n.mentor?"on":""}" data-mentor="${n.id}"
-            title="${n.mentor?"Mentör listesinden çıkar":"Mentöre söyleyeceklerime ekle"}">🎓${n.mentor?" Mentörde":""}</button>`:""}
+            title="${n.mentor?"Danışman listesinden çıkar":"Danışman listesine ekle"}">🎓${n.mentor?" Listede":""}</button>`:""}
           ${n.panel==="learn"?(()=>{const s=secOf(n.sec);
             return `<button class="chip" data-secpick="${n.id}" title="Bölüm değiştir">📒 ${s?esc(s.name):"Bölümsüz"}</button>`;})():
           n.panel?`<span class="chip">${PANEL_ICO[n.panel]} ${esc(PANEL_LBL[n.panel])}</span>`:
@@ -828,8 +828,8 @@ function mrefHTML(n){
   const cat=catOf(n.cat);
   const src=n.panel?PANEL_ICO[n.panel]+" "+PANEL_LBL[n.panel]:(cat?"🏷 "+esc(cat.name):"🏷 —");
   return `<div class="mref ${n.triage?"tri-"+n.triage:""}">
-    <span class="t" data-reveal="${n.id}">${esc(titleOf(n))}<span class="src">${src} · notta aç</span></span>
-    <button class="mx" data-unmentor="${n.id}" title="Mentör listesinden çıkar">✕</button>
+    <span class="t" data-reveal="${n.id}">${esc(titleOf(n))}<span class="src">${src} · notu aç</span></span>
+    <button class="mx" data-unmentor="${n.id}" title="Danışman listesinden çıkar">✕</button>
   </div>`;
 }
 /* --- Öğrendiklerim: defter ağacı (bölüm > alt bölüm > kayıtlar) --- */
@@ -870,7 +870,7 @@ function learnHTML(){
   const kok=learnNotesOf(null), roots=secKids(null);
   const toplam=S.notes.filter(n=>n.panel==="learn"&&!n.done&&matchQ(n)).length;
   if(!toplam&&!roots.length&&secAddFor!=="root")
-    return `<div class="rempty">Burası senin çalışma defterin — yazdığın kalır, tik yok, silinmez.
+    return `<div class="rempty">Çalışma defteri: kayıtlar tamamlanmaz, yazıldıkları yerde kalır.
       Üstteki kutuya yaz ya da ＋ Bölüm ile konu başlığı (ör. “İstatistik”, “Vaka notları”) aç.</div>`;
   return (secAddFor==="root"?secNewRow("root"):"")+
     roots.map(s=>secTreeHTML(s,0)).join("")+
@@ -884,10 +884,10 @@ function renderRight(){
   $("#c-learn").textContent=learnCnt||"";
   // Panel kapalıyken (özellikle telefonda) bekleyen mentör maddesi olduğu düğmede görünsün
   $("#rightbtn").innerHTML="🎓"+(bekleyen?`<span class="rbadge">${bekleyen}</span>`:"");
-  $("#rightbtn").title="Mentör & Öğrendiklerim paneli"+(bekleyen?" — "+bekleyen+" madde bekliyor":"");
+  $("#rightbtn").title="Danışman & Çalışma Defteri paneli"+(bekleyen?" — "+bekleyen+" madde bekliyor":"");
   $("#mentor-list").innerHTML=(mine.length||refs.length)
     ? refs.map(mrefHTML).join("")+mine.map(noteCardHTML).join("")
-    : `<div class="rempty">Hocaya ya da ekibe söyleyeceklerini buraya yaz. Bir nottaki 🎓 düğmesi de notu buraya taşır.</div>`;
+    : `<div class="rempty">Danışmana veya ekibe iletilecek maddeler burada toplanır. Herhangi bir nottaki 🎓 düğmesi o notu bu listeye ekler.</div>`;
   $("#learn-list").innerHTML=learnHTML();
   // Panelde bir not açıksa sütunu genişlet (editör sıkışmasın)
   const openInPanel=!!(expandedId&&S.notes.find(x=>x.id===expandedId)?.panel);
@@ -918,7 +918,7 @@ function bindRight(){
       const yeni={id:uid(),name:si.value.trim(),parent:parent,scope:"learn",open:true};
       S.cats.push(yeni);
       if(parent){ const p=secOf(parent); if(p)p.open=true; }
-      appLog("📒 Öğrendiklerim — yeni bölüm: "+(parent?secOf(parent).name+" › ":"")+yeni.name);
+      appLog("📒 Çalışma defteri — yeni bölüm: "+(parent?secOf(parent).name+" › ":"")+yeni.name);
       secAddFor=null; save(); render();
     }
     if(e.key==="Escape"){ secAddFor=null; refreshRight(); }
@@ -957,8 +957,8 @@ function revealNote(id){
 function toggleMentor(id){
   const n=S.notes.find(x=>x.id===id); if(!n)return;
   n.mentor=!n.mentor; n.updatedAt=Date.now();
-  noteLog(n,n.mentor?"🎓 Mentöre söyleyeceklerime eklendi":"🎓 Mentör listesinden çıkarıldı");
-  appLog((n.mentor?"🎓 Mentör listesine eklendi: ":"🎓 Mentör listesinden çıkarıldı: ")+"“"+titleOf(n)+"”",n.id);
+  noteLog(n,n.mentor?"🎓 Danışman listesine eklendi":"🎓 Danışman listesinden çıkarıldı");
+  appLog((n.mentor?"🎓 Danışman listesine eklendi: ":"🎓 Danışman listesinden çıkarıldı: ")+"“"+titleOf(n)+"”",n.id);
   save(); render();
 }
 
@@ -1569,7 +1569,7 @@ function openSecEditPop(anchor,secId){
     if(notes.length) parts.push(notes.length+" kayıt “"+ustAd+"”e taşınacak");
     if(kids.length) parts.push(kids.length+" alt bölüm bir üst seviyeye çıkacak");
     if(!confirm("“"+s.name+"” bölümü silinsin mi?"+(parts.length?"\n\n"+parts.join("\n")+".":"\n\nİçi boş.")+
-      "\n\nYazdıkların SİLİNMEZ.")) return;
+      "\n\nKayıtların kendisi SİLİNMEZ.")) return;
     notes.forEach(n=>{ n.sec=ust; noteLog(n,"📒 Bölüm silindi → "+ustAd); });
     kids.forEach(k=>{ k.parent=ust; });
     S.cats=S.cats.filter(c=>c.id!==secId);
@@ -1595,7 +1595,7 @@ function openSecPop(anchor,noteId){
         n.sec=yeni; n.updatedAt=Date.now();
         const ad=yeni?secOf(yeni).name:"Bölümsüz";
         noteLog(n,"📒 Bölüm: "+ad);
-        appLog("📒 Defter bölümü değişti: “"+titleOf(n)+"” → "+ad,n.id);
+        appLog("📒 Bölüm değişti: “"+titleOf(n)+"” → "+ad,n.id);
         save();
       }
       pop.style.display="none"; render();
