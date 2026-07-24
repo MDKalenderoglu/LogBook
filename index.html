@@ -126,9 +126,10 @@ input,textarea,select{font:inherit;color:inherit}
   padding-top:calc(14px + env(safe-area-inset-top,0px));
   padding-right:calc(22px + env(safe-area-inset-right,0px))}
 #hamburger{display:none;font-size:20px;padding:4px 8px;border-radius:8px}
-#viewtitle{font-size:20px;font-weight:700;flex-shrink:0}
+/* Sütun daralınca (ör. sağ panel açıkken) başlık ve arama taşmasın, kısalsın */
+#viewtitle{font-size:20px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #search{
-  margin-left:auto;width:min(260px,40vw);padding:7px 12px;border:1px solid var(--border);
+  margin-left:auto;width:min(260px,40vw);min-width:70px;padding:7px 12px;border:1px solid var(--border);
   border-radius:9px;background:var(--surface);outline:none;font-size:13.5px;
 }
 #search:focus{border-color:var(--accent)}
@@ -306,6 +307,93 @@ button.chip:hover{border-color:var(--text2)}
 .sync-btns{display:flex;gap:8px;flex-wrap:wrap}
 #sync-msg{font-size:12.5px;color:var(--text2);margin-top:10px;min-height:16px}
 
+/* ---------- Sağ sütun: Mentör + Öğrendiklerim ---------- */
+#rightbar{
+  width:340px;flex-shrink:0;background:var(--surface2);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;gap:6px;overflow-y:auto;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 12px calc(20px + env(safe-area-inset-bottom,0px));
+  padding-right:calc(12px + env(safe-area-inset-right,0px));
+  transition:width .2s ease,transform .25s ease;
+}
+/* Panelde bir not açıldığında editör dar kalmasın diye sütun genişler — ama ana
+   sütunu ezmeden: yalnızca yeterli ekran varsa, kademeli olarak */
+#rightbar.wide{width:340px}
+@media(min-width:1200px){ #rightbar.wide{width:460px} }
+@media(min-width:1500px){ #rightbar.wide{width:560px} }
+.rhead{display:flex;align-items:center;gap:8px;padding:2px 4px 8px;font-weight:700;font-size:14px}
+.rhead #rightclose{margin-left:auto;color:var(--text2);font-size:14px;line-height:1;padding:3px 6px;border-radius:6px}
+.rhead #rightclose:hover{background:var(--border);color:var(--text)}
+.rsec{display:flex;flex-direction:column;gap:6px;padding-bottom:10px}
+.rsec+.rsec{border-top:1px solid var(--border);padding-top:12px}
+.rsec-h{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.05em;
+  color:var(--text2);text-transform:uppercase;padding:0 4px}
+.rsec-h .count{margin-left:auto;font-variant-numeric:tabular-nums}
+.rqa{display:flex;gap:5px;align-items:center;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:4px 4px 4px 11px;box-shadow:var(--shadow);margin-bottom:4px}
+.rqa:focus-within{border-color:var(--accent)}
+.rqa input{flex:1;min-width:0;border:none;outline:none;background:none;font-size:13.5px;padding:6px 0}
+.rqa input::placeholder{color:var(--text2)}
+.qa-btn.sm{width:30px;height:30px;font-size:14px;border-radius:8px}
+.rsec .note{margin-bottom:8px}
+.rempty{font-size:12.5px;color:var(--text2);padding:6px 4px 2px;opacity:.85}
+.rsec-btn{margin-left:8px;font-size:10.5px;font-weight:700;letter-spacing:.02em;color:var(--text2);
+  border:1px solid var(--border);border-radius:99px;padding:2px 8px;text-transform:none}
+.rsec-btn:hover{color:var(--accent);border-color:var(--accent)}
+/* --- Öğrendiklerim defteri: bölümler --- */
+.lsec{margin-left:calc(var(--d,0) * 10px)}
+.lsec-h{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:pointer;
+  font-size:13px;font-weight:700;color:var(--text)}
+.lsec-h:hover{background:var(--border)}
+.lsec-h .tw{width:12px;flex-shrink:0;font-size:9px;color:var(--text2);transition:transform .15s}
+.lsec-h.open .tw{transform:rotate(90deg)}
+.lsec-h .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lsec-h .cnt{font-size:11px;font-weight:600;color:var(--text2);font-variant-numeric:tabular-nums}
+.lsec-h .lsadd,.lsec-h .lsedit{opacity:0;font-size:13px;color:var(--text2);line-height:1;padding:0 2px}
+.lsec-h:hover .lsadd,.lsec-h:hover .lsedit{opacity:1}
+.lsec-h .lsadd:hover,.lsec-h .lsedit:hover{color:var(--accent)}
+.lsec-body{border-left:2px solid var(--border);margin:2px 0 8px 9px;padding-left:8px}
+.lsec-new{padding:4px 2px 6px}
+.lsec-new input{width:100%;padding:6px 9px;border:1px solid var(--accent);border-radius:8px;
+  background:var(--surface);outline:none;font-size:12.5px}
+.rqa.mini{padding:2px 3px 2px 9px;box-shadow:none;background:transparent;border-style:dashed;margin:2px 0 6px}
+.rqa.mini input{font-size:12.5px;padding:5px 0}
+.rqa.mini .qa-btn{width:26px;height:26px;font-size:13px}
+.lsec-loose{margin-top:6px}
+/* Defter kaydında tik yok: gövde sola dayansın */
+.note.nb .note-head{padding-left:15px}
+#pop .popnote{font-size:12px;color:var(--text2);padding:6px 10px;max-width:200px}
+/* Ana listeden "mentöre söyle" ile işaretlenmiş notların kısayol satırı */
+.mref{display:flex;gap:8px;align-items:flex-start;background:var(--surface);border:1px dashed var(--border);
+  border-radius:10px;padding:8px 10px;margin-bottom:7px}
+.mref .t{flex:1;min-width:0;cursor:pointer;font-size:13.5px;font-weight:600;word-wrap:break-word}
+.mref .t:hover{color:var(--accent)}
+.mref .src{display:block;font-size:11px;font-weight:400;color:var(--text2);margin-top:2px}
+.mref .mx{flex-shrink:0;color:var(--text2);font-size:12px;line-height:1;padding:3px 5px;border-radius:6px}
+.mref .mx:hover{color:var(--red);background:var(--red-soft)}
+.mref.tri-r{box-shadow:inset 3px 0 0 var(--red)}
+.mref.tri-y{box-shadow:inset 3px 0 0 var(--amber)}
+.mref.tri-g{box-shadow:inset 3px 0 0 var(--green)}
+/* triyaj + mentör düğmeleri */
+.chip.tri-r{background:var(--red-soft);color:var(--red)}
+.chip.tri-y{background:var(--amber-soft);color:var(--amber)}
+.chip.tri-g{background:var(--green-soft);color:var(--green)}
+.note.tri-r{box-shadow:inset 3px 0 0 var(--red),var(--shadow)}
+.note.tri-y{box-shadow:inset 3px 0 0 var(--amber),var(--shadow)}
+.note.tri-g{box-shadow:inset 3px 0 0 var(--green),var(--shadow)}
+.chip.mshare.on{background:var(--accent-soft);color:var(--accent)}
+#rightbtn{position:relative;font-size:17px;padding:5px 9px;border-radius:8px;color:var(--text2);flex-shrink:0}
+#rightbtn .rbadge{position:absolute;top:0;right:1px;min-width:15px;height:15px;padding:0 3px;border-radius:99px;
+  background:var(--accent);color:#fff;font-size:10px;font-weight:700;line-height:15px;text-align:center}
+#rightbtn:hover{background:var(--surface2);color:var(--accent)}
+#rightbtn.on{background:var(--accent-soft);color:var(--accent)}
+@media(min-width:1101px){ #rightbar.off{display:none} }
+@media(max-width:1100px){
+  #rightbar{position:fixed;right:0;top:0;z-index:20;height:100vh;height:100dvh;
+    width:min(380px,88vw);transform:translateX(100%);box-shadow:var(--shadow);display:flex!important}
+  #rightbar.wide{width:min(440px,94vw)}
+  #rightbar.open{transform:translateX(0)}
+}
+
 /* mobile */
 #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:19}
 @media(max-width:760px){
@@ -348,6 +436,7 @@ button.chip:hover{border-color:var(--text2)}
       <button id="hamburger">☰</button>
       <div id="viewtitle">Aktif Notlar</div>
       <input id="search" placeholder="Ara…">
+      <button id="rightbtn" title="Mentör &amp; Öğrendiklerim paneli">🎓</button>
     </div>
     <div id="content"><div class="inner">
       <form id="quickadd" autocomplete="off">
@@ -359,6 +448,30 @@ button.chip:hover{border-color:var(--text2)}
       <div id="list"></div>
     </div></div>
   </div>
+  <aside id="rightbar">
+    <div class="rhead"><span>🎓 Mentör &amp; Öğrenme</span>
+      <button id="rightclose" title="Paneli kapat">✕</button></div>
+    <div class="rsec">
+      <div class="rsec-h"><span>🎯 Mentöre Söyleyeceklerim</span><span class="count" id="c-mentor"></span></div>
+      <form class="rqa" id="mentor-add" autocomplete="off">
+        <input id="mentor-input" enterkeyhint="done" placeholder="Hocaya / ekibe söyleyeceğim…">
+        <button type="button" class="qa-btn sm" id="mentor-dictate" title="Söyle, yazıya dökülsün">🗣</button>
+        <button type="submit" class="qa-btn sm primary" title="Ekle">＋</button>
+      </form>
+      <div id="mentor-list"></div>
+    </div>
+    <div class="rsec">
+      <div class="rsec-h"><span>📚 Öğrendiklerim</span>
+        <button id="addlsec" class="rsec-btn" title="Yeni bölüm aç (ör. İstatistik, Vaka notları)">＋ Bölüm</button>
+        <span class="count" id="c-learn"></span></div>
+      <form class="rqa" id="learn-add" autocomplete="off">
+        <input id="learn-input" enterkeyhint="done" placeholder="Bugün ne öğrendim…">
+        <button type="button" class="qa-btn sm" id="learn-dictate" title="Söyle, yazıya dökülsün">🗣</button>
+        <button type="submit" class="qa-btn sm primary" title="Ekle">＋</button>
+      </form>
+      <div id="learn-list"></div>
+    </div>
+  </aside>
 </div>
 <div id="pop"></div>
 <div id="lightbox"><img alt=""><div id="lb-name"></div></div>
@@ -390,6 +503,13 @@ function seed(){
     ]
   };
 }
+/* Triyaj işaretleri — notun aciliyet/durum rengi (yeşil · sarı · kırmızı) */
+const TRI={
+  r:{e:"🔴",s:"Acil",l:"Acil / kritik"},
+  y:{e:"🟡",s:"Beklemede",l:"Beklemede / izlemede"},
+  g:{e:"🟢",s:"Tamam",l:"Tamam / sorun yok"},
+};
+const triRank=n=>({r:0,y:1,g:3})[n.triage]??2;
 let S; try{ S=JSON.parse(localStorage.getItem(LS_KEY))||seed(); }catch(e){ S=seed(); }
 S.notes.forEach(n=>{ if(!n.files)n.files=[]; if(!n.subs)n.subs=[]; if(!n.revs)n.revs=[]; });
 const save=()=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(S)); }catch(e){ console.error(e); } scheduleSync(); };
@@ -469,15 +589,34 @@ async function idbClear(){ const db=await idbOpen(); return new Promise((res,rej
 });}
 
 /* ================= CRUD ================= */
-function newNote(content,title){
+// panel: undefined → normal not · "mentor" → mentöre söyleyeceklerim · "learn" → öğrendiklerim
+function newNote(content,title,panel,sec){
   const now=Date.now();
-  const n={id:uid(),title:title||"",content:content||"",cat:(view.type==="cat"?view.catId:"genel"),
+  const n={id:uid(),title:title||"",content:content||"",cat:(!panel&&view.type==="cat"?view.catId:"genel"),
     createdAt:now,updatedAt:now,deadline:null,done:false,doneAt:null,audios:[],files:[],subs:[],revs:[],
-    log:[{t:now,a:"Not oluşturuldu"}]};
+    log:[{t:now,a:"Not oluşturuldu"+(panel?" ("+PANEL_LBL[panel]+")":"")}]};
+  if(panel) n.panel=panel;
+  if(sec) n.sec=sec;
   S.notes.unshift(n);
-  appLog("Yeni not: “"+(title||content||"").slice(0,40)+"”",n.id);
+  appLog((panel?PANEL_ICO[panel]+" "+PANEL_LBL[panel]+" — yeni kayıt: ":"Yeni not: ")+"“"+(title||content||"").slice(0,40)+"”",n.id);
   save(); return n;
 }
+const PANEL_LBL={mentor:"Mentöre Söyleyeceklerim",learn:"Öğrendiklerim"};
+const PANEL_ICO={mentor:"🎯",learn:"📚"};
+
+/* ---- Öğrendiklerim defterinin bölümleri (OneNote tarzı, sınırsız iç içe) ----
+   S.cats içinde scope:"learn" ile tutulur — böylece Drive senkronu ve yedek
+   hiçbir değişiklik gerekmeden bölümleri de taşır. Notun bölümü: n.sec        */
+const isSec=c=>c.scope==="learn";
+const secOf=id=>id?S.cats.find(c=>c.id===id&&isSec(c)):null;
+const secKids=id=>S.cats.filter(c=>isSec(c)&&(c.parent||null)===(id||null));
+function inSecTree(noteSec,secId){
+  let c=secOf(noteSec),g=0;
+  while(c&&g++<50){ if(c.id===secId) return true; c=c.parent?secOf(c.parent):null; }
+  return false;
+}
+// Bölümün kendisi + tüm alt bölümlerindeki kayıt sayısı
+const secCount=id=>S.notes.filter(n=>n.panel==="learn"&&!n.done&&inSecTree(n.sec,id)).length;
 function toggleDone(id){
   const n=S.notes.find(x=>x.id===id); if(!n)return;
   n.done=!n.done; n.doneAt=n.done?Date.now():null;
@@ -489,15 +628,22 @@ function toggleDone(id){
 const titleOf=n=>(n.title||n.content||"Başlıksız not").slice(0,40);
 
 /* ================= RENDER ================= */
+// Arama eşleşmesi — hem ana liste hem sağ panel aynı ölçütü kullanır
+function matchQ(n){
+  if(!searchQ) return true;
+  return (n.title+" "+n.content+" "+n.subs.map(s=>s.text).join(" ")+" "+n.files.map(f=>f.name).join(" "))
+    .toLowerCase().includes(searchQ.toLowerCase());
+}
 function visibleNotes(){
   let arr=S.notes.filter(n=>{
-    if(view.type==="active") return !n.done;
+    // Sağ paneldeki kayıtlar (mentör / öğrendiklerim) ana listeyi doldurmasın —
+    // tamamlananlar arşivinde yine görünürler, hiçbir şey kaybolmaz.
+    if(view.type==="active") return !n.done && !n.panel;
     if(view.type==="done") return n.done;
-    if(view.type==="cat") return inCatTree(n.cat,view.catId) && !n.done;
+    if(view.type==="cat") return inCatTree(n.cat,view.catId) && !n.done && !n.panel;
     return false;
   });
-  if(searchQ){ const q=searchQ.toLowerCase();
-    arr=arr.filter(n=>(n.title+" "+n.content+" "+n.subs.map(s=>s.text).join(" ")+" "+n.files.map(f=>f.name).join(" ")).toLowerCase().includes(q)); }
+  if(searchQ) arr=arr.filter(matchQ);
   if(view.type==="done") return arr.sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
   return arr.sort((a,b)=>{
     if(a.deadline&&b.deadline) return new Date(a.deadline)-new Date(b.deadline);
@@ -506,7 +652,9 @@ function visibleNotes(){
   });
 }
 
-const kidsOf=id=>S.cats.filter(k=>k.parent===id);
+// Kenar çubuğu kategorileri — defter bölümleri (scope:"learn") buraya karışmaz
+const kidsOf=id=>S.cats.filter(k=>k.parent===id&&!isSec(k));
+const rootCats=()=>S.cats.filter(c=>!c.parent&&!isSec(c));
 // noteCat, catId'nin kendisi mi yoksa herhangi bir derinlikteki alt-torunu mu? (sınırsız iç içe)
 function inCatTree(noteCat,catId){
   let c=catOf(noteCat), guard=0;
@@ -520,10 +668,10 @@ function renderSidebar(){
   document.querySelectorAll(".navitem[data-view]").forEach(b=>{
     b.classList.toggle("active", b.dataset.view===view.type && view.type!=="cat");
   });
-  $("#c-active").textContent=S.notes.filter(n=>!n.done).length||"";
+  $("#c-active").textContent=S.notes.filter(n=>!n.done&&!n.panel).length||"";
   $("#c-done").textContent=S.notes.filter(n=>n.done).length||"";
   const catBtn=(c,depth)=>{
-    const cnt=S.notes.filter(n=>!n.done&&inCatTree(n.cat,c.id)).length;
+    const cnt=S.notes.filter(n=>!n.done&&!n.panel&&inCatTree(n.cat,c.id)).length;
     const kids=kidsOf(c.id);
     // Daraltılmış kenar çubuğunda kategoriyi baş harfiyle tanıt (İ/ı doğru büyüsün diye tr yereli)
     const ini=((c.name||"?").trim()[0]||"?").toLocaleUpperCase("tr");
@@ -546,7 +694,7 @@ function renderSidebar(){
   }
   // subAddFor bir alt-torunda ise, atalarını açık göster
   function inSubAddChain(id){ let c=catOf(id),g=0; while(c&&g++<50){ if(c.id===subAddFor) return true; c=c.parent?catOf(c.parent):null; } return false; }
-  $("#catlist").innerHTML=S.cats.filter(c=>!c.parent).map(c=>renderCatTree(c,0)).join("");
+  $("#catlist").innerHTML=rootCats().map(c=>renderCatTree(c,0)).join("");
   $("#catlist").querySelectorAll("[data-cat]").forEach(b=>{
     b.onclick=e=>{
       const tw=e.target.closest("[data-tw]"), sa=e.target.closest("[data-subadd]"),
@@ -575,17 +723,28 @@ function noteCardHTML(n){
   const cat=catOf(n.cat);
   const dl=n.deadline&&!n.done?timeLeft(n.deadline):null;
   const exp=expandedId===n.id;
-  return `<div class="note ${n.done?"done":""} ${exp?"exp":""}" id="note-${n.id}">
+  const tri=n.triage&&TRI[n.triage];
+  // Öğrendiklerim bir çalışma defteri — görev değil: tik yok, yazılan orada kalır.
+  // (Eskiden yanlışlıkla tamamlanmış bir kayıt varsa tiki gösterip geri açılabilsin.)
+  const defter=n.panel==="learn"&&!n.done;
+  return `<div class="note ${n.done?"done":""} ${exp?"exp":""} ${tri?"tri-"+n.triage:""} ${defter?"nb":""}" id="note-${n.id}">
     <div class="note-head" data-open="${n.id}">
-      <button class="chk" data-done="${n.id}" title="${n.done?"Yeniden aç":"Tamamlandı"}">✓</button>
+      ${defter?"":`<button class="chk" data-done="${n.id}" title="${n.done?"Yeniden aç":"Tamamlandı"}">✓</button>`}
       <div class="note-body">
         ${n.title?`<div class="note-title">${esc(n.title)}</div>`:""}
         ${!exp&&n.content?`<div class="note-preview">${renderContent(n.content)}</div>`:""}
         ${!n.title&&!n.content?`<div class="note-preview">Başlıksız not</div>`:""}
         ${!exp&&n.files.some(f=>(f.type||"").startsWith("image/"))?`<div class="thumbstrip" data-thumbs="${n.id}"></div>`:""}
         <div class="note-meta">
-          <button class="chip" data-catpick="${n.id}" title="Kategori değiştir">
-            <span class="dot" style="background:${cat?cat.color:"#999"};width:7px;height:7px"></span>${cat?esc(cat.name):"—"}</button>
+          <button class="chip ${tri?"tri-"+n.triage:""}" data-triage="${n.id}"
+            title="Triyaj: ${tri?esc(tri.l):"işaretsiz"}">${tri?tri.e+" "+tri.s:"⚪ Triyaj"}</button>
+          ${n.panel!=="mentor"?`<button class="chip mshare ${n.mentor?"on":""}" data-mentor="${n.id}"
+            title="${n.mentor?"Mentör listesinden çıkar":"Mentöre söyleyeceklerime ekle"}">🎓${n.mentor?" Mentörde":""}</button>`:""}
+          ${n.panel==="learn"?(()=>{const s=secOf(n.sec);
+            return `<button class="chip" data-secpick="${n.id}" title="Bölüm değiştir">📒 ${s?esc(s.name):"Bölümsüz"}</button>`;})():
+          n.panel?`<span class="chip">${PANEL_ICO[n.panel]} ${esc(PANEL_LBL[n.panel])}</span>`:
+          `<button class="chip" data-catpick="${n.id}" title="Kategori değiştir">
+            <span class="dot" style="background:${cat?cat.color:"#999"};width:7px;height:7px"></span>${cat?esc(cat.name):"—"}</button>`}
           ${dl?`<span class="chip ${dl.cls}" data-deadline="${n.deadline}">${dl.txt}</span>`:""}
           ${n.done&&n.doneAt?`<span class="chip" style="background:var(--green-soft);color:var(--green)">✅ ${fmtDT(n.doneAt)}</span>`:""}
           ${n.subs.length?`<span class="chip">☑ ${n.subs.filter(s=>s.done).length}/${n.subs.length}</span>`:""}
@@ -643,7 +802,154 @@ function renderMain(){
     return;
   }
   list.innerHTML=notes.map(noteCardHTML).join("");
-  bindNotes();
+}
+
+/* ---------- sağ sütun: mentör + öğrendiklerim ---------- */
+function panelNotes(p){
+  return S.notes.filter(n=>n.panel===p&&!n.done&&matchQ(n))
+    .sort((a,b)=>triRank(a)-triRank(b)||b.updatedAt-a.updatedAt);
+}
+// Ana listede kalıp "mentöre söyle" ile işaretlenmiş notlar — kopyalanmaz, kısayolu gösterilir
+function mentorRefs(){
+  return S.notes.filter(n=>n.mentor&&n.panel!=="mentor"&&!n.done&&matchQ(n))
+    .sort((a,b)=>triRank(a)-triRank(b)||b.updatedAt-a.updatedAt);
+}
+function mrefHTML(n){
+  const cat=catOf(n.cat);
+  const src=n.panel?PANEL_ICO[n.panel]+" "+PANEL_LBL[n.panel]:(cat?"🏷 "+esc(cat.name):"🏷 —");
+  return `<div class="mref ${n.triage?"tri-"+n.triage:""}">
+    <span class="t" data-reveal="${n.id}">${esc(titleOf(n))}<span class="src">${src} · notta aç</span></span>
+    <button class="mx" data-unmentor="${n.id}" title="Mentör listesinden çıkar">✕</button>
+  </div>`;
+}
+/* --- Öğrendiklerim: defter ağacı (bölüm > alt bölüm > kayıtlar) --- */
+let secAddFor=null;   // açık "yeni bölüm" kutusu: null | "root" | üstBölümId
+const learnNotesOf=sec=>S.notes.filter(n=>n.panel==="learn"&&!n.done&&(n.sec||null)===(sec||null)&&matchQ(n))
+  .sort((a,b)=>triRank(a)-triRank(b)||b.updatedAt-a.updatedAt);
+function secNewRow(parentId){
+  return `<div class="lsec-new" style="--d:${parentId==="root"?0:1}"><input id="lsec-input" autocomplete="off"
+    placeholder="${parentId==="root"?"Bölüm":"Alt bölüm"} adı, Enter'a bas"></div>`;
+}
+function secQuickAdd(secId){
+  return `<form class="rqa mini" data-lsform="${secId||""}" autocomplete="off">
+    <input placeholder="＋ Bu bölüme yaz…" enterkeyhint="done">
+    <button type="submit" class="qa-btn sm primary" title="Ekle">＋</button></form>`;
+}
+function secTreeHTML(sec,depth){
+  const kids=secKids(sec.id), notes=learnNotesOf(sec.id), cnt=secCount(sec.id);
+  // Aramada eşleşme varsa bölüm kendiliğinden açılsın
+  const acik=sec.open||!!searchQ||secAddFor===sec.id;
+  let h=`<div class="lsec" style="--d:${depth}">
+    <div class="lsec-h ${acik?"open":""}" data-lsec="${sec.id}">
+      <span class="tw">${kids.length||notes.length?"▶":"•"}</span>
+      <span class="nm">${esc(sec.name)}</span><span class="cnt">${cnt||""}</span>
+      <span class="lsadd" data-lsadd="${sec.id}" title="Alt bölüm ekle">＋</span>
+      <span class="lsedit" data-lsedit="${sec.id}" title="Yeniden adlandır / sil">⋯</span>
+    </div>`;
+  if(acik){
+    h+=`<div class="lsec-body">`;
+    if(secAddFor===sec.id) h+=secNewRow(sec.id);
+    h+=kids.map(k=>secTreeHTML(k,depth+1)).join("");
+    h+=notes.map(noteCardHTML).join("");
+    h+=secQuickAdd(sec.id);
+    h+=`</div>`;
+  }
+  return h+`</div>`;
+}
+function learnHTML(){
+  const kok=learnNotesOf(null), roots=secKids(null);
+  const toplam=S.notes.filter(n=>n.panel==="learn"&&!n.done&&matchQ(n)).length;
+  if(!toplam&&!roots.length&&secAddFor!=="root")
+    return `<div class="rempty">Burası senin çalışma defterin — yazdığın kalır, tik yok, silinmez.
+      Üstteki kutuya yaz ya da ＋ Bölüm ile konu başlığı (ör. “İstatistik”, “Vaka notları”) aç.</div>`;
+  return (secAddFor==="root"?secNewRow("root"):"")+
+    roots.map(s=>secTreeHTML(s,0)).join("")+
+    (kok.length?`<div class="lsec-loose">${kok.map(noteCardHTML).join("")}</div>`:"");
+}
+function renderRight(){
+  const mine=panelNotes("mentor"), refs=mentorRefs();
+  const bekleyen=mine.length+refs.length;
+  const learnCnt=S.notes.filter(n=>n.panel==="learn"&&!n.done&&matchQ(n)).length;
+  $("#c-mentor").textContent=bekleyen||"";
+  $("#c-learn").textContent=learnCnt||"";
+  // Panel kapalıyken (özellikle telefonda) bekleyen mentör maddesi olduğu düğmede görünsün
+  $("#rightbtn").innerHTML="🎓"+(bekleyen?`<span class="rbadge">${bekleyen}</span>`:"");
+  $("#rightbtn").title="Mentör & Öğrendiklerim paneli"+(bekleyen?" — "+bekleyen+" madde bekliyor":"");
+  $("#mentor-list").innerHTML=(mine.length||refs.length)
+    ? refs.map(mrefHTML).join("")+mine.map(noteCardHTML).join("")
+    : `<div class="rempty">Hocaya ya da ekibe söyleyeceklerini buraya yaz. Bir nottaki 🎓 düğmesi de notu buraya taşır.</div>`;
+  $("#learn-list").innerHTML=learnHTML();
+  // Panelde bir not açıksa sütunu genişlet (editör sıkışmasın)
+  const openInPanel=!!(expandedId&&S.notes.find(x=>x.id===expandedId)?.panel);
+  $("#rightbar").classList.toggle("wide",openInPanel);
+  bindRight();
+}
+function bindRight(){
+  const rb=$("#rightbar");
+  rb.querySelectorAll("[data-reveal]").forEach(b=>b.onclick=()=>revealNote(b.dataset.reveal));
+  rb.querySelectorAll("[data-unmentor]").forEach(b=>b.onclick=()=>toggleMentor(b.dataset.unmentor));
+  // bölüm başlığı: aç/kapa · ＋ alt bölüm · ⋯ düzenle
+  rb.querySelectorAll("[data-lsec]").forEach(h=>{
+    h.onclick=e=>{
+      const add=e.target.closest("[data-lsadd]"), ed=e.target.closest("[data-lsedit]");
+      if(add){ const id=add.dataset.lsadd; secAddFor=secAddFor===id?null:id;
+        const s=secOf(id); if(secAddFor&&s&&!s.open){ s.open=true; save(); }
+        refreshRight(); $("#lsec-input")?.focus(); return; }
+      if(ed){ openSecEditPop(ed,ed.dataset.lsedit); return; }
+      const s=secOf(h.dataset.lsec); if(!s)return;
+      s.open=!s.open; save(); refreshRight();
+    };
+  });
+  // yeni bölüm adı kutusu
+  const si=$("#lsec-input");
+  if(si) si.onkeydown=e=>{
+    if(e.key==="Enter"&&si.value.trim()){
+      const parent=secAddFor==="root"?null:secAddFor;
+      const yeni={id:uid(),name:si.value.trim(),parent:parent,scope:"learn",open:true};
+      S.cats.push(yeni);
+      if(parent){ const p=secOf(parent); if(p)p.open=true; }
+      appLog("📒 Öğrendiklerim — yeni bölüm: "+(parent?secOf(parent).name+" › ":"")+yeni.name);
+      secAddFor=null; save(); render();
+    }
+    if(e.key==="Escape"){ secAddFor=null; refreshRight(); }
+  };
+  // bölüm içi hızlı ekleme
+  rb.querySelectorAll("[data-lsform]").forEach(f=>{
+    f.onsubmit=e=>{
+      e.preventDefault();
+      const inp=f.querySelector("input"), v=inp.value.trim(); if(!v)return;
+      stopDictation();
+      newNote("",v,"learn",f.dataset.lsform||null);
+      inp.value=""; render();
+      setTimeout(()=>$(`[data-lsform="${f.dataset.lsform}"] input`)?.focus(),0);
+    };
+  });
+}
+function renderLists(){ renderMain(); renderRight(); bindNotes(); }
+// Yalnız sağ sütunu tazele — kart düğmeleri (triyaj/mentör/bölüm/aç) yeniden bağlanmalı,
+// yoksa bölüm aç/kapa sonrası paneldeki kartlar tıklanamaz hale gelir.
+function refreshRight(){ renderRight(); bindNotes(); }
+
+/* Bir notu bulunduğu yerde aç: paneldeyse panelde, ana listedeyse doğru görünüme geçerek */
+function revealNote(id){
+  const n=S.notes.find(x=>x.id===id); if(!n)return;
+  if(n.panel){
+    if(matchMedia("(max-width:1100px)").matches) openRight(true);
+  }else{
+    const okView=n.done?view.type==="done":(view.type==="active"||(view.type==="cat"&&inCatTree(n.cat,view.catId)));
+    if(!okView){ if(expandedId) collapseNote(true); view={type:n.done?"done":"active"}; }
+  }
+  if(expandedId!==id) expandNote(id); else render();
+  setTimeout(()=>document.getElementById("note-"+id)?.scrollIntoView({behavior:"smooth",block:"center"}),60);
+}
+
+/* Notu mentör listesine ekle / çıkar — not yerinde kalır, veri kopyalanmaz */
+function toggleMentor(id){
+  const n=S.notes.find(x=>x.id===id); if(!n)return;
+  n.mentor=!n.mentor; n.updatedAt=Date.now();
+  noteLog(n,n.mentor?"🎓 Mentöre söyleyeceklerime eklendi":"🎓 Mentör listesinden çıkarıldı");
+  appLog((n.mentor?"🎓 Mentör listesine eklendi: ":"🎓 Mentör listesinden çıkarıldı: ")+"“"+titleOf(n)+"”",n.id);
+  save(); render();
 }
 
 function bindNotes(){
@@ -652,6 +958,15 @@ function bindNotes(){
   });
   document.querySelectorAll("[data-catpick]").forEach(b=>{
     b.onclick=e=>{ e.stopPropagation(); openCatPop(b, b.dataset.catpick); };
+  });
+  document.querySelectorAll("[data-triage]").forEach(b=>{
+    b.onclick=e=>{ e.stopPropagation(); openTriagePop(b, b.dataset.triage); };
+  });
+  document.querySelectorAll("[data-mentor]").forEach(b=>{
+    b.onclick=e=>{ e.stopPropagation(); toggleMentor(b.dataset.mentor); };
+  });
+  document.querySelectorAll("[data-secpick]").forEach(b=>{
+    b.onclick=e=>{ e.stopPropagation(); openSecPop(b, b.dataset.secpick); };
   });
   document.querySelectorAll("[data-open]").forEach(h=>{
     h.onclick=e=>{
@@ -662,6 +977,7 @@ function bindNotes(){
   });
   document.querySelectorAll("[data-thumbs]").forEach(async w=>{
     const n=S.notes.find(x=>x.id===w.dataset.thumbs); if(!n)return;
+    w.innerHTML="";
     const imgs=n.files.filter(f=>(f.type||"").startsWith("image/")).slice(0,4);
     for(const f of imgs){
       const url=await fileURL(f.id); if(!url)continue;
@@ -1177,9 +1493,9 @@ function openCatEditPop(anchor,catId){
   };
 
   pop.querySelector("[data-act=del]").onclick=()=>{
-    if(S.cats.length<=1){ alert("Son kategori silinemez."); return; }
+    if(rootCats().length+S.cats.filter(x=>x.parent&&!isSec(x)).length<=1){ alert("Son kategori silinemez."); return; }
     // Notlar sahipsiz kalmasın: "Genel" siliniyorsa kalan ilk kategoriye taşı
-    let fb=S.cats.find(x=>x.id==="genel"&&x.id!==catId)||S.cats.find(x=>x.id!==catId);
+    let fb=S.cats.find(x=>x.id==="genel"&&x.id!==catId&&!isSec(x))||S.cats.find(x=>x.id!==catId&&!isSec(x));
     const parts=[];
     if(notes.length) parts.push(notes.length+" not “"+fb.name+"”e taşınacak");
     if(kids.length) parts.push(kids.length+" alt kategori bir üst seviyeye çıkacak");
@@ -1198,7 +1514,7 @@ function openCatPop(anchor,noteId){
   const catOpt=(c,depth)=>
     `<button data-pick="${c.id}" style="padding-left:${10+depth*16}px"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}</button>`
     +kidsOf(c.id).map(k=>catOpt(k,depth+1)).join("");
-  pop.innerHTML=S.cats.filter(c=>!c.parent).map(c=>catOpt(c,0)).join("");
+  pop.innerHTML=rootCats().map(c=>catOpt(c,0)).join("");
   const r=anchor.getBoundingClientRect();
   pop.style.display="block";
   pop.style.left=Math.min(r.left,innerWidth-170)+"px";
@@ -1217,8 +1533,94 @@ function openCatPop(anchor,noteId){
     };
   });
 }
+/* Defter bölümü: yeniden adlandır / sil (kayıtlar ASLA silinmez, üst bölüme çıkar) */
+function openSecEditPop(anchor,secId){
+  const s=secOf(secId); if(!s)return;
+  const kids=secKids(secId), notes=S.notes.filter(n=>n.panel==="learn"&&(n.sec||null)===secId);
+  pop.innerHTML=`<input class="rename" id="sec-rename" value="${esc(s.name)}" placeholder="Bölüm adı">`+
+    `<div class="sep"></div>`+
+    `<button data-act="del" style="color:var(--red)">🗑 Bölümü sil</button>`;
+  const r=anchor.getBoundingClientRect();
+  pop.style.display="block";
+  pop.style.left=Math.min(r.left,innerWidth-200)+"px";
+  pop.style.top=(r.bottom+6)+"px";
+  const ri=$("#sec-rename"); ri.focus(); ri.select();
+  ri.onkeydown=e=>{
+    if(e.key==="Enter"&&ri.value.trim()){
+      const eski=s.name; s.name=ri.value.trim();
+      appLog("✎ Defter bölümü: "+eski+" → "+s.name);
+      save(); pop.style.display="none"; render();
+    }
+    if(e.key==="Escape") pop.style.display="none";
+  };
+  pop.querySelector("[data-act=del]").onclick=()=>{
+    const ust=s.parent||null, ustAd=ust?secOf(ust).name:"Bölümsüz";
+    const parts=[];
+    if(notes.length) parts.push(notes.length+" kayıt “"+ustAd+"”e taşınacak");
+    if(kids.length) parts.push(kids.length+" alt bölüm bir üst seviyeye çıkacak");
+    if(!confirm("“"+s.name+"” bölümü silinsin mi?"+(parts.length?"\n\n"+parts.join("\n")+".":"\n\nİçi boş.")+
+      "\n\nYazdıkların SİLİNMEZ.")) return;
+    notes.forEach(n=>{ n.sec=ust; noteLog(n,"📒 Bölüm silindi → "+ustAd); });
+    kids.forEach(k=>{ k.parent=ust; });
+    S.cats=S.cats.filter(c=>c.id!==secId);
+    appLog("🗑 Defter bölümü silindi: "+s.name+(notes.length?" ("+notes.length+" kayıt “"+ustAd+"”e taşındı)":""));
+    save(); pop.style.display="none"; render();
+  };
+}
+/* Bir kaydı başka bölüme taşı */
+function openSecPop(anchor,noteId){
+  const opt=(s,depth)=>`<button data-secpick-id="${s.id}" style="padding-left:${10+depth*16}px">📒 ${esc(s.name)}</button>`
+    +secKids(s.id).map(k=>opt(k,depth+1)).join("");
+  pop.innerHTML=`<button data-secpick-id="">— Bölümsüz</button>`+
+    (secKids(null).length?`<div class="sep"></div>`+secKids(null).map(s=>opt(s,0)).join("")
+     :`<div class="popnote">Henüz bölüm yok — panelde “＋ Bölüm” ile aç.</div>`);
+  const r=anchor.getBoundingClientRect();
+  pop.style.display="block";
+  pop.style.left=Math.min(r.left,innerWidth-200)+"px";
+  pop.style.top=(r.bottom+6)+"px";
+  pop.querySelectorAll("[data-secpick-id]").forEach(b=>{
+    b.onclick=()=>{
+      const n=S.notes.find(x=>x.id===noteId), yeni=b.dataset.secpickId||null;
+      if(n&&(n.sec||null)!==yeni){
+        n.sec=yeni; n.updatedAt=Date.now();
+        const ad=yeni?secOf(yeni).name:"Bölümsüz";
+        noteLog(n,"📒 Bölüm: "+ad);
+        appLog("📒 Defter bölümü değişti: “"+titleOf(n)+"” → "+ad,n.id);
+        save();
+      }
+      pop.style.display="none"; render();
+    };
+  });
+}
+
+/* Triyaj seçici: yeşil · sarı · kırmızı (ya da işareti kaldır) */
+function openTriagePop(anchor,noteId){
+  const n=S.notes.find(x=>x.id===noteId); if(!n)return;
+  pop.innerHTML=Object.keys(TRI).map(k=>
+    `<button data-tri="${k}">${TRI[k].e} ${esc(TRI[k].l)}${n.triage===k?" ✓":""}</button>`).join("")+
+    `<div class="sep"></div><button data-tri="">⚪ İşareti kaldır</button>`;
+  const r=anchor.getBoundingClientRect();
+  pop.style.display="block";
+  pop.style.left=Math.min(r.left,innerWidth-200)+"px";
+  pop.style.top=(r.bottom+6)+"px";
+  pop.querySelectorAll("[data-tri]").forEach(b=>{
+    b.onclick=()=>{
+      const k=b.dataset.tri||null;
+      if(k!==(n.triage||null)){
+        n.triage=k; n.updatedAt=Date.now();
+        const lbl=k?TRI[k].e+" "+TRI[k].l:"⚪ işaretsiz";
+        noteLog(n,"🚦 Triyaj: "+lbl);
+        appLog("🚦 Triyaj “"+titleOf(n)+"” → "+lbl,n.id);
+        save();
+      }
+      pop.style.display="none"; render();
+    };
+  });
+}
 document.addEventListener("click",e=>{
-  if(!pop.contains(e.target)&&!e.target.closest("[data-catpick]")&&!e.target.closest("[data-catedit]")) pop.style.display="none";
+  if(!pop.contains(e.target)&&!e.target.closest("[data-catpick]")&&!e.target.closest("[data-catedit]")
+     &&!e.target.closest("[data-triage]")&&!e.target.closest("[data-secpick]")
+     &&!e.target.closest("[data-lsedit]")) pop.style.display="none";
 });
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&expandedId&&!recState.active) collapseNote();
@@ -1410,9 +1812,9 @@ function timelineHTML(){
 }
 function bindTimeline(){
   document.querySelectorAll("[data-goto]").forEach(b=>{
-    b.onclick=()=>{ const n=S.notes.find(x=>x.id===b.dataset.goto);
-      setView({type:n&&n.done?"done":"active"}); if(n){ expandNote(n.id);
-        setTimeout(()=>document.getElementById("note-"+n.id)?.scrollIntoView({behavior:"smooth",block:"center"}),50); } };
+    b.onclick=()=>{ const n=S.notes.find(x=>x.id===b.dataset.goto); if(!n)return;
+      if(n.panel) revealNote(n.id);
+      else{ setView({type:n.done?"done":"active"}); revealNote(n.id); } };
   });
 }
 
@@ -1684,7 +2086,10 @@ function setView(v){
 document.querySelectorAll(".navitem[data-view]").forEach(b=>{
   b.onclick=()=>setView({type:b.dataset.view});
 });
-$("#hamburger").onclick=()=>{ $("#sidebar").classList.add("open"); $("#overlay").classList.add("show"); };
+$("#hamburger").onclick=()=>{
+  $("#rightbar").classList.remove("open"); $("#rightbtn").classList.remove("on");
+  $("#sidebar").classList.add("open"); $("#overlay").classList.add("show");
+};
 /* Kenar çubuğu daralt/genişlet (yalnız ikonlar) — tercih kalıcı */
 function setCollapsed(on){
   $("#sidebar").classList.toggle("collapsed",on);
@@ -1699,7 +2104,10 @@ $("#collapsebtn").onclick=e=>{
 };
 setCollapsed(!!localStorage.getItem("nbmd_collapsed"));
 $(".brand").onclick=()=>location.reload(); // logo → yenile + ana sayfa
-$("#overlay").onclick=()=>{ $("#sidebar").classList.remove("open"); $("#overlay").classList.remove("show"); };
+$("#overlay").onclick=()=>{
+  $("#sidebar").classList.remove("open"); $("#rightbar").classList.remove("open");
+  $("#rightbtn").classList.remove("on"); $("#overlay").classList.remove("show");
+};
 
 $("#addcat").onclick=()=>{
   const row=$("#newcat-row");
@@ -1709,7 +2117,7 @@ $("#addcat").onclick=()=>{
 $("#newcat-input").addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target.value.trim()){
     const name=e.target.value.trim();
-    S.cats.push({id:uid(),name,color:CAT_COLORS[S.cats.length%CAT_COLORS.length]});
+    S.cats.push({id:uid(),name,color:CAT_COLORS[rootCats().length%CAT_COLORS.length]});
     appLog("🏷 Yeni kategori: "+name);
     e.target.value=""; $("#newcat-row").style.display="none";
     save(); render();
@@ -1717,7 +2125,7 @@ $("#newcat-input").addEventListener("keydown",e=>{
   if(e.key==="Escape"){ $("#newcat-row").style.display="none"; }
 });
 
-$("#search").oninput=e=>{ searchQ=e.target.value.trim(); renderMain(); };
+$("#search").oninput=e=>{ searchQ=e.target.value.trim(); renderLists(); };
 
 /* quick add */
 function quickAdd(){
@@ -1728,6 +2136,42 @@ function quickAdd(){
   newNote("",v); inp.value=""; render(); inp.focus();
 }
 $("#quickadd").addEventListener("submit",e=>{ e.preventDefault(); quickAdd(); });
+
+/* sağ panel hızlı ekleme (mentör + öğrendiklerim) */
+function panelAdd(panel,inputId){
+  stopDictation();
+  const inp=$("#"+inputId), v=inp.value.trim();
+  if(!v)return;
+  newNote("",v,panel); inp.value=""; render(); inp.focus();
+}
+$("#mentor-add").addEventListener("submit",e=>{ e.preventDefault(); panelAdd("mentor","mentor-input"); });
+$("#learn-add").addEventListener("submit",e=>{ e.preventDefault(); panelAdd("learn","learn-input"); });
+$("#addlsec").onclick=()=>{ secAddFor=secAddFor==="root"?null:"root"; refreshRight(); $("#lsec-input")?.focus(); };
+if(!SR){ $("#mentor-dictate").style.display="none"; $("#learn-dictate").style.display="none"; }
+else{
+  $("#mentor-dictate").onclick=()=>startDictation($("#mentor-input"),$("#mentor-dictate"));
+  $("#learn-dictate").onclick=()=>startDictation($("#learn-input"),$("#learn-dictate"));
+}
+
+/* sağ paneli aç/kapa — dar ekranda kayan panel, geniş ekranda sütun (tercih cihaza özel) */
+function openRight(on){
+  const rb=$("#rightbar");
+  if(matchMedia("(max-width:1100px)").matches){
+    rb.classList.toggle("open",on);
+    $("#overlay").classList.toggle("show",on);
+  }else{
+    rb.classList.toggle("off",!on);
+    try{ localStorage.setItem("nbmd_right",on?"1":"0"); }catch(e){}
+  }
+  $("#rightbtn").classList.toggle("on",on);
+}
+function rightVisible(){
+  const rb=$("#rightbar");
+  return matchMedia("(max-width:1100px)").matches?rb.classList.contains("open"):!rb.classList.contains("off");
+}
+$("#rightbtn").onclick=()=>openRight(!rightVisible());
+$("#rightclose").onclick=()=>openRight(false);
+openRight(localStorage.getItem("nbmd_right")!=="0"&&!matchMedia("(max-width:1100px)").matches);
 $("#qa-mic").onclick=()=>{
   const n=newNote("","Sesli not");
   render(); expandNote(n.id);
@@ -1738,7 +2182,7 @@ $("#qa-dictate").onclick=()=>startDictation($("#qa-input"),$("#qa-dictate"));
 
 /* ================= HER ŞEYİ TEMİZLE ================= */
 async function doWipe(){
-  const nN=S.notes.length, nC=S.cats.length,
+  const nN=S.notes.length, nC=S.cats.filter(c=>!isSec(c)).length,
         nF=S.notes.reduce((s,n)=>s+n.files.length+n.audios.length,0);
   if(!nN&&!nF&&nC<=5&&!confirm("Görünüşe göre veri yok. Yine de sıfırlansın mı?")) return;
 
@@ -1806,7 +2250,7 @@ setInterval(()=>{
 },30000);
 
 /* ================= INIT ================= */
-function render(){ renderSidebar(); renderMain(); }
+function render(){ renderSidebar(); renderLists(); }
 function init(){
   applyTheme();
   (function sessionLog(){
