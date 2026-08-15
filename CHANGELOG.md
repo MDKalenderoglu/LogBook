@@ -4,6 +4,16 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] — 2026-08-15
+
+### Added
+
+- **Urgent triage feeds the Acil list** — a note marked red now also appears under the *Acil* category regardless of its own category, with the count updated to match. The note is not moved: its category is untouched, and clearing the mark removes it from the list again
+
+### Fixed
+
+- Sub-task activity was missing from the global log. Adding, completing, and reopening a sub-task are now recorded there as well as in the note's own history
+
 ## [1.2.0] — 2026-07-25
 
 ### Added

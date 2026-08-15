@@ -284,6 +284,8 @@ button.chip:hover{border-color:var(--text2)}
 .tl-note{color:var(--accent);cursor:pointer;font-weight:600}
 .tl-note:hover{text-decoration:underline}
 
+.viewhint{font-size:12px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);
+  border-radius:9px;padding:7px 11px;margin:0 0 10px}
 .empty{text-align:center;color:var(--text2);padding:60px 20px;font-size:14px}
 .empty .big{font-size:38px;margin-bottom:10px}
 
@@ -591,6 +593,10 @@ function timeLeft(dl){
   return {txt:`⏳ ${s} kaldı`,cls:(diff<864e5?"dl-soon":"dl-ok")};
 }
 const catOf=id=>S.cats.find(c=>c.id===id);
+/* Triyajı 🔴 olan notlar, kategorisi ne olursa olsun "Acil" bölümünde de listelenir.
+   Notun kendi kategorisi değişmez — işaret kalkınca not bu listeden kendiliğinden düşer. */
+const URGENT_CAT="acil";
+const acilde=(n,catId)=>catId===URGENT_CAT&&n.triage==="r";
 
 function noteLog(n,a){ n.log.push({t:Date.now(),a}); n.updatedAt=Date.now(); }
 function appLog(a,noteId){ S.appLog.push({t:Date.now(),a,noteId:noteId||null}); }
@@ -666,7 +672,7 @@ function visibleNotes(){
     // tamamlananlar arşivinde yine görünürler, hiçbir şey kaybolmaz.
     if(view.type==="active") return !n.done && !n.panel;
     if(view.type==="done") return n.done;
-    if(view.type==="cat") return inCatTree(n.cat,view.catId) && !n.done && !n.panel;
+    if(view.type==="cat") return (inCatTree(n.cat,view.catId)||acilde(n,view.catId)) && !n.done && !n.panel;
     return false;
   });
   if(searchQ) arr=arr.filter(matchQ);
@@ -698,7 +704,7 @@ function renderSidebar(){
   $("#c-done").textContent=S.notes.filter(n=>n.done).length||"";
   $("#c-learn-nav").textContent=S.notes.filter(n=>n.panel==="learn"&&!n.done).length||"";
   const catBtn=(c,depth)=>{
-    const cnt=S.notes.filter(n=>!n.done&&!n.panel&&inCatTree(n.cat,c.id)).length;
+    const cnt=S.notes.filter(n=>!n.done&&!n.panel&&(inCatTree(n.cat,c.id)||acilde(n,c.id))).length;
     const kids=kidsOf(c.id);
     // Daraltılmış kenar çubuğunda kategoriyi baş harfiyle tanıt (İ/ı doğru büyüsün diye tr yereli)
     const ini=((c.name||"?").trim()[0]||"?").toLocaleUpperCase("tr");
@@ -824,12 +830,14 @@ function renderMain(){
   if(view.type==="log"){ list.innerHTML=timelineHTML(); bindTimeline(); return; }
   if(view.type==="learn"){ list.innerHTML=learnViewHTML(); return; }
   const notes=visibleNotes();
+  const acilIpucu=view.type==="cat"&&view.catId===URGENT_CAT
+    ? `<div class="viewhint">🔴 Triyajı “Acil” olan notlar, kategorileri ne olursa olsun burada listelenir.</div>` : "";
   if(!notes.length){
-    list.innerHTML=`<div class="empty"><div class="big">${view.type==="done"?"🗂":"🍃"}</div>${
+    list.innerHTML=acilIpucu+`<div class="empty"><div class="big">${view.type==="done"?"🗂":"🍃"}</div>${
       view.type==="done"?"Henüz tamamlanan iş yok.":"Buraya ilk notunu ekle — üstteki kutuya yaz ve Enter'a bas."}</div>`;
     return;
   }
-  list.innerHTML=notes.map(noteCardHTML).join("");
+  list.innerHTML=acilIpucu+notes.map(noteCardHTML).join("");
 }
 
 /* ---------- sağ sütun: mentör + öğrendiklerim ---------- */
@@ -1179,7 +1187,7 @@ function renderSubs(n){
       const s=n.subs.find(x=>x.id===b.dataset.subtoggle); if(!s)return;
       s.done=!s.done;
       noteLog(n,(s.done?"☑ Alt madde tamamlandı: ":"☐ Alt madde yeniden açıldı: ")+s.text);
-      if(s.done) appLog("Alt madde tamamlandı: “"+s.text.slice(0,40)+"” — "+titleOf(n),n.id);
+      appLog((s.done?"☑ Alt madde tamamlandı: ":"☐ Alt madde yeniden açıldı: ")+"“"+s.text.slice(0,40)+"” — "+titleOf(n),n.id);
       save(); render();
     };
   });
@@ -1188,6 +1196,7 @@ function renderSubs(n){
     const v=$("#sub-input").value.trim(); if(!v)return;
     n.subs.push({id:uid(),text:v,done:false,t:Date.now()});
     noteLog(n,"＋ Alt madde eklendi: "+v);
+    appLog("＋ Alt madde eklendi: “"+v.slice(0,40)+"” — "+titleOf(n),n.id);
     save(); render();
     setTimeout(()=>$("#sub-input")?.focus(),0);
   };
