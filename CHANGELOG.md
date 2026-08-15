@@ -4,10 +4,13 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.1] — 2026-08-15
+## [1.3.0] — 2026-08-15
 
 ### Added
 
+- **Text formatting in notes** — bold, italic, underline, strikethrough, and highlight from a toolbar above the editor, with ⌘/Ctrl+B, I, U shortcuts. A＋ / A－ step the current line through three heading sizes. Formatting is stored as plain-text marks (`**bold**`, `*italic*`, `__underline__`, `~~strike~~`, `==highlight==`), so search, revision history, backup, and sync keep working unchanged and no HTML is ever stored
+- **Formatted preview** — an eye control renders the note as it will look, live under the editor. The setting is remembered per device
+- **Note font** — system, serif, or monospace for note text, applied everywhere the note body is shown
 - **Urgent triage feeds the Acil list** — a note marked red now also appears under the *Acil* category regardless of its own category, with the count updated to match. The note is not moved: its category is untouched, and clearing the mark removes it from the list again
 
 ### Fixed

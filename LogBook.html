@@ -183,6 +183,37 @@ button.chip:hover{border-color:var(--text2)}
 .chip.audio-chip{background:var(--surface2)}
 .created{font-size:11.5px;color:var(--text2)}
 
+/* yazı tipi tercihi (not metni) */
+:root{--note-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif}
+[data-font="serif"]{--note-font:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+[data-font="mono"]{--note-font:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.editor textarea,.note-preview,.ed-preview{font-family:var(--note-font)}
+
+/* biçim çubuğu */
+.fmtbar{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:2px 0 8px;
+  padding-bottom:8px;border-bottom:1px dashed var(--border)}
+.fbtn{min-width:30px;height:28px;padding:0 7px;border-radius:7px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text2);font-size:13px;line-height:1;
+  display:inline-flex;align-items:center;justify-content:center}
+.fbtn:hover{color:var(--accent);border-color:var(--accent)}
+.fbtn.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.fbtn.wide{min-width:38px;font-size:12.5px;font-weight:600}
+.fsep{width:1px;height:18px;background:var(--border);margin:0 3px}
+.fsel{height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);
+  color:var(--text2);font-size:12.5px;padding:0 4px;outline:none}
+.fsel:hover{color:var(--accent);border-color:var(--accent)}
+/* biçimli önizleme */
+.ed-preview{border:1px solid var(--border);border-radius:10px;background:var(--surface2);
+  padding:10px 12px;margin:8px 0 2px;font-size:14.5px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word}
+.ed-preview a{color:var(--accent);text-decoration:underline;word-break:break-all}
+.ed-preview .pdate{display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11.5px;
+  font-weight:700;margin:10px 0 6px;font-variant-numeric:tabular-nums}
+.ed-preview .pdate::before,.ed-preview .pdate::after{content:"";height:1px;background:var(--border);flex:1}
+.ed-preview .ph1{font-weight:700;font-size:19px;margin:6px 0 2px}
+.ed-preview .ph2{font-weight:700;font-size:16.5px;margin:5px 0 2px}
+.ed-preview .ph3{font-weight:600;font-size:14.5px;margin:4px 0 2px}
+mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:3px}
+
 /* editor (expanded) */
 .editor{border-top:1px solid var(--border);padding:14px 15px;background:var(--surface)}
 .editor input.title{width:100%;border:none;outline:none;background:none;font-weight:700;font-size:16px;margin-bottom:6px}
@@ -543,20 +574,32 @@ S.notes.forEach(n=>{ if(!n.files)n.files=[]; if(!n.subs)n.subs=[]; if(!n.revs)n.
 const save=()=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(S)); }catch(e){ console.error(e); } scheduleSync(); };
 
 let view={type:"active",catId:null};
+let showPreview=!!localStorage.getItem("nbmd_prev");   // editörde biçimli önizleme açık mı (cihaza özel)
 let expandedId=null, editSnapshot=null, searchQ="";
 
 /* ================= HELPERS ================= */
 const $=s=>document.querySelector(s);
 const esc=s=>(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const linkify=s=>s.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+/* Satır içi biçimlendirme — metin DÜZ METİN olarak saklanır, yalnızca gösterimde
+   dönüştürülür. Böylece arama, sürüm karşılaştırması, yedek ve senkron aynen çalışır
+   ve HTML kaçışı (esc) sonrası çalıştığı için güvenlik açığı oluşmaz. */
+function inlineFmt(t){
+  return t
+    .replace(/\*\*([^*\n]+)\*\*/g,"<b>$1</b>")
+    .replace(/(^|[^*\w])\*([^*\n]+)\*(?![*\w])/g,"$1<i>$2</i>")
+    .replace(/__([^_\n]+)__/g,"<u>$1</u>")
+    .replace(/~~([^~\n]+)~~/g,"<s>$1</s>")
+    .replace(/==([^=\n]+)==/g,"<mark>$1</mark>");
+}
 function renderContent(t){
   let out="";
   for(const line of (t||"").split("\n")){
     const d=line.match(/^⏱\s+(.*)/);
     if(d){ out+=`<div class="pdate">${esc(d[1])}</div>`; continue; }
     const m=line.match(/^(#{1,3})\s*(.*)/);
-    if(m) out+=`<div class="ph${m[1].length}">${linkify(esc(m[2]))}</div>`;
-    else out+=linkify(esc(line))+"\n";
+    if(m) out+=`<div class="ph${m[1].length}">${linkify(inlineFmt(esc(m[2])))}</div>`;
+    else out+=linkify(inlineFmt(esc(line)))+"\n";
   }
   return out.replace(/\n$/,"");
 }
@@ -807,7 +850,25 @@ function noteCardHTML(n){
 function editorHTML(n){
   return `<div class="editor" id="editor-${n.id}">
     <input class="title" id="ed-title" placeholder="Başlık" value="${esc(n.title)}">
+    <div class="fmtbar">
+      <button class="fbtn" id="fmt-b" title="Kalın (⌘/Ctrl+B)"><b>B</b></button>
+      <button class="fbtn" id="fmt-i" title="İtalik (⌘/Ctrl+I)"><i>I</i></button>
+      <button class="fbtn" id="fmt-u" title="Altı çizili (⌘/Ctrl+U)"><u>U</u></button>
+      <button class="fbtn" id="fmt-s" title="Üstü çizili"><s>S</s></button>
+      <button class="fbtn" id="fmt-m" title="Vurgula (fosforlu)">🖍</button>
+      <span class="fsep"></span>
+      <button class="fbtn wide" id="fmt-plus" title="Satırı büyüt (başlık seviyesi)">A＋</button>
+      <button class="fbtn wide" id="fmt-minus" title="Satırı küçült">A－</button>
+      <span class="fsep"></span>
+      <select class="fsel" id="fmt-font" title="Yazı tipi (tüm notlar için)">
+        <option value="sistem">Sistem</option>
+        <option value="serif">Serif</option>
+        <option value="mono">Daktilo</option>
+      </select>
+      <button class="fbtn wide ${showPreview?"on":""}" id="fmt-prev" title="Biçimli önizleme">👁</button>
+    </div>
     <textarea id="ed-content" placeholder="Notunu yaz…">${esc(n.content)}</textarea>
+    <div class="ed-preview" id="ed-preview" style="display:${showPreview?"block":"none"}"></div>
     <div id="ed-subs"></div>
     <div class="editor-row">
       <label>⏰ Bitiş:</label>
@@ -815,7 +876,6 @@ function editorHTML(n){
       ${n.deadline?`<button class="tool danger" id="ed-dl-clear">✕ Kaldır</button>`:""}
     </div>
     <div class="editor-row">
-      <button class="tool" id="ed-head">🔠 Alt Başlık</button>
       <button class="tool" id="ed-dictate">🗣 Sesle Yaz</button>
       <button class="tool" id="ed-rec">🎤 Ses Kaydet</button>
       <button class="tool" id="ed-file">📎 Dosya Ekle</button>
@@ -827,7 +887,8 @@ function editorHTML(n){
     <div class="audios" id="ed-audios"></div>
     <div class="files" id="ed-files"></div>
     <div class="nlog" id="ed-log" style="display:none"></div>
-    <div class="hint">İpucu: linkler otomatik tıklanabilir · dosya sürükle/yapıştır olur · uzun aradan sonra dönünce araya otomatik tarih düşülür (⏱ satırı)</div>
+    <div class="hint">İpucu: **kalın** · *italik* · __altı çizili__ · ~~üstü çizili~~ · ==vurgu== · satır başında # ile başlık ·
+      linkler otomatik tıklanabilir · dosya sürükle/yapıştır olur · uzun aradan sonra dönünce araya otomatik tarih düşülür (⏱ satırı)</div>
   </div>`;
 }
 
@@ -1129,7 +1190,8 @@ function bindEditor(){
   const t=$("#ed-title"), c=$("#ed-content"), dl=$("#ed-deadline");
   if(!t)return;
   t.oninput=()=>{ n.title=t.value; n.updatedAt=Date.now(); save(); };
-  c.oninput=()=>{ n.content=c.value; n.updatedAt=Date.now(); save(); };
+  c.oninput=()=>{ n.content=c.value; n.updatedAt=Date.now(); save();
+    const pv=$("#ed-preview"); if(pv&&pv.style.display!=="none") pv.innerHTML=renderContent(n.content); };
   dl.onchange=()=>{
     if(dl.value){
       const onceki=n.deadline;
@@ -1164,18 +1226,66 @@ function bindEditor(){
       el.style.display="block";
     } else el.style.display="none";
   };
-  // Alt başlık: imlecin bulunduğu satırı "## " ile işaretler (varsa geri alır)
-  $("#ed-head").onclick=()=>{
-    const pos=c.selectionStart, v=c.value;
-    const ls=v.lastIndexOf("\n",pos-1)+1;
-    let le=v.indexOf("\n",ls); if(le<0) le=v.length;
-    const line=v.slice(ls,le), isH=/^##\s*/.test(line);
-    const nl=isH?line.replace(/^##\s*/,""):"## "+line;
-    c.value=v.slice(0,ls)+nl+v.slice(le);
-    const caret=ls+nl.length;
-    c.focus(); c.setSelectionRange(caret,caret);
-    n.content=c.value; n.updatedAt=Date.now(); save();
+  /* ---- biçimlendirme çubuğu ---- */
+  const yaz=(yeniDeger,a,b2)=>{                     // metni uygula, imleci koru, önizlemeyi tazele
+    c.value=yeniDeger; c.focus(); c.setSelectionRange(a,b2);
+    n.content=c.value; n.updatedAt=Date.now(); save(); tazelePrev();
   };
+  const tazelePrev=()=>{ const pv=$("#ed-preview");
+    if(pv&&pv.style.display!=="none") pv.innerHTML=renderContent(n.content)||'<span class="hint">Önizlenecek metin yok</span>'; };
+  function sar(sym){                                // seçimi işaretle / işareti kaldır
+    let sBas=c.selectionStart, sSon=c.selectionEnd; const v=c.value, L=sym.length;
+    if(sBas===sSon){                                // seçim yoksa imlecin üstündeki kelime
+      let a=sBas,b2=sSon;
+      while(a>0&&!/\s/.test(v[a-1]))a--;
+      while(b2<v.length&&!/\s/.test(v[b2]))b2++;
+      if(b2>a){ sBas=a; sSon=b2; }
+    }
+    while(sBas<sSon&&/\s/.test(v[sBas]))sBas++;      // baştaki/sondaki boşluk işaretin dışında kalsın
+    while(sSon>sBas&&/\s/.test(v[sSon-1]))sSon--;
+    if(sBas===sSon)return;
+    const sec=v.slice(sBas,sSon);
+    if(sec.length>=2*L&&sec.startsWith(sym)&&sec.endsWith(sym))
+      return yaz(v.slice(0,sBas)+sec.slice(L,-L)+v.slice(sSon),sBas,sSon-2*L);
+    if(v.slice(sBas-L,sBas)===sym&&v.slice(sSon,sSon+L)===sym)
+      return yaz(v.slice(0,sBas-L)+sec+v.slice(sSon+L),sBas-L,sSon-L);
+    yaz(v.slice(0,sBas)+sym+sec+sym+v.slice(sSon),sBas+L,sSon+L);
+  }
+  function boyut(delta){                            // satırın başlık seviyesi: 0 normal → 3 en büyük
+    const v=c.value, pos=c.selectionStart;
+    const ls=v.lastIndexOf("\n",pos-1)+1; let le=v.indexOf("\n",ls); if(le<0) le=v.length;
+    const satir=v.slice(ls,le), m=satir.match(/^(#{1,3})\s*/);
+    let sev=m?4-m[1].length:0;
+    sev=Math.max(0,Math.min(3,sev+delta));
+    const duz=satir.replace(/^#{1,3}\s*/,"");
+    const yeni=sev?"#".repeat(4-sev)+" "+duz:duz;
+    const kaydi=yeni.length-satir.length;
+    yaz(v.slice(0,ls)+yeni+v.slice(le),pos+kaydi<ls?ls:pos+kaydi,pos+kaydi<ls?ls:pos+kaydi);
+  }
+  $("#fmt-b").onclick=()=>sar("**");
+  $("#fmt-i").onclick=()=>sar("*");
+  $("#fmt-u").onclick=()=>sar("__");
+  $("#fmt-s").onclick=()=>sar("~~");
+  $("#fmt-m").onclick=()=>sar("==");
+  $("#fmt-plus").onclick=()=>boyut(1);
+  $("#fmt-minus").onclick=()=>boyut(-1);
+  $("#fmt-prev").onclick=()=>{
+    showPreview=!showPreview;
+    const pv=$("#ed-preview"); pv.style.display=showPreview?"block":"none";
+    $("#fmt-prev").classList.toggle("on",showPreview);
+    try{ localStorage.setItem("nbmd_prev",showPreview?"1":""); }catch(e){}
+    tazelePrev();
+  };
+  const fs=$("#fmt-font"); fs.value=S.font||"sistem";
+  fs.onchange=()=>{ S.font=fs.value; applyFont(); save(); };
+  c.addEventListener("keydown",e=>{
+    if(!(e.metaKey||e.ctrlKey)||e.altKey)return;
+    const k=e.key.toLowerCase();
+    if(k==="b"){ e.preventDefault(); sar("**"); }
+    else if(k==="i"){ e.preventDefault(); sar("*"); }
+    else if(k==="u"){ e.preventDefault(); sar("__"); }
+  });
+  tazelePrev();
   const dictBtn=$("#ed-dictate");
   if(!SR) dictBtn.style.display="none";
   else dictBtn.onclick=()=>startDictation($("#ed-content"),dictBtn);
@@ -2152,6 +2262,7 @@ $("#syncstat").onclick=()=>{ if(S.syncOn&&!syncBusy) syncNow(true); };
 setInterval(()=>syncNow(),90000);
 
 /* ================= THEME ================= */
+function applyFont(){ document.documentElement.setAttribute("data-font",S.font||"sistem"); }
 function applyTheme(){
   const dark=S.theme==="dark"||(S.theme==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.setAttribute("data-theme",dark?"dark":"light");
@@ -2338,7 +2449,7 @@ setInterval(()=>{
 /* ================= INIT ================= */
 function render(){ renderSidebar(); renderLists(); }
 function init(){
-  applyTheme();
+  applyTheme(); applyFont();
   (function sessionLog(){
     const last=[...S.appLog].reverse().find(e=>e.a==="🔓 Oturum açıldı");
     if(!last||Date.now()-last.t>60000){ appLog("🔓 Oturum açıldı"); save(); }
