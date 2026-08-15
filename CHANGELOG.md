@@ -8,8 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Text formatting in notes** — bold, italic, underline, strikethrough, and highlight from a toolbar above the editor, with ⌘/Ctrl+B, I, U shortcuts. A＋ / A－ step the current line through three heading sizes, and two more controls turn the selected lines into bullets or a quote (numbered lines typed as `1.` are rendered as a list too). Formatting is stored as plain-text marks (`**bold**`, `*italic*`, `__underline__`, `~~strike~~`, `==highlight==`), so search, revision history, backup, and sync keep working unchanged and no HTML is ever stored
-- **Formatted preview** — an eye control renders the note as it will look, live under the editor. The setting is remembered per device
+- **Rich text editing** — the note body is now a formatted editor: bold, italic, underline, strikethrough, highlight, three heading sizes, bullet lists and quotes are applied directly to the text as you write, with ⌘/Ctrl+B, I, U and native undo. No markup is visible while typing
+- **Safe HTML storage** — note bodies are stored as HTML that passes a strict whitelist on every read and write (scripts, styles, embedded media, event handlers and `javascript:` links are dropped, pasted content included). Search, revision history, diff summaries, backup and Drive sync operate on the text extracted from it, so they behave exactly as before
+- **Existing notes keep working** — plain-text notes, including ones using `##`, `-` or `**` marks, are converted to formatted text the first time they are opened; the original text is preserved in the revision history, and a change that only alters formatting is logged as such
 - **Note font** — system, serif, or monospace for note text, applied everywhere the note body is shown
 - **Urgent triage feeds the Acil list** — a note marked red now also appears under the *Acil* category regardless of its own category, with the count updated to match. The note is not moved: its category is untouched, and clearing the mark removes it from the list again
 

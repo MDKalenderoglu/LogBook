@@ -187,7 +187,7 @@ button.chip:hover{border-color:var(--text2)}
 :root{--note-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif}
 [data-font="serif"]{--note-font:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
 [data-font="mono"]{--note-font:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.editor textarea,.note-preview,.ed-preview{font-family:var(--note-font)}
+.editor textarea,.note-preview,.rte,.revbox{font-family:var(--note-font)}
 
 /* biçim çubuğu */
 .fmtbar{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:2px 0 8px;
@@ -202,22 +202,34 @@ button.chip:hover{border-color:var(--text2)}
 .fsel{height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);
   color:var(--text2);font-size:12.5px;padding:0 4px;outline:none}
 .fsel:hover{color:var(--accent);border-color:var(--accent)}
-/* biçimli önizleme */
-.ed-preview{border:1px solid var(--border);border-radius:10px;background:var(--surface2);
-  padding:10px 12px;margin:8px 0 2px;font-size:14.5px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word}
-.ed-preview a{color:var(--accent);text-decoration:underline;word-break:break-all}
-.ed-preview .pdate{display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11.5px;
+/* zengin metin editörü (doğrudan biçimli yazma) */
+.rte{min-height:120px;outline:none;font-size:14.5px;line-height:1.6;word-wrap:break-word;
+  padding:2px 0 4px;caret-color:var(--accent)}
+.rte.bos::before{content:attr(data-ph);color:var(--text2);pointer-events:none}
+.rte:focus{outline:none}
+.rte h1{font-size:20px;font-weight:700;margin:8px 0 3px}
+.rte h2{font-size:17px;font-weight:700;margin:7px 0 3px}
+.rte h3{font-size:15px;font-weight:600;margin:6px 0 3px}
+.rte ul,.rte ol{margin:3px 0 3px 20px}
+.rte li{margin:1px 0}
+.rte blockquote{border-left:3px solid var(--accent);margin:4px 0;padding:1px 0 1px 10px;color:var(--text2);font-style:italic}
+.rte a{color:var(--accent);text-decoration:underline}
+.rte .pdate{display:flex;align-items:center;gap:10px;color:var(--text2);font-size:11.5px;
   font-weight:700;margin:10px 0 6px;font-variant-numeric:tabular-nums}
-.ed-preview .pdate::before,.ed-preview .pdate::after{content:"";height:1px;background:var(--border);flex:1}
-.ed-preview .ph1{font-weight:700;font-size:19px;margin:6px 0 2px}
-.ed-preview .ph2{font-weight:700;font-size:16.5px;margin:5px 0 2px}
-.ed-preview .ph3{font-weight:600;font-size:14.5px;margin:4px 0 2px}
+.rte .pdate::before,.rte .pdate::after{content:"";height:1px;background:var(--border);flex:1}
+/* sürüm kutusu */
+.revbox{background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px;margin-top:4px;color:var(--text);font-size:13px;line-height:1.55}
+/* kart önizlemesinde zengin içerik */
+.note-preview h1{font-size:15.5px;font-weight:700;margin:2px 0}
+.note-preview h2{font-size:14.5px;font-weight:700;margin:2px 0}
+.note-preview h3{font-size:13.5px;font-weight:600;margin:2px 0}
+.note-preview ul,.note-preview ol{margin:2px 0 2px 18px}
+.note-preview blockquote{border-left:2px solid var(--border);padding-left:8px;margin:2px 0;font-style:italic}
 mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:3px}
 /* madde imi ve alıntı satırları */
 .pli{padding-left:1.15em;text-indent:-1.15em}
 .pq{border-left:3px solid var(--border);padding:1px 0 1px 10px;margin:2px 0;color:var(--text2);font-style:italic}
-.ed-preview .pli{margin:1px 0}
-.ed-preview .pq{border-left-color:var(--accent);opacity:.95}
 
 /* editor (expanded) */
 .editor{border-top:1px solid var(--border);padding:14px 15px;background:var(--surface)}
@@ -579,13 +591,81 @@ S.notes.forEach(n=>{ if(!n.files)n.files=[]; if(!n.subs)n.subs=[]; if(!n.revs)n.
 const save=()=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(S)); }catch(e){ console.error(e); } scheduleSync(); };
 
 let view={type:"active",catId:null};
-let showPreview=!!localStorage.getItem("nbmd_prev");   // editörde biçimli önizleme açık mı (cihaza özel)
 let expandedId=null, editSnapshot=null, searchQ="";
 
 /* ================= HELPERS ================= */
 const $=s=>document.querySelector(s);
 const esc=s=>(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const linkify=s=>s.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+/* ---------------- Zengin metin (WYSIWYG) altyapısı ----------------
+   Not içeriği artık HTML olarak saklanır; ama HER OKUMA noktasında temizlenir
+   (beyaz liste) ve arama/karşılaştırma için düz metne çevrilir. Eski düz metin
+   notlar olduğu gibi çalışmaya devam eder, ilk düzenlemede HTML'e dönüşür. */
+const HTML_IZIN={B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,MARK:1,BR:1,DIV:1,P:1,SPAN:1,
+  UL:1,OL:1,LI:1,BLOCKQUOTE:1,H1:1,H2:1,H3:1,A:1};
+// Bunlar içerikleriyle birlikte silinir (yapıştırılan sayfalardan sızmasın)
+const HTML_AT={SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,NOSCRIPT:1,LINK:1,META:1,TITLE:1,
+  SVG:1,MATH:1,TEMPLATE:1,IMG:1,VIDEO:1,AUDIO:1,SOURCE:1,FORM:1,INPUT:1,BUTTON:1,TABLE:1};
+function sanitizeHTML(html){
+  const kap=document.createElement("div");
+  kap.innerHTML=String(html||"");
+  (function gez(el){
+    [...el.childNodes].forEach(d=>{
+      if(d.nodeType===3) return;
+      if(d.nodeType!==1){ d.remove(); return; }
+      if(HTML_AT[d.tagName]){ d.remove(); return; }    // içeriğiyle birlikte at
+      if(!HTML_IZIN[d.tagName]){                       // izinsiz etiket: içeriği kalsın, etiket gitsin
+        const p2=d.parentNode;
+        while(d.firstChild) p2.insertBefore(d.firstChild,d);
+        d.remove(); return;
+      }
+      [...d.attributes].forEach(at=>{
+        const ad=at.name.toLowerCase();
+        if(d.tagName==="A"&&ad==="href"&&/^(https?:|mailto:)/i.test(at.value)) return;
+        if(ad==="class"&&at.value==="pdate") return;
+        d.removeAttribute(at.name);
+      });
+      if(d.tagName==="A"){ d.setAttribute("target","_blank"); d.setAttribute("rel","noopener"); }
+      gez(d);
+    });
+  })(kap);
+  return kap.innerHTML;
+}
+const isHTML=s=>/<(b|i|u|s|mark|div|p|br|ul|ol|li|blockquote|h[1-3]|strong|em|a|span|strike)\b[^>]*>/i.test(s||"");
+function htmlToText(h){
+  if(!isHTML(h)) return h||"";
+  const d=document.createElement("div");
+  d.innerHTML=String(h||"").replace(/<\/(div|p|li|h[1-3]|blockquote)>/gi,"\n").replace(/<br\s*\/?>/gi,"\n");
+  return (d.textContent||"").replace(/\n{3,}/g,"\n\n").trim();
+}
+/* Eski düz metin (ve markdown işaretleri) → düzenlenebilir HTML */
+function textToHtml(t){
+  if(isHTML(t)) return sanitizeHTML(t);
+  let out="", liAcik=false;
+  const kapat=()=>{ if(liAcik){ out+="</ul>"; liAcik=false; } };
+  for(const line of String(t||"").split("\n")){
+    const d=line.match(/^⏱\s+(.*)/);
+    if(d){ kapat(); out+=`<div class="pdate">⏱ ${esc(d[1])}</div>`; continue; }
+    const h=line.match(/^(#{1,3})\s*(.*)/);
+    if(h){ kapat(); out+=`<h${h[1].length}>${inlineFmt(esc(h[2]))}</h${h[1].length}>`; continue; }
+    const q=line.match(/^>\s?(.*)/);
+    if(q){ kapat(); out+=`<blockquote>${inlineFmt(esc(q[1]))}</blockquote>`; continue; }
+    const li=line.match(/^[-•]\s+(.*)/);
+    if(li){ if(!liAcik){ out+="<ul>"; liAcik=true; } out+=`<li>${inlineFmt(esc(li[1]))}</li>`; continue; }
+    kapat();
+    out+=`<div>${line.trim()?inlineFmt(esc(line)):"<br>"}</div>`;
+  }
+  kapat();
+  return out||"<div><br></div>";
+}
+/* Gösterimde metin düğümlerindeki bağlantıları tıklanabilir yap */
+function linkifyDom(root){
+  const yur=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), hedef=[];
+  let nd; while(nd=yur.nextNode()){ if(/https?:\/\//.test(nd.nodeValue)&&!(nd.parentElement&&nd.parentElement.closest("a"))) hedef.push(nd); }
+  hedef.forEach(nd=>{ const sp=document.createElement("span"); sp.innerHTML=linkify(esc(nd.nodeValue));
+    nd.replaceWith(...sp.childNodes); });
+}
+
 /* Satır içi biçimlendirme — metin DÜZ METİN olarak saklanır, yalnızca gösterimde
    dönüştürülür. Böylece arama, sürüm karşılaştırması, yedek ve senkron aynen çalışır
    ve HTML kaçışı (esc) sonrası çalıştığı için güvenlik açığı oluşmaz. */
@@ -598,6 +678,12 @@ function inlineFmt(t){
     .replace(/==([^=\n]+)==/g,"<mark>$1</mark>");
 }
 function renderContent(t){
+  if(isHTML(t)){                                  // yeni biçim: temizle, bağlantıları işaretle
+    const kap=document.createElement("div");
+    kap.innerHTML=sanitizeHTML(t);
+    linkifyDom(kap);
+    return kap.innerHTML;
+  }
   let out="";
   for(const line of (t||"").split("\n")){
     const d=line.match(/^⏱\s+(.*)/);
@@ -724,13 +810,13 @@ function toggleDone(id){
   if(expandedId===id) collapseNote();
   save(); render();
 }
-const titleOf=n=>(n.title||n.content||"Başlıksız not").slice(0,40);
+const titleOf=n=>(n.title||htmlToText(n.content)||"Başlıksız not").slice(0,40);
 
 /* ================= RENDER ================= */
 // Arama eşleşmesi — hem ana liste hem sağ panel aynı ölçütü kullanır
 function matchQ(n){
   if(!searchQ) return true;
-  return (n.title+" "+n.content+" "+n.subs.map(s=>s.text).join(" ")+" "+n.files.map(f=>f.name).join(" "))
+  return (n.title+" "+htmlToText(n.content)+" "+n.subs.map(s=>s.text).join(" ")+" "+n.files.map(f=>f.name).join(" "))
     .toLowerCase().includes(searchQ.toLowerCase());
 }
 function visibleNotes(){
@@ -871,18 +957,17 @@ function editorHTML(n){
       <button class="fbtn" id="fmt-li" title="Madde imi">•</button>
       <button class="fbtn" id="fmt-q" title="Alıntı">❝</button>
       <span class="fsep"></span>
-      <button class="fbtn wide" id="fmt-plus" title="Satırı büyüt (başlık seviyesi)">A＋</button>
-      <button class="fbtn wide" id="fmt-minus" title="Satırı küçült">A－</button>
+      <button class="fbtn wide" id="fmt-plus" title="Yazıyı büyüt (başlık)">A＋</button>
+      <button class="fbtn wide" id="fmt-minus" title="Yazıyı küçült">A－</button>
       <span class="fsep"></span>
       <select class="fsel" id="fmt-font" title="Yazı tipi (tüm notlar için)">
         <option value="sistem">Sistem</option>
         <option value="serif">Serif</option>
         <option value="mono">Daktilo</option>
       </select>
-      <button class="fbtn wide ${showPreview?"on":""}" id="fmt-prev" title="Biçimli önizleme">👁</button>
+      <button class="fbtn" id="fmt-clear" title="Biçimi temizle">⌫</button>
     </div>
-    <textarea id="ed-content" placeholder="Notunu yaz…">${esc(n.content)}</textarea>
-    <div class="ed-preview" id="ed-preview" style="display:${showPreview?"block":"none"}"></div>
+    <div id="ed-content" class="rte" contenteditable="true" spellcheck="true" data-ph="Notunu yaz…"></div>
     <div id="ed-subs"></div>
     <div class="editor-row">
       <label>⏰ Bitiş:</label>
@@ -901,8 +986,8 @@ function editorHTML(n){
     <div class="audios" id="ed-audios"></div>
     <div class="files" id="ed-files"></div>
     <div class="nlog" id="ed-log" style="display:none"></div>
-    <div class="hint">İpucu: **kalın** · *italik* · __altı çizili__ · ~~üstü çizili~~ · ==vurgu== · satır başında # başlık, - madde, &gt; alıntı ·
-      linkler otomatik tıklanabilir · dosya sürükle/yapıştır olur · uzun aradan sonra dönünce araya otomatik tarih düşülür (⏱ satırı)</div>
+    <div class="hint">İpucu: yazıyı seç, çubuktan biçimlendir (⌘/Ctrl+B · I · U) · ⌘Z geri alır ·
+      linkler otomatik tıklanabilir · dosya sürükle/yapıştır olur · uzun aradan sonra dönünce araya otomatik tarih düşülür</div>
   </div>`;
 }
 
@@ -1149,19 +1234,29 @@ function expandNote(id){
   // Uzun aradan sonra dönülen nota otomatik tarih ayracı: yeni eklenenlerin
   // ne zaman yazıldığı notun İÇİNDE görünsün. Altına bir şey yazılmazsa kapanışta silinir.
   autoDivider=null;
-  const lastLine=(n.content||"").trimEnd().split("\n").pop()||"";
-  if((n.content||"").trim() && Date.now()-(n.updatedAt||0)>36e5 && !lastLine.startsWith("⏱")){
+  const duzMetin=htmlToText(n.content), sonSatir=duzMetin.trimEnd().split("\n").pop()||"";
+  if(duzMetin.trim() && Date.now()-(n.updatedAt||0)>36e5 && !sonSatir.startsWith("⏱")){
     autoDivider="⏱ "+fmtDT(Date.now());
-    n.content=n.content.replace(/\s+$/,"")+"\n\n"+autoDivider+"\n";
+    n.content=isHTML(n.content)
+      ? n.content+`<div class="pdate">${autoDivider}</div><div><br></div>`
+      : n.content.replace(/\s+$/,"")+"\n\n"+autoDivider+"\n";
   }
   render();
-  const ed=$("#ed-content"); if(ed){ ed.focus(); ed.setSelectionRange(ed.value.length,ed.value.length); }
+  const ed=$("#ed-content");
+  if(ed){ ed.focus();
+    const r=document.createRange(); r.selectNodeContents(ed); r.collapse(false);
+    const sl=getSelection(); sl.removeAllRanges(); sl.addRange(r);
+    ed.scrollTop=ed.scrollHeight;
+  }
 }
 function editDiffSummary(o,n){
   const parts=[], cut=l=>l.length>60?l.slice(0,60)+"…":l;
   if((o.title||"")!==(n.title||"")) parts.push(`başlık: “${cut(o.title||"—")}” → “${cut(n.title||"—")}”`);
-  const ol=(o.content||"").split("\n").map(s=>s.trim()).filter(Boolean);
-  const nl=(n.content||"").split("\n").map(s=>s.trim()).filter(Boolean);
+  // Karşılaştırma daima GÖRÜNEN metin üzerinden: düz metinden HTML'e geçiş
+  // ya da yalnızca biçim değişikliği, sahte "satır değişti" kaydı üretmesin
+  const duz=v=>htmlToText(textToHtml(v||""));
+  const ol=duz(o.content).split("\n").map(s=>s.trim()).filter(Boolean);
+  const nl=duz(n.content).split("\n").map(s=>s.trim()).filter(Boolean);
   const oset=new Set(ol), nset=new Set(nl);
   const added=nl.filter(l=>!oset.has(l)), removed=ol.filter(l=>!nset.has(l));
   for(const l of added.slice(0,3)) parts.push("＋ “"+cut(l)+"”");
@@ -1177,16 +1272,26 @@ function finalizeEdit(){
   if(!n||!editSnapshot) return;
   if(autoDivider){
     // Otomatik ayracın altına hiçbir şey yazılmadıysa ayracı iz bırakmadan kaldır
-    const rx=autoDivider.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
-    n.content=n.content.replace(new RegExp("\\n*"+rx+"[ \\t]*\\s*$"),"");
+    if(isHTML(n.content)){
+      const kap=document.createElement("div"); kap.innerHTML=n.content;
+      let son=kap.lastElementChild;
+      while(son&&!son.textContent.trim()&&son.tagName!=="HR"){ const onc=son.previousElementSibling; son.remove(); son=onc; }
+      if(son&&son.classList&&son.classList.contains("pdate")&&son.textContent.trim()===autoDivider){
+        son.remove(); n.content=kap.innerHTML;
+      }
+    }else{
+      const rx=autoDivider.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+      n.content=n.content.replace(new RegExp("\\n*"+rx+"[ \\t]*\\s*$"),"");
+    }
     autoDivider=null;
   }
   if(n.title!==editSnapshot.title||n.content!==editSnapshot.content){
     if(!n.revs)n.revs=[];
     n.revs.push({t:Date.now(),title:editSnapshot.title,content:editSnapshot.content});
     const parts=editDiffSummary(editSnapshot,n);
-    noteLog(n,"✏️ Düzenlendi"+(parts.length?" — "+parts.join(" · "):""));
-    appLog("Düzenlendi: “"+titleOf(n)+"”"+(parts.length?" — "+parts.join(" · "):""),n.id);
+    const baslik=parts.length?"✏️ Düzenlendi — "+parts.join(" · "):"✏️ Biçim düzenlendi";
+    noteLog(n,baslik);
+    appLog((parts.length?"Düzenlendi: ":"Biçim düzenlendi: ")+"“"+titleOf(n)+"”"+(parts.length?" — "+parts.join(" · "):""),n.id);
     editSnapshot={title:n.title,content:n.content};
     save();
   }
@@ -1204,8 +1309,9 @@ function bindEditor(){
   const t=$("#ed-title"), c=$("#ed-content"), dl=$("#ed-deadline");
   if(!t)return;
   t.oninput=()=>{ n.title=t.value; n.updatedAt=Date.now(); save(); };
-  c.oninput=()=>{ n.content=c.value; n.updatedAt=Date.now(); save();
-    const pv=$("#ed-preview"); if(pv&&pv.style.display!=="none") pv.innerHTML=renderContent(n.content); };
+  c.innerHTML=textToHtml(n.content);                       // eski düz metin notlar da düzenlenebilir HTML olur
+  c.oninput=()=>{ n.content=sanitizeHTML(c.innerHTML); n.updatedAt=Date.now();
+    c.classList.toggle("bos",!c.textContent.trim()&&!c.querySelector("img,li")); save(); };
   dl.onchange=()=>{
     if(dl.value){
       const onceki=n.deadline;
@@ -1229,8 +1335,8 @@ function bindEditor(){
       const items=n.log.map(l=>({t:l.t,html:esc(l.a)}));
       (n.revs||[]).forEach((r,i)=>items.push({t:r.t,
         html:`📜 Önceki sürüm saklandı <button data-rev="${i}" style="color:var(--accent);font-size:11.5px;text-decoration:underline">görüntüle</button>`+
-          `<div id="rev-${i}" style="display:none;white-space:pre-wrap;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-top:4px;color:var(--text)">`+
-          (r.title?`<b>${esc(r.title)}</b>\n`:"")+(esc(r.content||"")||"<i>boş</i>")+`</div>`}));
+          `<div id="rev-${i}" class="revbox" style="display:none">`+
+          (r.title?`<b>${esc(r.title)}</b><br>`:"")+(renderContent(r.content||"")||"<i>boş</i>")+`</div>`}));
       items.sort((a,b)=>b.t-a.t);
       el.innerHTML=items.map(i=>`<div><b>${fmtDT(i.t)}</b> — ${i.html}</div>`).join("");
       el.querySelectorAll("[data-rev]").forEach(b=>{
@@ -1240,82 +1346,85 @@ function bindEditor(){
       el.style.display="block";
     } else el.style.display="none";
   };
-  /* ---- biçimlendirme çubuğu ---- */
-  const yaz=(yeniDeger,a,b2)=>{                     // metni uygula, imleci koru, önizlemeyi tazele
-    c.value=yeniDeger; c.focus(); c.setSelectionRange(a,b2);
-    n.content=c.value; n.updatedAt=Date.now(); save(); tazelePrev();
-  };
-  const tazelePrev=()=>{ const pv=$("#ed-preview");
-    if(pv&&pv.style.display!=="none") pv.innerHTML=renderContent(n.content)||'<span class="hint">Önizlenecek metin yok</span>'; };
-  function sar(sym){                                // seçimi işaretle / işareti kaldır
-    let sBas=c.selectionStart, sSon=c.selectionEnd; const v=c.value, L=sym.length;
-    if(sBas===sSon){                                // seçim yoksa imlecin üstündeki kelime
-      let a=sBas,b2=sSon;
-      while(a>0&&!/\s/.test(v[a-1]))a--;
-      while(b2<v.length&&!/\s/.test(v[b2]))b2++;
-      if(b2>a){ sBas=a; sSon=b2; }
-    }
-    while(sBas<sSon&&/\s/.test(v[sBas]))sBas++;      // baştaki/sondaki boşluk işaretin dışında kalsın
-    while(sSon>sBas&&/\s/.test(v[sSon-1]))sSon--;
-    if(sBas===sSon)return;
-    const sec=v.slice(sBas,sSon);
-    if(sec.length>=2*L&&sec.startsWith(sym)&&sec.endsWith(sym))
-      return yaz(v.slice(0,sBas)+sec.slice(L,-L)+v.slice(sSon),sBas,sSon-2*L);
-    if(v.slice(sBas-L,sBas)===sym&&v.slice(sSon,sSon+L)===sym)
-      return yaz(v.slice(0,sBas-L)+sec+v.slice(sSon+L),sBas-L,sSon-L);
-    yaz(v.slice(0,sBas)+sym+sec+sym+v.slice(sSon),sBas+L,sSon+L);
+  /* ---- biçimlendirme çubuğu (doğrudan biçimli yazma) ---- */
+  try{ document.execCommand("styleWithCSS",false,false); }catch(e){}   // <b>/<i> üret, style değil
+  const kaydet=()=>{ n.content=sanitizeHTML(c.innerHTML); n.updatedAt=Date.now(); bosMu(); save(); };
+  const bosMu=()=>c.classList.toggle("bos",!c.textContent.trim()&&!c.querySelector("img,li"));
+  const komut=(ad,deger)=>{ c.focus(); try{ document.execCommand(ad,false,deger||null); }catch(e){} kaydet(); durumTazele(); };
+  const blokAdi=()=>{ let e2=getSelection().anchorNode;
+    while(e2&&e2!==c){ if(e2.nodeType===1&&/^(H1|H2|H3|BLOCKQUOTE|LI|DIV|P)$/.test(e2.tagName)) return e2.tagName; e2=e2.parentNode; }
+    return "DIV"; };
+  const icinde=etiket=>{ let e2=getSelection().anchorNode;
+    while(e2&&e2!==c){ if(e2.nodeType===1&&e2.tagName===etiket) return e2; e2=e2.parentNode; }
+    return null; };
+  const markKaldir=(liste)=>liste.forEach(m=>{ const par=m.parentNode;
+    while(m.firstChild) par.insertBefore(m.firstChild,m); m.remove(); });
+  const secimdekiMarklar=()=>{ const sel=getSelection();
+    return [...c.querySelectorAll("mark")].filter(m=>
+      (sel.rangeCount&&sel.containsNode(m,true))||m.contains(sel.anchorNode)); };
+  function vurgu(){                                   // <mark> ile vurgula / kaldır
+    c.focus();
+    const sel=getSelection(); if(!sel.rangeCount) return;
+    const varolan=secimdekiMarklar();
+    if(varolan.length){ markKaldir(varolan); c.normalize(); kaydet(); durumTazele(); return; }
+    if(sel.isCollapsed) return;
+    const r=sel.getRangeAt(0);
+    // Blok yapısını bozmamak için seçimdeki METİN düğümleri tek tek sarılır
+    const yur=document.createTreeWalker(c,NodeFilter.SHOW_TEXT,
+      {acceptNode:t=>r.intersectsNode(t)&&t.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});
+    const dugumler=[]; let t2; while(t2=yur.nextNode()) dugumler.push(t2);
+    dugumler.forEach(t3=>{
+      let bas=0, son=t3.nodeValue.length;
+      if(t3===r.startContainer) bas=r.startOffset;
+      if(t3===r.endContainer) son=r.endOffset;
+      if(son<=bas) return;
+      const rr=document.createRange(); rr.setStart(t3,bas); rr.setEnd(t3,son);
+      const m=document.createElement("mark"); m.appendChild(rr.extractContents()); rr.insertNode(m);
+    });
+    kaydet(); durumTazele();
   }
-  function boyut(delta){                            // satırın başlık seviyesi: 0 normal → 3 en büyük
-    const v=c.value, pos=c.selectionStart;
-    const ls=v.lastIndexOf("\n",pos-1)+1; let le=v.indexOf("\n",ls); if(le<0) le=v.length;
-    const satir=v.slice(ls,le), m=satir.match(/^(#{1,3})\s*/);
-    let sev=m?4-m[1].length:0;
-    sev=Math.max(0,Math.min(3,sev+delta));
-    const duz=satir.replace(/^#{1,3}\s*/,"");
-    const yeni=sev?"#".repeat(4-sev)+" "+duz:duz;
-    const kaydi=yeni.length-satir.length;
-    yaz(v.slice(0,ls)+yeni+v.slice(le),pos+kaydi<ls?ls:pos+kaydi,pos+kaydi<ls?ls:pos+kaydi);
+  function boyut(delta){                              // normal → H3 → H2 → H1
+    const sira=["DIV","H3","H2","H1"];
+    let i=sira.indexOf(blokAdi()); if(i<0) i=0;
+    i=Math.max(0,Math.min(3,i+delta));
+    komut("formatBlock",sira[i].toLowerCase());
   }
-  $("#fmt-b").onclick=()=>sar("**");
-  $("#fmt-i").onclick=()=>sar("*");
-  $("#fmt-u").onclick=()=>sar("__");
-  $("#fmt-s").onclick=()=>sar("~~");
-  $("#fmt-m").onclick=()=>sar("==");
-  function satirOnek(onek){                         // seçili satır(lar)ın başına ekle / kaldır
-    const v=c.value, sBas=c.selectionStart, sSon=c.selectionEnd;
-    const ls=v.lastIndexOf("\n",sBas-1)+1;
-    let le=v.indexOf("\n",sSon); if(le<0) le=v.length;
-    const satirlar=v.slice(ls,le).split("\n");
-    const dolu=satirlar.filter(l=>l.trim());
-    const hepsiVar=dolu.length>0&&dolu.every(l=>l.startsWith(onek));
-    const yeni=satirlar.map(l=>{
-      if(!l.trim())return l;
-      if(hepsiVar) return l.slice(onek.length);
-      return onek+l.replace(/^(?:[-•]\s+|>\s?)/,"");
-    }).join("\n");
-    yaz(v.slice(0,ls)+yeni+v.slice(le),ls,ls+yeni.length);
+  function alinti(){ komut("formatBlock", icinde("BLOCKQUOTE")?"div":"blockquote"); }
+  function durumTazele(){                             // imlecin bulunduğu biçim düğmelerde işaretli görünsün
+    const dur={ "fmt-b":"bold","fmt-i":"italic","fmt-u":"underline","fmt-s":"strikeThrough" };
+    for(const id in dur){ let a2=false; try{ a2=document.queryCommandState(dur[id]); }catch(e){}
+      $("#"+id)?.classList.toggle("on",a2); }
+    $("#fmt-m")?.classList.toggle("on",!!icinde("MARK"));
+    $("#fmt-q")?.classList.toggle("on",!!icinde("BLOCKQUOTE"));
+    $("#fmt-li")?.classList.toggle("on",!!icinde("LI"));
   }
-  $("#fmt-li").onclick=()=>satirOnek("- ");
-  $("#fmt-q").onclick=()=>satirOnek("> ");
+  $("#fmt-b").onclick=()=>komut("bold");
+  $("#fmt-i").onclick=()=>komut("italic");
+  $("#fmt-u").onclick=()=>komut("underline");
+  $("#fmt-s").onclick=()=>komut("strikeThrough");
+  $("#fmt-m").onclick=vurgu;
+  $("#fmt-li").onclick=()=>komut("insertUnorderedList");
+  $("#fmt-q").onclick=alinti;
   $("#fmt-plus").onclick=()=>boyut(1);
   $("#fmt-minus").onclick=()=>boyut(-1);
-  $("#fmt-prev").onclick=()=>{
-    showPreview=!showPreview;
-    const pv=$("#ed-preview"); pv.style.display=showPreview?"block":"none";
-    $("#fmt-prev").classList.toggle("on",showPreview);
-    try{ localStorage.setItem("nbmd_prev",showPreview?"1":""); }catch(e){}
-    tazelePrev();
+  $("#fmt-clear").onclick=()=>{
+    c.focus();
+    markKaldir(secimdekiMarklar()); c.normalize();
+    try{ document.execCommand("removeFormat"); }catch(e){}
+    if(blokAdi()!=="DIV"&&blokAdi()!=="LI"){ try{ document.execCommand("formatBlock",false,"div"); }catch(e){} }
+    kaydet(); durumTazele();
   };
   const fs=$("#fmt-font"); fs.value=S.font||"sistem";
   fs.onchange=()=>{ S.font=fs.value; applyFont(); save(); };
+  c.addEventListener("keyup",durumTazele);
+  c.addEventListener("mouseup",durumTazele);
   c.addEventListener("keydown",e=>{
-    if(!(e.metaKey||e.ctrlKey)||e.altKey)return;
-    const k=e.key.toLowerCase();
-    if(k==="b"){ e.preventDefault(); sar("**"); }
-    else if(k==="i"){ e.preventDefault(); sar("*"); }
-    else if(k==="u"){ e.preventDefault(); sar("__"); }
+    if((e.metaKey||e.ctrlKey)&&!e.altKey){
+      const k=e.key.toLowerCase();
+      if(k==="b"||k==="i"||k==="u"){ e.preventDefault(); komut(k==="b"?"bold":k==="i"?"italic":"underline"); }
+    }
   });
-  tazelePrev();
+  durumTazele(); bosMu();
   const dictBtn=$("#ed-dictate");
   if(!SR) dictBtn.style.display="none";
   else dictBtn.onclick=()=>startDictation($("#ed-content"),dictBtn);
@@ -1328,7 +1437,16 @@ function bindEditor(){
   edEl.ondrop=e=>{ e.preventDefault();
     // Yalnızca DIŞARIDAN gelen gerçek dosyalar eklenir; sayfa içi görsel sürüklemesi kopya oluşturmasın
     if([...(e.dataTransfer.types||[])].includes("Files")&&e.dataTransfer.files.length) addFiles(n,e.dataTransfer.files); };
-  c.onpaste=e=>{ const fs=[...(e.clipboardData?.files||[])]; if(fs.length){ e.preventDefault(); addFiles(n,fs); } };
+  c.onpaste=e=>{
+    const fs=[...(e.clipboardData?.files||[])];
+    if(fs.length){ e.preventDefault(); addFiles(n,fs); return; }
+    // Dışarıdan gelen biçimli metin: beyaz listeye göre temizlenip yapıştırılır
+    const html=e.clipboardData?.getData("text/html"), duz=e.clipboardData?.getData("text/plain");
+    e.preventDefault();
+    if(html) document.execCommand("insertHTML",false,sanitizeHTML(html));
+    else if(duz) document.execCommand("insertText",false,duz);
+    n.content=sanitizeHTML(c.innerHTML); n.updatedAt=Date.now(); save();
+  };
   renderSubs(n);
   renderAudios(n);
   renderFiles(n);
@@ -1993,10 +2111,21 @@ function startDictation(target,btn){
   if(recState.active) stopRecording(); // mikrofon çakışmasın
   const r=new SR();
   r.lang="tr-TR"; r.continuous=true; r.interimResults=true;
-  const sep=target.value&&!/\s$/.test(target.value)?" ":"";
-  Object.assign(dict,{active:true,rec:r,target,btn,base:target.value+sep,finals:""});
+  const zengin=!!target.isContentEditable;
+  const sep=(!zengin&&target.value&&!/\s$/.test(target.value))?" ":"";
+  Object.assign(dict,{active:true,rec:r,target,btn,base:zengin?"":target.value+sep,finals:""});
   btn.classList.add("dicting");
   r.onresult=e=>{
+    if(zengin){                                   // zengin editöre imleç konumuna yazılır
+      let ekle="";
+      for(let i=e.resultIndex;i<e.results.length;i++)
+        if(e.results[i].isFinal) ekle+=e.results[i][0].transcript.trim()+" ";
+      if(ekle){ dict.target.focus();
+        try{ document.execCommand("insertText",false,ekle); }catch(err){ dict.target.append(ekle); }
+        dict.target.dispatchEvent(new Event("input"));
+        dict.target.scrollTop=dict.target.scrollHeight; }
+      return;
+    }
     let interim="";
     for(let i=e.resultIndex;i<e.results.length;i++){
       const t=e.results[i][0].transcript;
