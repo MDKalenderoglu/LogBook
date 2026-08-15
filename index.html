@@ -600,6 +600,19 @@ const acilde=(n,catId)=>catId===URGENT_CAT&&n.triage==="r";
 
 function noteLog(n,a){ n.log.push({t:Date.now(),a}); n.updatedAt=Date.now(); }
 function appLog(a,noteId){ S.appLog.push({t:Date.now(),a,noteId:noteId||null}); }
+/* Hem nota hem Günlük'e yaz. Art arda yapılan aynı türden işlemler (ör. dosya
+   sırasını üst üste değiştirmek) kaydı doldurmasın diye 20 sn içindeki aynı
+   önekli son kayıt güncellenir — bilgi kaybı olmaz, tekrar birikmez. */
+function logBoth(n,prefix,text){
+  const now=Date.now(), gtext=text+" — "+titleOf(n);
+  const last=n.log[n.log.length-1];
+  if(last&&last.a.startsWith(prefix)&&now-last.t<20000){ last.a=text; last.t=now; }
+  else n.log.push({t:now,a:text});
+  n.updatedAt=now;
+  const la=S.appLog[S.appLog.length-1];
+  if(la&&la.noteId===n.id&&la.a.startsWith(prefix)&&now-la.t<20000){ la.a=gtext; la.t=now; }
+  else S.appLog.push({t:now,a:gtext,noteId:n.id});
+}
 
 /* ================= INDEXEDDB (audio) ================= */
 function idbOpen(){ return new Promise((res,rej)=>{
@@ -1118,13 +1131,21 @@ function bindEditor(){
   t.oninput=()=>{ n.title=t.value; n.updatedAt=Date.now(); save(); };
   c.oninput=()=>{ n.content=c.value; n.updatedAt=Date.now(); save(); };
   dl.onchange=()=>{
-    if(dl.value){ n.deadline=new Date(dl.value).toISOString();
-      noteLog(n,"⏰ Bitiş tarihi: "+fmtDT(n.deadline));
-      appLog("Bitiş tarihi eklendi: “"+titleOf(n)+"” → "+fmtDT(n.deadline),n.id);
+    if(dl.value){
+      const onceki=n.deadline;
+      n.deadline=new Date(dl.value).toISOString();
+      const fiil=onceki?"değişti":"eklendi";
+      noteLog(n,"⏰ Bitiş tarihi "+fiil+": "+fmtDT(n.deadline)+(onceki?" (önceki: "+fmtDT(onceki)+")":""));
+      appLog("⏰ Bitiş tarihi "+fiil+": “"+titleOf(n)+"” → "+fmtDT(n.deadline),n.id);
     } save(); render(); bindEditorKeepFocus();
   };
   const clr=$("#ed-dl-clear");
-  if(clr) clr.onclick=()=>{ n.deadline=null; noteLog(n,"⏰ Bitiş tarihi kaldırıldı"); save(); render(); };
+  if(clr) clr.onclick=()=>{
+    const onceki=n.deadline; n.deadline=null;
+    noteLog(n,"⏰ Bitiş tarihi kaldırıldı"+(onceki?" (önceki: "+fmtDT(onceki)+")":""));
+    appLog("⏰ Bitiş tarihi kaldırıldı: “"+titleOf(n)+"”"+(onceki?" (önceki: "+fmtDT(onceki)+")":""),n.id);
+    save(); render();
+  };
   $("#ed-close").onclick=()=>collapseNote();
   $("#ed-history").onclick=()=>{
     const el=$("#ed-log");
@@ -1249,6 +1270,7 @@ function renderFiles(n){
         const i=n.files.indexOf(f), j=i+Number(b.dataset.mv);
         if(i<0||j<0||j>=n.files.length)return;
         n.files.splice(i,1); n.files.splice(j,0,f);
+        logBoth(n,"🔀 Ek sırası","🔀 Ek sırası: "+f.name+" → "+(j+1)+"/"+n.files.length);
         save(); render();
       });
       box.querySelector(".fdel").onclick=()=>{

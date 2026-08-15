@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Sub-task activity was missing from the global log. Adding, completing, and reopening a sub-task are now recorded there as well as in the note's own history
+- Removing a deadline was recorded only in the note's history, and attachment reordering was not recorded anywhere. Both now appear in the global log, and deadline entries state whether the date was added, changed (with the previous value), or removed
+- Repeated actions of the same kind within twenty seconds — nudging an attachment up or down several times — are collapsed into a single log entry instead of accumulating
 
 ## [1.2.0] — 2026-07-25
 
