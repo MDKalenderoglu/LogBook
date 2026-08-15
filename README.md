@@ -29,7 +29,7 @@ Every edit keeps its predecessor. You can change your mind freely without losing
 ## Features
 
 - **Instant capture** — type, press Enter, it's saved with a timestamp
-- **Text formatting** — bold, italic, underline, strikethrough, highlight and three heading sizes from a toolbar (⌘B/I/U), with a live formatted preview and a choice of note font. Stored as plain-text marks, so history, search, and sync are untouched
+- **Text formatting** — bold, italic, underline, strikethrough, highlight, three heading sizes, bullet lists and quotes from a toolbar (⌘B/I/U), with a live formatted preview and a choice of note font. Stored as plain-text marks, so history, search, and sync are untouched
 - **Mentor & learning column** — a side panel with two areas: items to raise with a supervisor or team, and a study notebook. Both support everything a note does — text, attachments, annotation, voice, history
 - **Sectioned study notebook** — a reference notebook rather than a task list: entries carry no completion state and remain where they were written. Sections nest to any depth, each with its own capture box, and the notebook also opens full width in the main area
 - **Triage marks** — classify a note as red, amber, or green; the card is colour-coded accordingly and the change is recorded in the log

@@ -213,6 +213,11 @@ button.chip:hover{border-color:var(--text2)}
 .ed-preview .ph2{font-weight:700;font-size:16.5px;margin:5px 0 2px}
 .ed-preview .ph3{font-weight:600;font-size:14.5px;margin:4px 0 2px}
 mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:3px}
+/* madde imi ve alıntı satırları */
+.pli{padding-left:1.15em;text-indent:-1.15em}
+.pq{border-left:3px solid var(--border);padding:1px 0 1px 10px;margin:2px 0;color:var(--text2);font-style:italic}
+.ed-preview .pli{margin:1px 0}
+.ed-preview .pq{border-left-color:var(--accent);opacity:.95}
 
 /* editor (expanded) */
 .editor{border-top:1px solid var(--border);padding:14px 15px;background:var(--surface)}
@@ -598,8 +603,14 @@ function renderContent(t){
     const d=line.match(/^⏱\s+(.*)/);
     if(d){ out+=`<div class="pdate">${esc(d[1])}</div>`; continue; }
     const m=line.match(/^(#{1,3})\s*(.*)/);
-    if(m) out+=`<div class="ph${m[1].length}">${linkify(inlineFmt(esc(m[2])))}</div>`;
-    else out+=linkify(inlineFmt(esc(line)))+"\n";
+    if(m){ out+=`<div class="ph${m[1].length}">${linkify(inlineFmt(esc(m[2])))}</div>`; continue; }
+    const q=line.match(/^>\s?(.*)/);                        // alıntı
+    if(q){ out+=`<div class="pq">${linkify(inlineFmt(esc(q[1])))}</div>`; continue; }
+    const li=line.match(/^[-•]\s+(.*)/);                     // madde imi
+    if(li){ out+=`<div class="pli">• ${linkify(inlineFmt(esc(li[1])))}</div>`; continue; }
+    const ol=line.match(/^(\d{1,2})[.)]\s+(.*)/);            // numaralı madde
+    if(ol){ out+=`<div class="pli">${ol[1]}. ${linkify(inlineFmt(esc(ol[2])))}</div>`; continue; }
+    out+=linkify(inlineFmt(esc(line)))+"\n";
   }
   return out.replace(/\n$/,"");
 }
@@ -857,6 +868,9 @@ function editorHTML(n){
       <button class="fbtn" id="fmt-s" title="Üstü çizili"><s>S</s></button>
       <button class="fbtn" id="fmt-m" title="Vurgula (fosforlu)">🖍</button>
       <span class="fsep"></span>
+      <button class="fbtn" id="fmt-li" title="Madde imi">•</button>
+      <button class="fbtn" id="fmt-q" title="Alıntı">❝</button>
+      <span class="fsep"></span>
       <button class="fbtn wide" id="fmt-plus" title="Satırı büyüt (başlık seviyesi)">A＋</button>
       <button class="fbtn wide" id="fmt-minus" title="Satırı küçült">A－</button>
       <span class="fsep"></span>
@@ -887,7 +901,7 @@ function editorHTML(n){
     <div class="audios" id="ed-audios"></div>
     <div class="files" id="ed-files"></div>
     <div class="nlog" id="ed-log" style="display:none"></div>
-    <div class="hint">İpucu: **kalın** · *italik* · __altı çizili__ · ~~üstü çizili~~ · ==vurgu== · satır başında # ile başlık ·
+    <div class="hint">İpucu: **kalın** · *italik* · __altı çizili__ · ~~üstü çizili~~ · ==vurgu== · satır başında # başlık, - madde, &gt; alıntı ·
       linkler otomatik tıklanabilir · dosya sürükle/yapıştır olur · uzun aradan sonra dönünce araya otomatik tarih düşülür (⏱ satırı)</div>
   </div>`;
 }
@@ -1267,6 +1281,22 @@ function bindEditor(){
   $("#fmt-u").onclick=()=>sar("__");
   $("#fmt-s").onclick=()=>sar("~~");
   $("#fmt-m").onclick=()=>sar("==");
+  function satirOnek(onek){                         // seçili satır(lar)ın başına ekle / kaldır
+    const v=c.value, sBas=c.selectionStart, sSon=c.selectionEnd;
+    const ls=v.lastIndexOf("\n",sBas-1)+1;
+    let le=v.indexOf("\n",sSon); if(le<0) le=v.length;
+    const satirlar=v.slice(ls,le).split("\n");
+    const dolu=satirlar.filter(l=>l.trim());
+    const hepsiVar=dolu.length>0&&dolu.every(l=>l.startsWith(onek));
+    const yeni=satirlar.map(l=>{
+      if(!l.trim())return l;
+      if(hepsiVar) return l.slice(onek.length);
+      return onek+l.replace(/^(?:[-•]\s+|>\s?)/,"");
+    }).join("\n");
+    yaz(v.slice(0,ls)+yeni+v.slice(le),ls,ls+yeni.length);
+  }
+  $("#fmt-li").onclick=()=>satirOnek("- ");
+  $("#fmt-q").onclick=()=>satirOnek("> ");
   $("#fmt-plus").onclick=()=>boyut(1);
   $("#fmt-minus").onclick=()=>boyut(-1);
   $("#fmt-prev").onclick=()=>{
