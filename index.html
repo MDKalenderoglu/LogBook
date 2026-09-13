@@ -37,7 +37,7 @@ body{
 }
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 input,textarea,select{font:inherit;color:inherit}
-#app{display:flex;position:fixed;top:0;left:0;right:0;height:var(--app-h,100%)}
+#app{display:flex;position:fixed;top:var(--app-top,0px);left:0;right:0;height:var(--app-h,100%)}
 /* dokunmatikte çift dokunuşla yakınlaşma sarsıntısı olmasın */
 button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
 
@@ -460,7 +460,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 #rightbtn.on{background:var(--accent-soft);color:var(--accent)}
 @media(min-width:1101px){ #rightbar.off{display:none} }
 @media(max-width:1100px){
-  #rightbar{position:fixed;right:0;top:0;z-index:20;height:var(--app-h,100%);
+  #rightbar{position:fixed;right:0;top:var(--app-top,0px);z-index:20;height:var(--app-h,100%);
     width:min(380px,88vw);transform:translateX(100%);box-shadow:var(--shadow);display:flex!important}
   #rightbar.wide{width:min(440px,94vw)}
   #rightbar.open{transform:translateX(0)}
@@ -474,12 +474,13 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 }
 
 /* mobile */
-#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:19}
+#overlay{display:none;position:fixed;left:0;right:0;top:var(--app-top,0px);height:var(--app-h,100%);
+  background:rgba(0,0,0,.35);z-index:19}
 /* Karartma her genişlikte geçerli: tablette (761–1100px) sağ panel kayan katman olarak
    açıldığında da arkası kararsın ve dışarı dokunulunca kapansın. */
 #overlay.show{display:block}
 @media(max-width:760px){
-  #sidebar{position:fixed;z-index:20;height:var(--app-h,100%);transform:translateX(-100%);box-shadow:var(--shadow)}
+  #sidebar{position:fixed;top:var(--app-top,0px);z-index:20;height:var(--app-h,100%);transform:translateX(-100%);box-shadow:var(--shadow)}
   #sidebar.open{transform:translateX(0)}
   /* Mobilde kenar çubuğu zaten gizlenip açılıyor; daraltma anlamsız */
   #collapsebtn{display:none}
@@ -2618,23 +2619,63 @@ setInterval(()=>{
 /* Görünür alan yüksekliği tek kaynaktan yönetilir. Sayfa kaymadığı için adres
    çubuğu hiç hareket etmez; yükseklik yalnızca klavye açılıp kapanınca değişir. */
 (function gorunurAlan(){
-  const vv=window.visualViewport;
+  const vv=window.visualViewport, kok=document.documentElement;
   const uygula=()=>{
     const h=Math.round(vv?vv.height:innerHeight);
-    document.documentElement.style.setProperty("--app-h",h+"px");
+    // iOS klavye açılınca GÖRÜNÜR alanı yukarı kaydırır; sabit kabuk ekranın
+    // dışında kalmasın diye aynı miktarda aşağı alınır (yoksa ekran kararır).
+    const ust=Math.round(vv?vv.offsetTop:0);
+    kok.style.setProperty("--app-h",h+"px");
+    kok.style.setProperty("--app-top",ust+"px");
+    if(window.scrollY||window.scrollX) window.scrollTo(0,0);   // belge hiç kaymamalı
   };
   if(vv){ vv.addEventListener("resize",uygula); vv.addEventListener("scroll",uygula); }
-  addEventListener("orientationchange",()=>setTimeout(uygula,150));
+  addEventListener("orientationchange",()=>setTimeout(uygula,200));
   addEventListener("resize",uygula);
+  addEventListener("focusin",()=>setTimeout(uygula,80));
+  addEventListener("focusout",()=>setTimeout(uygula,80));
   uygula();
 })();
 
-/* Klavye açılınca yazılan yer klavyenin altında kalmasın */
+/* Klavye açılınca yazılan satır klavyenin altında kalmasın: sayfayı değil,
+   yalnızca içinde bulunduğu kaydırma kabını hareket ettir — imleci üst üçte bire al. */
+function kaydirilanKap(el){
+  let p=el;
+  while(p&&p!==document.body){
+    const st=getComputedStyle(p);
+    if(/(auto|scroll)/.test(st.overflowY)&&p.scrollHeight>p.clientHeight+2) return p;
+    p=p.parentElement;
+  }
+  return null;
+}
+function imleciGoster(){
+  const el=document.activeElement;
+  if(!el||!el.matches||!el.matches("input,textarea,[contenteditable=true]"))return;
+  const kap=kaydirilanKap(el); if(!kap)return;
+  let r=null;
+  const sel=getSelection();
+  if(sel&&sel.rangeCount){
+    const rr=sel.getRangeAt(0).getBoundingClientRect();
+    if(rr&&(rr.height||rr.top)) r=rr;
+  }
+  if(!r) r=el.getBoundingClientRect();
+  const alan=kap.getBoundingClientRect();
+  const hedef=alan.top+Math.min(alan.height*0.38,220);     // imleç üst bölgede dursun
+  const fark=r.top-hedef;
+  if(Math.abs(fark)>24) kap.scrollTop+=fark;
+}
 document.addEventListener("focusin",e=>{
   if(!matchMedia("(max-width:1100px)").matches)return;
   const el=e.target;
-  if(el&&el.matches&&el.matches("input,textarea,[contenteditable=true]"))
-    setTimeout(()=>{ try{ el.scrollIntoView({block:"center",behavior:"smooth"}); }catch(err){} },320);
+  if(el&&el.matches&&el.matches("input,textarea,[contenteditable=true]")){
+    setTimeout(imleciGoster,350); setTimeout(imleciGoster,750);   // klavye animasyonu bitince bir kez daha
+  }
+});
+// Yazarken satır büyüdükçe imleç görünür kalsın (telefon/tablet)
+document.addEventListener("input",e=>{
+  if(!matchMedia("(max-width:1100px)").matches)return;
+  const el=e.target;
+  if(el&&el.matches&&el.matches("[contenteditable=true],textarea")) imleciGoster();
 });
 
 /* Kenardan parmak kaydırarak panelleri aç/kapa (düğmeler de duruyor) */
