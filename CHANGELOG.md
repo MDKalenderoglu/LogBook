@@ -4,6 +4,18 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] — 2026-09-13
+
+### Fixed
+
+- **The page no longer drifts on phones.** The app shell is now pinned to the viewport: the document itself never scrolls, so the browser bar stops collapsing and expanding, rubber-band overscroll and pull-to-refresh are gone, and the layout no longer re-measures while reading. Height follows the visual viewport instead of `dvh`, so the only time it changes is when the keyboard opens — and the field being typed into is scrolled into view
+- Scrolling inside the note list, the sidebar and the side column no longer chains to the page behind them
+- Pop-up menus (triage, category, notebook section) flip above the control when there is no room below and stay inside the screen; long lists scroll inside the menu
+
+### Added
+
+- **Edge swipes on touch devices** — swipe in from the left edge for the sidebar, from the right edge for the mentor & notebook column, and swipe back to close. The toolbar buttons still work, and are larger on phones. Swipes that start on a text field or a drawing surface are ignored
+
 ## [1.3.0] — 2026-08-15
 
 ### Added

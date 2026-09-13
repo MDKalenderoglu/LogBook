@@ -48,6 +48,7 @@ Every edit keeps its predecessor. You can change your mind freely without losing
 - **Google Drive sync** — stored in your Drive's hidden app folder; the app cannot see any of your other files
 - **Single-file backup** — everything including audio and attachments in one JSON
 - **Installable (PWA)** — home-screen icon, full screen, works offline
+- **Built for one-handed phone use** — the page stays put (no browser-bar jitter or rubber-banding) and the side panels open with an edge swipe
 
 ## Install
 

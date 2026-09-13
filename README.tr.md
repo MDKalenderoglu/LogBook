@@ -48,6 +48,7 @@ Her düzenlemenin öncesi saklanır. Fikir değiştirmek serbest — kaybettiği
 - **Google Drive senkronu** — notların kendi Drive'ının gizli uygulama alanında; uygulama diğer dosyalarını göremez
 - **Tek dosyalık yedek** — sesler ve ekler dahil her şey tek JSON'da
 - **Kurulabilir (PWA)** — ana ekrana ekle, tam ekran, çevrimdışı bile açılır
+- **Telefonda tek elle** — sayfa yerinde durur (adres çubuğu oynamaz, lastik gibi esnemez), yan paneller kenardan parmak kaydırarak açılıp kapanır
 
 ## Kurulum
 
