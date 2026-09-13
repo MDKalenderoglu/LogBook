@@ -2620,18 +2620,33 @@ setInterval(()=>{
    çubuğu hiç hareket etmez; yükseklik yalnızca klavye açılıp kapanınca değişir. */
 (function gorunurAlan(){
   const vv=window.visualViewport, kok=document.documentElement;
+  let sonH=0, sonUst=-1, bekleyen=false;
   const uygula=()=>{
+    // Kullanıcı parmakla YAKINLAŞTIRDIYSA karışma: bu sırada görünür alan hem
+    // küçülür hem kayar; kabuğu her karede yeniden ölçmek titremeye yol açar.
+    if(vv&&vv.scale>1.01){
+      if(sonUst!==-2){ kok.style.setProperty("--app-h","100%"); kok.style.setProperty("--app-top","0px");
+        sonH=0; sonUst=-2; }
+      return;
+    }
     const h=Math.round(vv?vv.height:innerHeight);
     // iOS klavye açılınca GÖRÜNÜR alanı yukarı kaydırır; sabit kabuk ekranın
     // dışında kalmasın diye aynı miktarda aşağı alınır (yoksa ekran kararır).
     const ust=Math.round(vv?vv.offsetTop:0);
+    if(h===sonH&&ust===sonUst) return;                          // gereksiz yeniden çizim yok
+    sonH=h; sonUst=ust;
     kok.style.setProperty("--app-h",h+"px");
     kok.style.setProperty("--app-top",ust+"px");
-    if(window.scrollY||window.scrollX) window.scrollTo(0,0);   // belge hiç kaymamalı
+    if(window.scrollY||window.scrollX) window.scrollTo(0,0);     // belge hiç kaymamalı
   };
-  if(vv){ vv.addEventListener("resize",uygula); vv.addEventListener("scroll",uygula); }
+  const planla=()=>{ if(bekleyen)return; bekleyen=true;
+    const calistir=()=>{ bekleyen=false; uygula(); };
+    // Sekme gizliyken requestAnimationFrame çalışmaz; zamanlayıcıya düş
+    if(document.hidden) setTimeout(calistir,50); else requestAnimationFrame(calistir);
+  };
+  if(vv){ vv.addEventListener("resize",planla); vv.addEventListener("scroll",planla); }
   addEventListener("orientationchange",()=>setTimeout(uygula,200));
-  addEventListener("resize",uygula);
+  addEventListener("resize",planla);
   addEventListener("focusin",()=>setTimeout(uygula,80));
   addEventListener("focusout",()=>setTimeout(uygula,80));
   uygula();
@@ -2649,6 +2664,7 @@ function kaydirilanKap(el){
   return null;
 }
 function imleciGoster(){
+  if(window.visualViewport&&window.visualViewport.scale>1.01)return;   // yakınlaştırmada karışma
   const el=document.activeElement;
   if(!el||!el.matches||!el.matches("input,textarea,[contenteditable=true]"))return;
   const kap=kaydirilanKap(el); if(!kap)return;

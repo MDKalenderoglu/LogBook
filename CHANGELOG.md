@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Pinch zoom no longer makes the page shake.** While zoomed, the visible viewport shrinks and pans continuously; the shell was re-measuring on every frame and fighting the gesture. Viewport tracking now steps aside above 1× zoom, updates are coalesced to one per frame, and identical measurements are ignored
 - **The keyboard no longer pushes the app off the screen.** On iOS the visible viewport is scrolled up when the keyboard appears, which left the pinned shell above the screen — the app went black until it was scrolled back. The shell now follows both the height *and* the offset of the visible viewport, and the line being typed is kept in the upper third of its own scroll area as the text grows
 - **The page no longer drifts on phones.** The app shell is now pinned to the viewport: the document itself never scrolls, so the browser bar stops collapsing and expanding, rubber-band overscroll and pull-to-refresh are gone, and the layout no longer re-measures while reading. Height follows the visual viewport instead of `dvh`, so the only time it changes is when the keyboard opens — and the field being typed into is scrolled into view
 - Scrolling inside the note list, the sidebar and the side column no longer chains to the page behind them
