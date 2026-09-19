@@ -6,8 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.0] — 2026-09-20
 
+### Changed
+
+- **Calmer panels.** Cards in the side column no longer repeat the section they are already filed under, and their badges shrink to icons; category rows in the sidebar carry a single ⋯ menu (which now also adds a sub-category) instead of two icons; empty-state texts are one line; *Clear everything* is a quiet link rather than a red block. Grid tiles are a uniform height with a two-line title, a faded three-line excerpt and at most two rows of badges, so the grid reads as a grid rather than a ragged stack
+
 ### Added
 
+- **Sort and filter** — a slim bar above the list sorts by last edited, newest, deadline, triage priority or title, and filters by triage colour, mentor queue, attachments, deadline or sub-tasks. Active filters appear as removable chips next to a live count of matching notes; the sort choice is remembered per device
 - **Grid view** — a control in the top bar switches the note list between the usual vertical list and a Drive-style grid of tiles, so far more notes fit on one screen (a phone shows 14 instead of 6; a desktop column shows 14 instead of 8). Columns fill the available width automatically, an opened note expands to the full width of the row, and on phones the badge labels collapse to their icons to keep tiles compact. The choice is remembered per device and the control hides itself in the log and notebook views, where a grid makes no sense
 
 ## [1.3.2] — 2026-09-19

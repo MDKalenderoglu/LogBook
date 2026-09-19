@@ -72,7 +72,8 @@ button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
 .navitem .subadd{margin-left:2px;opacity:0;font-size:14px;color:var(--text2);line-height:1}
 .navitem:hover .subadd{opacity:1}
 .navitem .subadd:hover{color:var(--accent)}
-.navitem .catedit{margin-left:2px;opacity:0;font-size:14px;color:var(--text2);line-height:1}
+.navitem .catedit{margin-left:4px;opacity:0;font-size:15px;color:var(--text2);line-height:1;
+  padding:3px 5px;border-radius:6px}
 .navitem:hover .catedit{opacity:1}
 .navitem .catedit:hover{color:var(--accent)}
 #pop .swatches{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px 4px}
@@ -91,8 +92,9 @@ button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
   padding:8px 6px;border-radius:8px;border:1px solid var(--border);background:var(--surface);
   font-size:12.5px;color:var(--text2);white-space:nowrap;overflow:hidden}
 .sidebar-footer button:hover{color:var(--text);border-color:var(--text2)}
-.sidebar-footer button.danger{grid-column:1 / -1;color:var(--red);border-color:var(--red-soft);background:var(--red-soft)}
-.sidebar-footer button.danger:hover{background:var(--red);border-color:var(--red);color:#fff}
+.sidebar-footer button.danger{grid-column:1 / -1;color:var(--text2);border-color:transparent;background:none;
+  font-size:11.5px;padding:5px 6px;opacity:.7}
+.sidebar-footer button.danger:hover{color:var(--red);border-color:var(--red-soft);background:var(--red-soft);opacity:1}
 
 /* ---- Daraltılmış kenar çubuğu: yalnızca ikonlar (sadece masaüstü) ---- */
 @media(min-width:761px){
@@ -163,27 +165,61 @@ button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
 .qa-btn.primary{background:var(--accent);color:#fff}
 .qa-btn.primary:hover{opacity:.9;color:#fff}
 
-/* kare (ızgara) görünüm — Drive'daki gibi: ekranda daha fazla not */
-#list.izgara{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;align-items:start}
-#list.izgara .note{margin-bottom:0}
-#list.izgara .note.exp{grid-column:1 / -1}          /* açılan not tam satırı kaplar */
+/* kare (ızgara) görünüm — eşit yükseklikli, hizalı kutular */
+#list.izgara{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));
+  gap:10px;align-items:stretch}
+#list.izgara .note{margin-bottom:0;height:calc(178px * var(--tscale,1));display:flex;flex-direction:column;overflow:hidden}
+#list.izgara .note.exp{height:auto;grid-column:1 / -1;overflow:visible}   /* açılan not tam satır */
 #list.izgara .viewhint,#list.izgara .empty{grid-column:1 / -1}
-#list.izgara .note-head{padding:12px 13px}
-#list.izgara .note-preview{-webkit-line-clamp:5}
-#list.izgara .note-meta{gap:5px}
+#list.izgara .note-head{flex:1;min-height:0;padding:12px 13px;align-items:flex-start}
+#list.izgara .note-body{display:flex;flex-direction:column;height:100%;min-height:0}
+#list.izgara .note-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;line-height:1.35}
+/* Zengin içerikte satır sayısıyla kırpma güvenilir değil (blok öğeler var):
+   yüksekliği tam satıra sabitle ve altını yumuşatarak kes. */
+#list.izgara .note-preview{display:block;-webkit-line-clamp:initial;line-height:1.5;
+  flex:1 1 auto;min-height:0;max-height:4.5em;overflow:hidden;margin-top:4px;
+  -webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent);
+  mask-image:linear-gradient(to bottom,#000 72%,transparent)}
+/* Rozetler yarıdan kesilmesin: en çok iki satır, sığmayan satır gizlenir */
+#list.izgara .note-meta{margin-top:auto;padding-top:8px;flex-wrap:wrap;gap:4px;
+  max-height:58px;overflow:hidden;align-content:flex-end}
+#list.izgara .chip{white-space:nowrap;flex:0 0 auto}
+#list.izgara .chip.dl-ok,#list.izgara .chip.dl-soon,#list.izgara .chip.dl-over{
+  max-width:110px;overflow:hidden;text-overflow:ellipsis}
+#list.izgara .created{display:none}
+#list.izgara .thumbstrip{min-height:0;margin-top:6px}
+#list.izgara .thumbstrip img{width:40px;height:40px}
+#list.izgara .note-preview a{word-break:break-all}
 .inner.genis{max-width:1280px}
 @media(max-width:560px){
-  #list.izgara{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px}
-  /* karelerde rozet etiketleri gizlenir, simgeler kalır — kutular alçalır */
+  #list.izgara{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  #list.izgara .note{height:calc(162px * var(--tscale,1))}
+  /* karelerde rozet etiketleri gizlenir, simgeler kalır — kutular sadeleşir */
   #list.izgara .chip .ck{display:none}
-  #list.izgara .chip{padding:3px 7px}
-  #list.izgara .note-meta{margin-top:6px}
+  #list.izgara .chip{padding:3px 6px}
   #list.izgara .note-head{padding:10px 11px;gap:8px}
-  #list.izgara .note-title{font-size:calc(14px * var(--tscale,1))}
-  #list.izgara .note-preview{-webkit-line-clamp:4;font-size:calc(12.5px * var(--tscale,1))}
-  #list.izgara .created{display:none}
-  #list.izgara .chk{width:19px;height:19px}
+  #list.izgara .note-title{font-size:calc(13.5px * var(--tscale,1));-webkit-line-clamp:2}
+  #list.izgara .note-preview{max-height:4.5em;font-size:calc(12px * var(--tscale,1))}
+  #list.izgara .chk{width:18px;height:18px;margin-top:1px}
 }
+
+/* liste çubuğu: sıralama + süzgeç */
+#listbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+#listbar .lb{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--text2);
+  border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:5px 11px;max-width:60vw;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#listbar .lb:hover{color:var(--accent);border-color:var(--accent)}
+#listbar .lb.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+#listcount{margin-left:auto;font-size:11.5px;color:var(--text2);font-variant-numeric:tabular-nums}
+#aktifsuz{display:flex;gap:5px;flex-wrap:wrap}
+#aktifsuz .fchipx{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
+  background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:4px 9px}
+#aktifsuz .fchipx b{font-weight:700;cursor:pointer;opacity:.7}
+#aktifsuz .fchipx b:hover{opacity:1}
+#pop .popbaslik{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--text2);padding:6px 10px 3px}
+#pop button.secili{color:var(--accent);font-weight:700}
 
 /* note card */
 .note{
@@ -421,6 +457,13 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 .rqa input::placeholder{color:var(--text2)}
 .qa-btn.sm{width:30px;height:30px;font-size:14px;border-radius:8px}
 .rsec .note{margin-bottom:8px}
+/* panelde kartın hangi bölümde olduğu başlıktan belli — rozeti tekrarlama */
+#rightbar .chip.panelad{display:none}
+/* panelde rozetler simgeye iner — kutular sade kalır, anlam kaybolmaz (ipucu metinleri duruyor) */
+#rightbar .note .chip .ck{display:none}
+#rightbar .note .created{margin-left:2px}
+#rightbar .note-head{padding:11px 13px}
+#rightbar .created{font-size:11px;opacity:.75}
 .rempty{font-size:12.5px;color:var(--text2);padding:6px 4px 2px;opacity:.85}
 .rsec-btn{margin-left:8px;font-size:10.5px;font-weight:700;letter-spacing:.02em;color:var(--text2);
   border:1px solid var(--border);border-radius:99px;padding:2px 8px;text-transform:none}
@@ -503,8 +546,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 /* Dokunmatik cihazda (iPhone/iPad) "fare üzerine gelince beliren" düğmeler görünmez kalırdı:
    hover'ı olmayan cihazlarda kalıcı olarak göster — bölüm ＋/⋯ ve kategori ＋/⋯ dahil. */
 @media(hover:none),(max-width:1100px){
-  .lsec-h .lsadd,.lsec-h .lsedit,
-  .navitem .subadd,.navitem .catedit{opacity:.75}
+  .lsec-h .lsadd,.lsec-h .lsedit,.navitem .catedit{opacity:.6}
 }
 
 /* mobile */
@@ -569,6 +611,12 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
         <button type="button" class="qa-btn" id="qa-mic" title="Sesli not (kayıt)">🎤</button>
         <button type="submit" class="qa-btn primary" id="qa-add" title="Ekle">＋</button>
       </form>
+      <div id="listbar">
+        <button class="lb" id="sortbtn" title="Sıralama">⇅ <span id="sort-lbl">Son güncellenen</span></button>
+        <button class="lb" id="filterbtn" title="Süzgeç">⛭ Süz</button>
+        <span id="aktifsuz"></span>
+        <span id="listcount"></span>
+      </div>
       <div id="list"></div>
     </div></div>
   </div>
@@ -878,12 +926,9 @@ function visibleNotes(){
     return false;
   });
   if(searchQ) arr=arr.filter(matchQ);
+  arr=suzgecUygula(arr);
   if(view.type==="done") arr.sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
-  else arr.sort((a,b)=>{
-    if(a.deadline&&b.deadline) return new Date(a.deadline)-new Date(b.deadline);
-    if(a.deadline) return -1; if(b.deadline) return 1;
-    return b.updatedAt-a.updatedAt;
-  });
+  else arr.sort(SIRALAR[sirala].f);
   return siraSabitle(arr);
 }
 /* Bir nota dokunmak (triyaj, kategori, danışman işareti) notu güncellediği için
@@ -891,7 +936,7 @@ function visibleNotes(){
    Görünüm açıkken sıra DONDURULUR; doğal sıraya görünüm değişince dönülür.
    Yeni eklenen notlar üste girer. */
 let siraKilidi=null;
-const siraAnahtari=()=>view.type+"|"+(view.catId||"")+"|"+(searchQ||"");
+const siraAnahtari=()=>view.type+"|"+(view.catId||"")+"|"+(searchQ||"")+"|"+sirala+"|"+[...suzgec].sort().join(",");
 function siraSabitle(arr){
   const anahtar=siraAnahtari();
   if(siraKilidi&&siraKilidi.anahtar===anahtar){
@@ -936,8 +981,7 @@ function renderSidebar(){
       ${kids.length?`<span class="tw ${c.open?"open":""}" data-tw="${c.id}">▶</span>`:`<span class="tw"></span>`}
       <span class="dot" style="background:${c.color}"></span><span class="cini" style="background:${c.color}">${esc(ini)}</span><span class="lbl">${esc(c.name)}</span>
       <span class="count">${cnt||""}</span>
-      <span class="subadd" data-subadd="${c.id}" title="Alt kategori ekle">＋</span>
-      <span class="catedit" data-catedit="${c.id}" title="Düzenle: ad, renk, sil">⋯</span>
+      <span class="catedit" data-catedit="${c.id}" title="Alt kategori · yeniden adlandır · renk · sil">⋯</span>
     </button>`;
   };
   function renderCatTree(c,depth){
@@ -954,12 +998,10 @@ function renderSidebar(){
   $("#catlist").innerHTML=rootCats().map(c=>renderCatTree(c,0)).join("");
   $("#catlist").querySelectorAll("[data-cat]").forEach(b=>{
     b.onclick=e=>{
-      const tw=e.target.closest("[data-tw]"), sa=e.target.closest("[data-subadd]"),
-            ce=e.target.closest("[data-catedit]");
+      const tw=e.target.closest("[data-tw]"), ce=e.target.closest("[data-catedit]");
       if(tw){ const c=catOf(tw.dataset.tw); c.open=!c.open; save(); renderSidebar(); return; }
       if(ce){ openCatEditPop(ce,ce.dataset.catedit); return; }
-      if(sa){ subAddFor=subAddFor===sa.dataset.subadd?null:sa.dataset.subadd; renderSidebar();
-        $("#subcat-input")?.focus(); return; }
+
       setView({type:"cat",catId:b.dataset.cat});
     };
   });
@@ -974,6 +1016,71 @@ function renderSidebar(){
     }
     if(e.key==="Escape"){ subAddFor=null; renderSidebar(); }
   };
+}
+
+/* ---- Sıralama ve süzgeç ---- */
+const SIRALAR={
+  guncel:{ad:"Son güncellenen",f:(a,b)=>b.updatedAt-a.updatedAt},
+  eklenme:{ad:"Yeni eklenen",f:(a,b)=>b.createdAt-a.createdAt},
+  bitis:{ad:"Bitiş tarihi",f:(a,b)=>{
+    if(a.deadline&&b.deadline) return new Date(a.deadline)-new Date(b.deadline);
+    if(a.deadline) return -1; if(b.deadline) return 1; return b.updatedAt-a.updatedAt;}},
+  triyaj:{ad:"Triyaj önceliği",f:(a,b)=>triRank(a)-triRank(b)||b.updatedAt-a.updatedAt},
+  baslik:{ad:"Başlık (A→Z)",f:(a,b)=>titleOf(a).localeCompare(titleOf(b),"tr")},
+};
+let sirala=(()=>{ try{ const v=localStorage.getItem("nbmd_sirala"); return SIRALAR[v]?v:"guncel"; }catch(e){ return "guncel"; } })();
+const SUZGECLER={
+  tri_r:{ad:"🔴 Acil",f:n=>n.triage==="r"},
+  tri_y:{ad:"🟡 Beklemede",f:n=>n.triage==="y"},
+  tri_g:{ad:"🟢 Tamam",f:n=>n.triage==="g"},
+  tri_yok:{ad:"⚪ İşaretsiz",f:n=>!n.triage},
+  mentor:{ad:"🎓 Danışman listesinde",f:n=>!!n.mentor},
+  ek:{ad:"📎 Eki olan",f:n=>n.files.length>0||n.audios.length>0},
+  bitis:{ad:"⏰ Bitişi olan",f:n=>!!n.deadline},
+  alt:{ad:"☑ Alt maddesi olan",f:n=>n.subs.length>0},
+};
+let suzgec=new Set();
+function suzgecUygula(arr){
+  if(!suzgec.size) return arr;
+  const tri=[...suzgec].filter(k=>k.startsWith("tri_"));
+  const dig=[...suzgec].filter(k=>!k.startsWith("tri_"));
+  return arr.filter(n=>
+    (!tri.length||tri.some(k=>SUZGECLER[k].f(n))) && dig.every(k=>SUZGECLER[k].f(n)));
+}
+function listeCubuguGuncelle(adet){
+  const lbl=$("#sort-lbl"); if(lbl) lbl.textContent=SIRALAR[sirala].ad;
+  const fb=$("#filterbtn"); if(fb) fb.classList.toggle("on",suzgec.size>0);
+  const as=$("#aktifsuz");
+  if(as) as.innerHTML=[...suzgec].map(k=>
+    `<span class="fchipx">${SUZGECLER[k].ad}<b data-suzsil="${k}">✕</b></span>`).join("");
+  const c=$("#listcount"); if(c) c.textContent=adet!=null?adet+" not":"";
+  const bar=$("#listbar");
+  if(bar) bar.style.display=["active","done","cat"].includes(view.type)?"flex":"none";
+}
+function sortPop(anchor){
+  pop.innerHTML=`<div class="popbaslik">Sırala</div>`+
+    Object.entries(SIRALAR).map(([k,v])=>
+      `<button data-sirala="${k}" class="${k===sirala?"secili":""}">${k===sirala?"✓ ":"　"}${v.ad}</button>`).join("");
+  popKonumla(anchor);
+  pop.querySelectorAll("[data-sirala]").forEach(b=>b.onclick=()=>{
+    sirala=b.dataset.sirala; try{ localStorage.setItem("nbmd_sirala",sirala); }catch(e){}
+    siraKilidi=null; pop.style.display="none"; render();
+  });
+}
+function filterPop(anchor){
+  const grup=(ad,anahtarlar)=>`<div class="popbaslik">${ad}</div>`+anahtarlar.map(k=>
+    `<button data-suz="${k}" class="${suzgec.has(k)?"secili":""}">${suzgec.has(k)?"✓ ":"　"}${SUZGECLER[k].ad}</button>`).join("");
+  pop.innerHTML=grup("Triyaj",["tri_r","tri_y","tri_g","tri_yok"])+
+    grup("Özellik",["mentor","ek","bitis","alt"])+
+    (suzgec.size?`<div class="sep"></div><button data-suz-temizle="1" style="color:var(--red)">✕ Süzgeçleri temizle</button>`:"");
+  popKonumla(anchor);
+  pop.querySelectorAll("[data-suz]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.suz;
+    suzgec.has(k)?suzgec.delete(k):suzgec.add(k);
+    siraKilidi=null; render(); filterPop(anchor);
+  });
+  const t=pop.querySelector("[data-suz-temizle]");
+  if(t) t.onclick=()=>{ suzgec.clear(); siraKilidi=null; pop.style.display="none"; render(); };
 }
 
 /* Görünüm dizilimi: dikey liste ya da kare ızgara (cihaza özel tercih) */
@@ -1044,7 +1151,7 @@ function noteMetaHTML(n){
             title="${n.mentor?"Danışman listesinden çıkar":"Danışman listesine ekle"}">🎓<span class="ck">${n.mentor?" Listede":""}</span></button>`:""}
           ${n.panel==="learn"?(()=>{const s=secOf(n.sec);
             return `<button class="chip" data-secpick="${n.id}" title="Bölüm değiştir">📒 ${s?esc(s.name):"Bölümsüz"}</button>`;})():
-          n.panel?`<span class="chip">${PANEL_ICO[n.panel]} ${esc(PANEL_LBL[n.panel])}</span>`:
+          n.panel?`<span class="chip panelad">${PANEL_ICO[n.panel]} ${esc(PANEL_LBL[n.panel])}</span>`:
           `<button class="chip" data-catpick="${n.id}" title="Kategori değiştir">
             <span class="dot" style="background:${cat?cat.color:"#999"};width:7px;height:7px"></span><span class="ck">${cat?esc(cat.name):"—"}</span></button>`}
           ${dl?`<span class="chip ${dl.cls}" data-deadline="${n.deadline}">${dl.txt}</span>`:""}
@@ -1120,8 +1227,8 @@ function renderMain(){
   })():titles[view.type];
   $("#quickadd").style.display=view.type==="log"||view.type==="done"||view.type==="learn"?"none":"flex";
   const list=$("#list");
-  if(view.type==="log"){ list.innerHTML=timelineHTML(); bindTimeline(); applyDizilim(); return; }
-  if(view.type==="learn"){ list.innerHTML=learnViewHTML(); applyDizilim(); return; }
+  if(view.type==="log"){ list.innerHTML=timelineHTML(); bindTimeline(); applyDizilim(); listeCubuguGuncelle(); return; }
+  if(view.type==="learn"){ list.innerHTML=learnViewHTML(); applyDizilim(); listeCubuguGuncelle(); return; }
   // (aşağıdaki artımlı güncelleme yalnız düz not listesi için)
   const notes=visibleNotes();
   const acilIpucu=view.type==="cat"&&view.catId===URGENT_CAT
@@ -1129,11 +1236,11 @@ function renderMain(){
   if(!notes.length){
     list.innerHTML=acilIpucu+`<div class="empty"><div class="big">${view.type==="done"?"🗂":"🍃"}</div>${
       view.type==="done"?"Henüz tamamlanan iş yok.":"Buraya ilk notunu ekle — üstteki kutuya yaz ve Enter'a bas."}</div>`;
-    applyDizilim();
+    applyDizilim(); listeCubuguGuncelle(0);
     return;
   }
   listeSenkron(list,notes,acilIpucu);
-  applyDizilim();
+  applyDizilim(); listeCubuguGuncelle(notes.length);
 }
 /* Listenin tamamını yeniden kurmak (innerHTML) her dokunuşta yüzlerce düğümü
    yok edip yeniden yaratıyordu: pahalı ve görüntüyü zıplatıyor. Artık yalnızca
@@ -1234,8 +1341,7 @@ function learnHTML(){
   const kok=learnNotesOf(null), roots=secKids(null);
   const toplam=S.notes.filter(n=>n.panel==="learn"&&!n.done&&matchQ(n)).length;
   if(!toplam&&!roots.length&&secAddFor!=="root")
-    return `<div class="rempty">Çalışma defteri: kayıtlar tamamlanmaz, yazıldıkları yerde kalır.
-      Üstteki kutuya yaz ya da ＋ Bölüm ile konu başlığı (ör. “İstatistik”, “Vaka notları”) aç.</div>`;
+    return `<div class="rempty">Kalıcı çalışma notların · ＋ Bölüm ile konu başlığı aç</div>`;
   return (secAddFor==="root"?secNewRow("root"):"")+
     roots.map(s=>secTreeHTML(s,0)).join("")+
     (kok.length?`<div class="lsec-loose">${kok.map(noteCardHTML).join("")}</div>`:"");
@@ -1245,12 +1351,12 @@ function learnHTML(){
 function learnViewHTML(){
   const bos=!S.notes.some(n=>n.panel==="learn"&&!n.done)&&!secKids(null).length&&secAddFor!=="root";
   return `<div class="nbhead">
-      <div class="nbhint">Kayıtlar tamamlanmaz, yazıldıkları yerde kalır.</div>
+      <div class="nbhint">Kalıcı çalışma notları</div>
       <button class="tool" data-addsec="root">＋ Bölüm</button>
     </div>
     <div class="nbcapture">${secQuickAdd(null).replace("＋ Bu bölüme yaz…","Deftere yeni kayıt…")}</div>
     ${bos?`<div class="empty"><div class="big">📚</div>Defter boş — üstteki kutuya yaz ya da
-      ＋ Bölüm ile konu başlığı (ör. “İstatistik”, “Vaka notları”) aç.</div>`:learnHTML()}`;
+      ＋ Bölüm ile konu başlığı aç.</div>`:learnHTML()}`;
 }
 function renderRight(){
   const mine=panelNotes("mentor"), refs=mentorRefs();
@@ -1263,10 +1369,10 @@ function renderRight(){
   $("#rightbtn").title="Danışman & Çalışma Defteri paneli"+(bekleyen?" — "+bekleyen+" madde bekliyor":"");
   $("#mentor-list").innerHTML=(mine.length||refs.length)
     ? refs.map(mrefHTML).join("")+mine.map(noteCardHTML).join("")
-    : `<div class="rempty">Danışmana veya ekibe iletilecek maddeler burada toplanır. Herhangi bir nottaki 🎓 düğmesi o notu bu listeye ekler.</div>`;
+    : `<div class="rempty">Görüşmede konuşulacaklar burada toplanır · bir nottaki 🎓 ile ekle</div>`;
   // Defter ana alanda açıkken panelde tekrar çizilmez (aynı kayıt iki kez render edilmesin)
   $("#learn-list").innerHTML=view.type==="learn"
-    ? `<div class="rempty">Çalışma defteri ana alanda açık — kayıtları orada düzenle.</div>`
+    ? `<div class="rempty">Defter ana alanda açık</div>`
     : learnHTML();
   $("#learn-add").style.display=view.type==="learn"?"none":"flex";
   // Panelde bir not açıksa sütunu genişlet (editör sıkışmasın)
@@ -1405,6 +1511,7 @@ function delegeBaglan(){
     const el=e.target;
     const bul=sec=>el.closest&&el.closest(sec);
     let t;
+    if(t=bul("[data-suzsil]")){ e.stopPropagation(); suzgec.delete(t.dataset.suzsil); siraKilidi=null; render(); return; }
     if(t=bul("[data-done]")){ e.stopPropagation(); toggleDone(t.dataset.done); return; }
     if(t=bul("[data-triage]")){ e.stopPropagation(); openTriagePop(t,t.dataset.triage); return; }
     if(t=bul("[data-mentor]")){ e.stopPropagation(); toggleMentor(t.dataset.mentor); return; }
@@ -2032,12 +2139,19 @@ function openCatEditPop(anchor,catId){
   const c=catOf(catId); if(!c)return;
   const kids=kidsOf(catId), notes=S.notes.filter(n=>n.cat===catId);
   pop.innerHTML=
+    `<div class="popbaslik">${esc(c.name)}</div>`+
+    `<button data-act="alt">＋ Alt kategori ekle</button>`+
     `<div class="swatches">${CAT_COLORS.map(col=>
       `<span data-col="${col}" class="${col===c.color?"on":""}" style="background:${col}"></span>`).join("")}</div>`+
     `<input class="rename" id="cat-rename" value="${esc(c.name)}" placeholder="Kategori adı">`+
     `<div class="sep"></div>`+
     `<button data-act="del" style="color:var(--red)">🗑 Kategoriyi sil</button>`;
   popKonumla(anchor);
+  pop.querySelector("[data-act=alt]").onclick=()=>{
+    pop.style.display="none";
+    subAddFor=catId; c.open=true; save(); renderSidebar();
+    setTimeout(()=>$("#subcat-input")?.focus(),0);
+  };
 
   pop.querySelectorAll("[data-col]").forEach(s=>{
     s.onclick=()=>{
@@ -2190,7 +2304,8 @@ function openTriagePop(anchor,noteId){
 document.addEventListener("click",e=>{
   if(!pop.contains(e.target)&&!e.target.closest("[data-catpick]")&&!e.target.closest("[data-catedit]")
      &&!e.target.closest("[data-triage]")&&!e.target.closest("[data-secpick]")
-     &&!e.target.closest("[data-lsedit]")) pop.style.display="none";
+     &&!e.target.closest("[data-lsedit]")&&!e.target.closest("#sortbtn")
+     &&!e.target.closest("#filterbtn")) pop.style.display="none";
 });
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&expandedId&&!recState.active) collapseNote();
@@ -2669,6 +2784,8 @@ function applyTheme(){
   const dark=S.theme==="dark"||(S.theme==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.setAttribute("data-theme",dark?"dark":"light");
 }
+$("#sortbtn").onclick=e=>{ e.stopPropagation(); sortPop($("#sortbtn")); };
+$("#filterbtn").onclick=e=>{ e.stopPropagation(); filterPop($("#filterbtn")); };
 $("#gridbtn").onclick=()=>{
   dizilim=dizilim==="izgara"?"liste":"izgara";
   try{ localStorage.setItem("nbmd_dizilim",dizilim); }catch(e){}

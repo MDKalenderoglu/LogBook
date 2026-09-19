@@ -29,7 +29,8 @@ Every edit keeps its predecessor. You can change your mind freely without losing
 ## Features
 
 - **Instant capture** — type, press Enter, it's saved with a timestamp
-- **List or grid** — switch the note list to a Drive-style grid to see two to four times as many notes at a glance; the opened note still expands to full width
+- **List or grid** — switch the note list to a Drive-style grid of uniform tiles to see two to four times as many notes at a glance; the opened note still expands to full width
+- **Sort and filter** — order by last edited, newest, deadline, triage or title, and filter by triage colour, mentor queue, attachments, deadline or sub-tasks
 - **Rich text** — bold, italic, underline, strikethrough, highlight, three heading sizes, bullet lists and quotes applied directly as you type (⌘B/I/U, native undo), plus a choice of note font. Content is stored as whitelisted HTML, and history, search, and sync work on the extracted text
 - **Mentor & learning column** — a side panel with two areas: items to raise with a supervisor or team, and a study notebook. Both support everything a note does — text, attachments, annotation, voice, history
 - **Sectioned study notebook** — a reference notebook rather than a task list: entries carry no completion state and remain where they were written. Sections nest to any depth, each with its own capture box, and the notebook also opens full width in the main area

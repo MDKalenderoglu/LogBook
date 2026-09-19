@@ -29,7 +29,8 @@ Her düzenlemenin öncesi saklanır. Fikir değiştirmek serbest — kaybettiği
 ## Özellikler
 
 - **Tek tuşla not** — yaz, Enter'a bas, tarih damgasıyla kaydedildi
-- **Liste ya da kare görünüm** — notları Drive'daki gibi kare kare diz, ekranda 2–4 kat daha fazla not gör; açtığın not yine tam genişlikte açılır
+- **Liste ya da kare görünüm** — notları Drive'daki gibi eşit boyda kareler hâlinde diz, ekranda 2–4 kat daha fazla not gör; açtığın not yine tam genişlikte açılır
+- **Sırala ve süz** — son düzenlenen, yeni eklenen, bitiş tarihi, triyaj önceliği ya da başlığa göre sırala; triyaj rengi, danışman listesi, eki olan, bitişi olan veya alt maddesi olan notlara göre süz
 - **Zengin metin** — kalın, italik, altı çizili, üstü çizili, vurgu, üç kademeli başlık, madde imi ve alıntı doğrudan yazarken uygulanır (⌘B/I/U, ⌘Z geri alma); ayrıca yazı tipi seçimi. İçerik beyaz listeden geçirilmiş HTML olarak saklanır; tarihçe, arama ve senkron metin üzerinden aynen çalışır
 - **Mentör & öğrenme sütunu** — sağda iki alan: danışmana veya ekibe iletilecek maddeler ve çalışma defteri. İkisi de notun sunduğu her şeyi destekler — metin, ek dosya, çizim, ses, tarihçe
 - **Bölümlü çalışma defteri** — öğrenme alanı görev listesi değil, başvuru defteridir: kayıtların tamamlanma durumu yoktur, yazıldıkları yerde kalır. Bölümler istenen derinlikte iç içe kurulur, her birinin kendi yazma kutusu vardır; defter ayrıca ana alanda tam genişlikte açılır
