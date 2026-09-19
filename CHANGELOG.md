@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The view no longer jumps when you interact with a note.** Tapping triage, the mentor flag or the category used to bump the note's timestamp, which re-sorted the list under your finger; the order is now frozen while a view is open (new notes still enter at the top) and returns to natural sorting when you switch views. Re-draws keep their place by anchoring on the first visible card instead of a pixel offset, so attachments loading or an editor opening no longer shift what you are reading
+- **Typing no longer nudges the page.** The caret is only brought back when it would actually leave the view, and by the smallest amount needed — it used to re-centre on every keystroke
+- Adding or ticking a sub-task updates just that note's badge instead of redrawing the whole list, so focus and position are kept
+- The side column no longer animates its width, which made the note column re-flow continuously while it opened
 - **Pinch zoom no longer makes the page shake.** While zoomed, the visible viewport shrinks and pans continuously; the shell was re-measuring on every frame and fighting the gesture. Viewport tracking now steps aside above 1× zoom, updates are coalesced to one per frame, and identical measurements are ignored
 - **The keyboard no longer pushes the app off the screen.** On iOS the visible viewport is scrolled up when the keyboard appears, which left the pinned shell above the screen — the app went black until it was scrolled back. The shell now follows both the height *and* the offset of the visible viewport, and the line being typed is kept in the upper third of its own scroll area as the text grows
 - **The page no longer drifts on phones.** The app shell is now pinned to the viewport: the document itself never scrolls, so the browser bar stops collapsing and expanding, rubber-band overscroll and pull-to-refresh are gone, and the layout no longer re-measures while reading. Height follows the visual viewport instead of `dvh`, so the only time it changes is when the keyboard opens — and the field being typed into is scrolled into view

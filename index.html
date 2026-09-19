@@ -313,7 +313,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 .fchip{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--border);border-radius:9px;background:var(--surface2);font-size:12.5px;font-weight:600;color:var(--text);max-width:100%;text-align:left}
 .fchip:hover{border-color:var(--accent);color:var(--accent)}
 .fchip small{color:var(--text2);font-size:10.5px;font-weight:400}
-.thumbstrip{display:flex;gap:6px;margin-top:8px}
+.thumbstrip{display:flex;gap:6px;margin-top:8px;min-height:52px}
 .thumbstrip img{width:52px;height:52px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
 #lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:10px;cursor:zoom-out;padding:12px}
 #lightbox img{max-width:98vw;max-height:94vh;width:auto;height:auto;border-radius:6px;object-fit:contain}
@@ -370,7 +370,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
   display:flex;flex-direction:column;gap:6px;overflow-y:auto;overscroll-behavior:contain;
   padding:calc(14px + env(safe-area-inset-top,0px)) 12px calc(20px + env(safe-area-inset-bottom,0px));
   padding-right:calc(12px + env(safe-area-inset-right,0px));
-  transition:width .2s ease,transform .25s ease;
+  transition:transform .25s ease;
 }
 /* Panelde bir not açıldığında editör dar kalmasın diye sütun genişler — ama ana
    sütunu ezmeden: yalnızca yeterli ekran varsa, kademeli olarak */
@@ -838,12 +838,34 @@ function visibleNotes(){
     return false;
   });
   if(searchQ) arr=arr.filter(matchQ);
-  if(view.type==="done") return arr.sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
-  return arr.sort((a,b)=>{
+  if(view.type==="done") arr.sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
+  else arr.sort((a,b)=>{
     if(a.deadline&&b.deadline) return new Date(a.deadline)-new Date(b.deadline);
     if(a.deadline) return -1; if(b.deadline) return 1;
     return b.updatedAt-a.updatedAt;
   });
+  return siraSabitle(arr);
+}
+/* Bir nota dokunmak (triyaj, kategori, danışman işareti) notu güncellediği için
+   liste yeniden sıralanıyor ve kartlar parmağın altında yer değiştiriyordu.
+   Görünüm açıkken sıra DONDURULUR; doğal sıraya görünüm değişince dönülür.
+   Yeni eklenen notlar üste girer. */
+let siraKilidi=null;
+const siraAnahtari=()=>view.type+"|"+(view.catId||"")+"|"+(searchQ||"");
+function siraSabitle(arr){
+  const anahtar=siraAnahtari();
+  if(siraKilidi&&siraKilidi.anahtar===anahtar){
+    const yer=new Map(siraKilidi.sira.map((id,i)=>[id,i]));
+    arr.sort((a,b)=>{
+      const ia=yer.has(a.id)?yer.get(a.id):-1, ib=yer.has(b.id)?yer.get(b.id):-1;
+      if(ia<0&&ib<0) return 0;          // ikisi de yeni: doğal sıraları korunur
+      if(ia<0) return -1;               // yeni not üste
+      if(ib<0) return 1;
+      return ia-ib;
+    });
+  }
+  siraKilidi={anahtar,sira:arr.map(n=>n.id)};
+  return arr;
 }
 
 // Kenar çubuğu kategorileri — defter bölümleri (scope:"learn") buraya karışmaz
@@ -930,7 +952,17 @@ function noteCardHTML(n){
         ${!exp&&n.content?`<div class="note-preview">${renderContent(n.content)}</div>`:""}
         ${!n.title&&!n.content?`<div class="note-preview">Başlıksız not</div>`:""}
         ${!exp&&n.files.some(f=>(f.type||"").startsWith("image/"))?`<div class="thumbstrip" data-thumbs="${n.id}"></div>`:""}
-        <div class="note-meta">
+        <div class="note-meta">${noteMetaHTML(n)}</div>
+      </div>
+    </div>
+    ${exp?editorHTML(n):""}
+  </div>`;
+}
+function noteMetaHTML(n){
+  const cat=catOf(n.cat);
+  const dl=n.deadline&&!n.done?timeLeft(n.deadline):null;
+  const tri=n.triage&&TRI[n.triage];
+  return `
           <button class="chip ${tri?"tri-"+n.triage:""}" data-triage="${n.id}"
             title="Triyaj: ${tri?esc(tri.l):"işaretsiz"}">${tri?tri.e+" "+tri.s:"⚪ Triyaj"}</button>
           ${n.panel!=="mentor"?`<button class="chip mshare ${n.mentor?"on":""}" data-mentor="${n.id}"
@@ -945,12 +977,7 @@ function noteCardHTML(n){
           ${n.subs.length?`<span class="chip">☑ ${n.subs.filter(s=>s.done).length}/${n.subs.length}</span>`:""}
           ${n.audios.length?`<span class="chip audio-chip">🎤 ${n.audios.length}</span>`:""}
           ${n.files.length?`<span class="chip">📎 ${n.files.length}</span>`:""}
-          <span class="created">📅 ${fmtDT(n.createdAt)}</span>
-        </div>
-      </div>
-    </div>
-    ${exp?editorHTML(n):""}
-  </div>`;
+          <span class="created">📅 ${fmtDT(n.createdAt)}</span>`;
 }
 
 function editorHTML(n){
@@ -998,6 +1025,15 @@ function editorHTML(n){
     <div class="hint">İpucu: yazıyı seç, çubuktan biçimlendir (⌘/Ctrl+B · I · U) · ⌘Z geri alır ·
       linkler otomatik tıklanabilir · dosya sürükle/yapıştır olur · uzun aradan sonra dönünce araya otomatik tarih düşülür</div>
   </div>`;
+}
+
+/* Kartın alt bilgi satırını yerinde tazele — tüm listeyi çizmeye gerek kalmasın
+   (liste baştan çizilince görünüm kayıyor, imleç ve odak kaybolıyordu). */
+function kartMetaYenile(n){
+  const kart=document.getElementById("note-"+n.id); if(!kart)return;
+  const meta=kart.querySelector(".note-meta"); if(!meta)return;
+  meta.innerHTML=noteMetaHTML(n);
+  bindNotes();
 }
 
 function renderMain(){
@@ -1162,10 +1198,58 @@ function bindPanels(){
     };
   });
 }
-function renderLists(){ renderMain(); renderRight(); bindNotes(); bindPanels(); }
+/* Her etkileşimde liste baştan çizildiği için görünüm zıplıyordu. Çözüm: piksel
+   değil ÇAPA korunur — görünür ilk kartın ekrandaki yeri çizimden sonra aynı
+   noktaya getirilir. Böylece yükseklik sonradan değişse de (görsel yüklenmesi,
+   editörün açılması) görünüm yerinde kalır. */
+function ankrajAl(kap){
+  if(!kap) return null;
+  const ar=kap.getBoundingClientRect();
+  for(const el of kap.querySelectorAll('[id^="note-"],[data-lsec],[data-reveal]')){
+    const r=el.getBoundingClientRect();
+    if(r.bottom>ar.top+2){
+      const anahtar=el.id?("#"+el.id.replace(/([^\w-])/g,"\\$1"))
+        :(el.dataset.lsec?'[data-lsec="'+el.dataset.lsec+'"]':'[data-reveal="'+el.dataset.reveal+'"]');
+      return {anahtar,ofset:r.top-ar.top,scroll:kap.scrollTop};
+    }
+  }
+  return {anahtar:null,ofset:0,scroll:kap.scrollTop};
+}
+function ankrajUygula(kap,a){
+  if(!kap||!a) return;
+  const koy=()=>{
+    if(a.anahtar){
+      const el=kap.querySelector(a.anahtar);
+      if(el){
+        const fark=(el.getBoundingClientRect().top-kap.getBoundingClientRect().top)-a.ofset;
+        if(Math.abs(fark)>1) kap.scrollTop+=fark;
+        return;
+      }
+    }
+    kap.scrollTop=Math.min(a.scroll,Math.max(0,kap.scrollHeight-kap.clientHeight));
+  };
+  koy();
+  // Yükseklik sonradan oturursa bir kez daha düzelt; ama odaklanılmış bir yazı
+  // alanı varsa dokunma (tarayıcının imleci göstermesiyle çakışmasın).
+  const guvenli=()=>{ const ae=document.activeElement;
+    if(ae&&ae.matches&&ae.matches("input,textarea,[contenteditable=true]"))return; koy(); };
+  if(document.hidden) setTimeout(guvenli,60); else requestAnimationFrame(guvenli);
+  setTimeout(guvenli,120);
+}
+function konumAl(){ return {c:ankrajAl($("#content")), r:ankrajAl($("#rightbar"))}; }
+function konumKoy(k){ ankrajUygula($("#content"),k.c); ankrajUygula($("#rightbar"),k.r); }
+function renderLists(){
+  const k=konumAl();
+  renderMain(); renderRight(); bindNotes(); bindPanels();
+  konumKoy(k);
+}
 // Yalnız sağ sütunu tazele — kart düğmeleri (triyaj/mentör/bölüm/aç) yeniden bağlanmalı,
 // yoksa bölüm aç/kapa sonrası paneldeki kartlar tıklanamaz hale gelir.
-function refreshRight(){ renderRight(); bindNotes(); bindPanels(); }
+function refreshRight(){
+  const k=konumAl();
+  renderRight(); bindNotes(); bindPanels();
+  konumKoy(k);
+}
 // Defter ana alandayken bölüm işlemleri ana listeyi de tazelemeli
 function refreshPanels(){ view.type==="learn"?renderLists():refreshRight(); }
 
@@ -1251,11 +1335,18 @@ function expandNote(id){
       : n.content.replace(/\s+$/,"")+"\n\n"+autoDivider+"\n";
   }
   render();
+  // Not açılınca kart büyüyor; görünümün zıplamaması için kartı üste al,
+  // sonra imleci sona koy (böylece imleç takibi ayrıca kaydırmak zorunda kalmaz).
+  const kart=document.getElementById("note-"+id), kap=kart?kaydirilanKap(kart):null;
+  if(kart&&kap){
+    const kr=kart.getBoundingClientRect(), ar=kap.getBoundingClientRect();
+    if(kr.top<ar.top+4||kr.top>ar.top+ar.height*0.45)
+      kap.scrollTop+=kr.top-(ar.top+8);
+  }
   const ed=$("#ed-content");
   if(ed){ ed.focus();
     const r=document.createRange(); r.selectNodeContents(ed); r.collapse(false);
     const sl=getSelection(); sl.removeAllRanges(); sl.addRange(r);
-    ed.scrollTop=ed.scrollHeight;
   }
 }
 function editDiffSummary(o,n){
@@ -1476,7 +1567,7 @@ function renderSubs(n){
       s.done=!s.done;
       noteLog(n,(s.done?"☑ Alt madde tamamlandı: ":"☐ Alt madde yeniden açıldı: ")+s.text);
       appLog((s.done?"☑ Alt madde tamamlandı: ":"☐ Alt madde yeniden açıldı: ")+"“"+s.text.slice(0,40)+"” — "+titleOf(n),n.id);
-      save(); render();
+      save(); renderSubs(n); kartMetaYenile(n);
     };
   });
   $("#sub-add").onsubmit=e=>{
@@ -1485,8 +1576,8 @@ function renderSubs(n){
     n.subs.push({id:uid(),text:v,done:false,t:Date.now()});
     noteLog(n,"＋ Alt madde eklendi: "+v);
     appLog("＋ Alt madde eklendi: “"+v.slice(0,40)+"” — "+titleOf(n),n.id);
-    save(); render();
-    setTimeout(()=>$("#sub-input")?.focus(),0);
+    save(); renderSubs(n); kartMetaYenile(n);
+    $("#sub-input")?.focus();
   };
 }
 
@@ -2444,6 +2535,7 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyTheme)
 
 /* ================= VIEW / NAV ================= */
 function setView(v){
+  siraKilidi=null;                      // görünüm değişince doğal sıralama
   if(expandedId) collapseNote(true);
   view=v; render();
   $("#sidebar").classList.remove("open"); $("#overlay").classList.remove("show");
@@ -2490,7 +2582,7 @@ $("#newcat-input").addEventListener("keydown",e=>{
   if(e.key==="Escape"){ $("#newcat-row").style.display="none"; }
 });
 
-$("#search").oninput=e=>{ searchQ=e.target.value.trim(); renderLists(); };
+$("#search").oninput=e=>{ searchQ=e.target.value.trim(); siraKilidi=null; renderLists(); };
 
 /* quick add */
 function quickAdd(){
@@ -2633,7 +2725,8 @@ setInterval(()=>{
     // iOS klavye açılınca GÖRÜNÜR alanı yukarı kaydırır; sabit kabuk ekranın
     // dışında kalmasın diye aynı miktarda aşağı alınır (yoksa ekran kararır).
     const ust=Math.round(vv?vv.offsetTop:0);
-    if(h===sonH&&ust===sonUst) return;                          // gereksiz yeniden çizim yok
+    // 1-2 piksellik oynamalar (tarayıcı çubuğu kıpırtısı) yerleşimi sarsmasın
+    if(Math.abs(h-sonH)<8&&ust===sonUst) return;
     sonH=h; sonUst=ust;
     kok.style.setProperty("--app-h",h+"px");
     kok.style.setProperty("--app-top",ust+"px");
@@ -2675,10 +2768,11 @@ function imleciGoster(){
     if(rr&&(rr.height||rr.top)) r=rr;
   }
   if(!r) r=el.getBoundingClientRect();
-  const alan=kap.getBoundingClientRect();
-  const hedef=alan.top+Math.min(alan.height*0.38,220);     // imleç üst bölgede dursun
-  const fark=r.top-hedef;
-  if(Math.abs(fark)>24) kap.scrollTop+=fark;
+  const alan=kap.getBoundingClientRect(), pay=28;
+  // Yalnızca imleç görünür alanın dışına çıktıysa ve SADECE gerektiği kadar kaydır;
+  // her tuş vuruşunda yeniden ortalamak sayfayı oynatıyordu.
+  if(r.bottom>alan.bottom-pay) kap.scrollTop+=r.bottom-(alan.bottom-pay);
+  else if(r.top<alan.top+pay)  kap.scrollTop-=(alan.top+pay)-r.top;
 }
 document.addEventListener("focusin",e=>{
   if(!matchMedia("(max-width:1100px)").matches)return;
@@ -2687,11 +2781,14 @@ document.addEventListener("focusin",e=>{
     setTimeout(imleciGoster,350); setTimeout(imleciGoster,750);   // klavye animasyonu bitince bir kez daha
   }
 });
-// Yazarken satır büyüdükçe imleç görünür kalsın (telefon/tablet)
+// Yazarken satır büyüdükçe imleç görünür kalsın (telefon/tablet) — gerekmedikçe kıpırdamaz
+let imlecZaman=0;
 document.addEventListener("input",e=>{
   if(!matchMedia("(max-width:1100px)").matches)return;
   const el=e.target;
-  if(el&&el.matches&&el.matches("[contenteditable=true],textarea")) imleciGoster();
+  if(!(el&&el.matches&&el.matches("[contenteditable=true],textarea")))return;
+  clearTimeout(imlecZaman);
+  imlecZaman=setTimeout(imleciGoster,120);
 });
 
 /* Kenardan parmak kaydırarak panelleri aç/kapa (düğmeler de duruyor) */
