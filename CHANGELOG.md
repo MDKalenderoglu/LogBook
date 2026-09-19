@@ -4,6 +4,12 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] — 2026-09-20
+
+### Added
+
+- **Grid view** — a control in the top bar switches the note list between the usual vertical list and a Drive-style grid of tiles, so far more notes fit on one screen (a phone shows 14 instead of 6; a desktop column shows 14 instead of 8). Columns fill the available width automatically, an opened note expands to the full width of the row, and on phones the badge labels collapse to their icons to keep tiles compact. The choice is remembered per device and the control hides itself in the log and notebook views, where a grid makes no sense
+
 ## [1.3.2] — 2026-09-19
 
 ### Fixed

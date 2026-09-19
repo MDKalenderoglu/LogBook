@@ -163,6 +163,28 @@ button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
 .qa-btn.primary{background:var(--accent);color:#fff}
 .qa-btn.primary:hover{opacity:.9;color:#fff}
 
+/* kare (ızgara) görünüm — Drive'daki gibi: ekranda daha fazla not */
+#list.izgara{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;align-items:start}
+#list.izgara .note{margin-bottom:0}
+#list.izgara .note.exp{grid-column:1 / -1}          /* açılan not tam satırı kaplar */
+#list.izgara .viewhint,#list.izgara .empty{grid-column:1 / -1}
+#list.izgara .note-head{padding:12px 13px}
+#list.izgara .note-preview{-webkit-line-clamp:5}
+#list.izgara .note-meta{gap:5px}
+.inner.genis{max-width:1280px}
+@media(max-width:560px){
+  #list.izgara{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px}
+  /* karelerde rozet etiketleri gizlenir, simgeler kalır — kutular alçalır */
+  #list.izgara .chip .ck{display:none}
+  #list.izgara .chip{padding:3px 7px}
+  #list.izgara .note-meta{margin-top:6px}
+  #list.izgara .note-head{padding:10px 11px;gap:8px}
+  #list.izgara .note-title{font-size:calc(14px * var(--tscale,1))}
+  #list.izgara .note-preview{-webkit-line-clamp:4;font-size:calc(12.5px * var(--tscale,1))}
+  #list.izgara .created{display:none}
+  #list.izgara .chk{width:19px;height:19px}
+}
+
 /* note card */
 .note{
   background:var(--surface);border:1px solid var(--border);border-radius:12px;
@@ -462,6 +484,9 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 .note.tri-y{box-shadow:inset 3px 0 0 var(--amber),var(--shadow)}
 .note.tri-g{box-shadow:inset 3px 0 0 var(--green),var(--shadow)}
 .chip.mshare.on{background:var(--accent-soft);color:var(--accent)}
+#gridbtn{font-size:16px;padding:5px 9px;border-radius:8px;color:var(--text2);flex-shrink:0}
+#gridbtn:hover{background:var(--surface2);color:var(--accent)}
+#gridbtn.on{background:var(--accent-soft);color:var(--accent)}
 #rightbtn{position:relative;font-size:17px;padding:5px 9px;border-radius:8px;color:var(--text2);flex-shrink:0}
 #rightbtn .rbadge{position:absolute;top:0;right:1px;min-width:15px;height:15px;padding:0 3px;border-radius:99px;
   background:var(--accent);color:#fff;font-size:10px;font-weight:700;line-height:15px;text-align:center}
@@ -534,6 +559,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
       <button id="hamburger">☰</button>
       <div id="viewtitle">Aktif Notlar</div>
       <input id="search" placeholder="Ara…">
+      <button id="gridbtn" title="Kare görünüm — ekrana daha fazla not sığar">▦</button>
       <button id="rightbtn" title="Danışman &amp; Çalışma Defteri paneli">🎓</button>
     </div>
     <div id="content"><div class="inner">
@@ -950,6 +976,22 @@ function renderSidebar(){
   };
 }
 
+/* Görünüm dizilimi: dikey liste ya da kare ızgara (cihaza özel tercih) */
+let dizilim=(()=>{ try{ return localStorage.getItem("nbmd_dizilim")==="izgara"?"izgara":"liste"; }catch(e){ return "liste"; } })();
+function applyDizilim(){
+  const izgaraOlur=["active","done","cat"].includes(view.type);
+  const acik=dizilim==="izgara"&&izgaraOlur;
+  $("#list")?.classList.toggle("izgara",acik);
+  document.querySelector(".inner")?.classList.toggle("genis",acik);
+  const b=$("#gridbtn");
+  if(b){
+    b.textContent=dizilim==="izgara"?"▤":"▦";
+    b.title=dizilim==="izgara"?"Liste görünümü":"Kare görünüm — ekrana daha fazla not sığar";
+    b.classList.toggle("on",acik);
+    b.style.display=izgaraOlur?"":"none";
+  }
+}
+
 /* Kart üretimi pahalı (içerik temizleme + HTML ayrıştırma). Not değişmediyse
    önceki çıktı kullanılır; böylece 100 notlu listede her dokunuşta 100 kart
    yeniden üretilmez. `kartSurum` kategori/bölüm gibi dış değişikliklerde artar. */
@@ -997,14 +1039,14 @@ function noteMetaHTML(n){
   const tri=n.triage&&TRI[n.triage];
   return `
           <button class="chip ${tri?"tri-"+n.triage:""}" data-triage="${n.id}"
-            title="Triyaj: ${tri?esc(tri.l):"işaretsiz"}">${tri?tri.e+" "+tri.s:"⚪ Triyaj"}</button>
+            title="Triyaj: ${tri?esc(tri.l):"işaretsiz"}">${tri?tri.e:"⚪"}<span class="ck">${tri?" "+tri.s:" Triyaj"}</span></button>
           ${n.panel!=="mentor"?`<button class="chip mshare ${n.mentor?"on":""}" data-mentor="${n.id}"
-            title="${n.mentor?"Danışman listesinden çıkar":"Danışman listesine ekle"}">🎓${n.mentor?" Listede":""}</button>`:""}
+            title="${n.mentor?"Danışman listesinden çıkar":"Danışman listesine ekle"}">🎓<span class="ck">${n.mentor?" Listede":""}</span></button>`:""}
           ${n.panel==="learn"?(()=>{const s=secOf(n.sec);
             return `<button class="chip" data-secpick="${n.id}" title="Bölüm değiştir">📒 ${s?esc(s.name):"Bölümsüz"}</button>`;})():
           n.panel?`<span class="chip">${PANEL_ICO[n.panel]} ${esc(PANEL_LBL[n.panel])}</span>`:
           `<button class="chip" data-catpick="${n.id}" title="Kategori değiştir">
-            <span class="dot" style="background:${cat?cat.color:"#999"};width:7px;height:7px"></span>${cat?esc(cat.name):"—"}</button>`}
+            <span class="dot" style="background:${cat?cat.color:"#999"};width:7px;height:7px"></span><span class="ck">${cat?esc(cat.name):"—"}</span></button>`}
           ${dl?`<span class="chip ${dl.cls}" data-deadline="${n.deadline}">${dl.txt}</span>`:""}
           ${n.done&&n.doneAt?`<span class="chip" style="background:var(--green-soft);color:var(--green)">✅ ${fmtDT(n.doneAt)}</span>`:""}
           ${n.subs.length?`<span class="chip">☑ ${n.subs.filter(s=>s.done).length}/${n.subs.length}</span>`:""}
@@ -1078,8 +1120,8 @@ function renderMain(){
   })():titles[view.type];
   $("#quickadd").style.display=view.type==="log"||view.type==="done"||view.type==="learn"?"none":"flex";
   const list=$("#list");
-  if(view.type==="log"){ list.innerHTML=timelineHTML(); bindTimeline(); return; }
-  if(view.type==="learn"){ list.innerHTML=learnViewHTML(); return; }
+  if(view.type==="log"){ list.innerHTML=timelineHTML(); bindTimeline(); applyDizilim(); return; }
+  if(view.type==="learn"){ list.innerHTML=learnViewHTML(); applyDizilim(); return; }
   // (aşağıdaki artımlı güncelleme yalnız düz not listesi için)
   const notes=visibleNotes();
   const acilIpucu=view.type==="cat"&&view.catId===URGENT_CAT
@@ -1087,9 +1129,11 @@ function renderMain(){
   if(!notes.length){
     list.innerHTML=acilIpucu+`<div class="empty"><div class="big">${view.type==="done"?"🗂":"🍃"}</div>${
       view.type==="done"?"Henüz tamamlanan iş yok.":"Buraya ilk notunu ekle — üstteki kutuya yaz ve Enter'a bas."}</div>`;
+    applyDizilim();
     return;
   }
   listeSenkron(list,notes,acilIpucu);
+  applyDizilim();
 }
 /* Listenin tamamını yeniden kurmak (innerHTML) her dokunuşta yüzlerce düğümü
    yok edip yeniden yaratıyordu: pahalı ve görüntüyü zıplatıyor. Artık yalnızca
@@ -2625,6 +2669,11 @@ function applyTheme(){
   const dark=S.theme==="dark"||(S.theme==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.setAttribute("data-theme",dark?"dark":"light");
 }
+$("#gridbtn").onclick=()=>{
+  dizilim=dizilim==="izgara"?"liste":"izgara";
+  try{ localStorage.setItem("nbmd_dizilim",dizilim); }catch(e){}
+  applyDizilim();
+};
 $("#ts-plus").onclick=()=>textScaleAdim(1);
 $("#ts-minus").onclick=()=>textScaleAdim(-1);
 $("#themebtn").onclick=()=>{
@@ -2930,7 +2979,7 @@ document.addEventListener("input",e=>{
 /* ================= INIT ================= */
 function render(){ renderSidebar(); renderLists(); }
 function init(){
-  applyTheme(); applyFont(); applyText(); delegeBaglan();
+  applyTheme(); applyFont(); applyText(); applyDizilim(); delegeBaglan();
   (function sessionLog(){
     const last=[...S.appLog].reverse().find(e=>e.a==="🔓 Oturum açıldı");
     if(!last||Date.now()-last.t>60000){ appLog("🔓 Oturum açıldı"); save(); }
