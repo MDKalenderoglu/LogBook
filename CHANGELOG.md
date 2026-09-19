@@ -4,6 +4,17 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] — 2026-09-19
+
+### Fixed
+
+- **Opening a note from the side column now takes you there.** On phones and tablets the column stayed open over the list, so tapping an entry looked like nothing happened; the note only appeared — half-scrolled — after the column was closed by hand. The column now closes itself, the note opens, and its card is brought to the top of the screen and briefly highlighted. On wide screens the column stays open, since the list is visible beside it
+- **Pinch zoom no longer tears the layout apart.** A pinned app shell and browser zoom are fundamentally at odds on iOS: fixed layers stay anchored to the layout viewport while the visible area moves, which is what made panels and cards overlap. Browser zoom is therefore disabled in the installed app and replaced by a proper text-size control (A－ / A＋ in the sidebar, 85–175%), which scales note text, the editor and the notebook without disturbing the layout. The setting travels with your notes
+
+### Changed
+
+- **The note list is now updated incrementally.** Previously every interaction rebuilt the entire list — hundreds of nodes destroyed and re-created, with several hundred event handlers re-attached each time. Cards are now generated only when the note they show has actually changed (a 120-note list re-draws in ~1 ms instead of ~37 ms), only the changed card is replaced in the page, and all card actions run through a single delegated listener
+
 ## [1.3.1] — 2026-09-13
 
 ### Fixed

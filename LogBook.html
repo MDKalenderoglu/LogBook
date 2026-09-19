@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="LogBook">
@@ -119,6 +119,13 @@ button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
 #sidebar.collapsed .navitem.subcat .cini{width:18px;height:18px;font-size:10px;border-radius:6px}
 #sidebar.collapsed .brand .logo{cursor:pointer}
 }
+/* uygulama içi yazı boyutu */
+.textsize{grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;gap:4px;
+  border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:3px 6px}
+.textsize button{font-size:12.5px;font-weight:700;color:var(--text2);padding:4px 8px;border-radius:6px;line-height:1}
+.textsize button:hover{color:var(--accent);background:var(--surface2)}
+.textsize .lbl{font-size:11.5px;color:var(--text2);font-variant-numeric:tabular-nums}
+@media(min-width:761px){ #sidebar.collapsed .textsize{display:none} }
 .credit{text-align:center;font-size:10.5px;color:var(--text2);opacity:.55;padding:8px 0 2px;letter-spacing:.02em}
 .credit a{color:inherit;text-decoration:none}
 .credit:hover{opacity:.9}
@@ -149,7 +156,7 @@ button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
   border-radius:12px;padding:6px 6px 6px 14px;box-shadow:var(--shadow);margin:8px 0 18px;
 }
 #quickadd:focus-within{border-color:var(--accent)}
-#qa-input{flex:1;border:none;outline:none;background:none;font-size:15px;padding:8px 0}
+#qa-input{flex:1;border:none;outline:none;background:none;font-size:calc(15px * var(--tscale,1));padding:8px 0}
 #qa-input::placeholder{color:var(--text2)}
 .qa-btn{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--text2)}
 .qa-btn:hover{background:var(--surface2);color:var(--accent)}
@@ -171,10 +178,10 @@ button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
 .chk:hover{border-color:var(--green);color:var(--green);background:var(--green-soft)}
 .note.done .chk{background:var(--green);border-color:var(--green);color:#fff}
 .note-body{flex:1;min-width:0}
-.note-title{font-weight:600;font-size:15px;word-wrap:break-word}
+.note-title{font-weight:600;font-size:calc(15px * var(--tscale,1));word-wrap:break-word}
 .note.done .note-title,.note.done .note-preview{text-decoration:line-through;color:var(--text2)}
 .note-preview{
-  color:var(--text2);font-size:13.5px;white-space:pre-wrap;word-wrap:break-word;margin-top:2px;
+  color:var(--text2);font-size:calc(13.5px * var(--tscale,1));white-space:pre-wrap;word-wrap:break-word;margin-top:2px;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
 }
 .note-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
@@ -209,7 +216,7 @@ button.chip:hover{border-color:var(--text2)}
   color:var(--text2);font-size:12.5px;padding:0 4px;outline:none}
 .fsel:hover{color:var(--accent);border-color:var(--accent)}
 /* zengin metin editörü (doğrudan biçimli yazma) */
-.rte{min-height:120px;outline:none;font-size:14.5px;line-height:1.6;word-wrap:break-word;
+.rte{min-height:120px;outline:none;font-size:calc(14.5px * var(--tscale,1));line-height:1.6;word-wrap:break-word;
   padding:2px 0 4px;caret-color:var(--accent)}
 .rte.bos::before{content:attr(data-ph);color:var(--text2);pointer-events:none}
 .rte:focus{outline:none}
@@ -225,7 +232,7 @@ button.chip:hover{border-color:var(--text2)}
 .rte .pdate::before,.rte .pdate::after{content:"";height:1px;background:var(--border);flex:1}
 /* sürüm kutusu */
 .revbox{background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  padding:8px 10px;margin-top:4px;color:var(--text);font-size:13px;line-height:1.55}
+  padding:8px 10px;margin-top:4px;color:var(--text);font-size:calc(13px * var(--tscale,1));line-height:1.55}
 /* kart önizlemesinde zengin içerik */
 .note-preview h1{font-size:15.5px;font-weight:700;margin:2px 0}
 .note-preview h2{font-size:14.5px;font-weight:700;margin:2px 0}
@@ -239,7 +246,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 
 /* editor (expanded) */
 .editor{border-top:1px solid var(--border);padding:14px 15px;background:var(--surface)}
-.editor input.title{width:100%;border:none;outline:none;background:none;font-weight:700;font-size:16px;margin-bottom:6px}
+.editor input.title{width:100%;border:none;outline:none;background:none;font-weight:700;font-size:calc(16px * var(--tscale,1));margin-bottom:6px}
 .editor textarea{
   width:100%;min-height:110px;border:none;outline:none;background:none;resize:vertical;
   font-size:14.5px;line-height:1.6;
@@ -277,7 +284,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 /* subtasks */
 .chk-sm{width:17px;height:17px;font-size:10px;margin-top:2px;border-width:1.4px}
 .subs-title{font-size:12px;font-weight:700;color:var(--text2);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.04em}
-.sub{display:flex;gap:8px;align-items:flex-start;padding:3px 0;font-size:14px}
+.sub{display:flex;gap:8px;align-items:flex-start;padding:3px 0;font-size:calc(14px * var(--tscale,1))}
 .sub.done .chk-sm{background:var(--green);border-color:var(--green);color:#fff}
 .sub.done span{text-decoration:line-through;color:var(--text2)}
 .sub-add input{width:100%;border:none;outline:none;background:none;font-size:13.5px;padding:5px 0;color:var(--text)}
@@ -332,7 +339,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 .day-h{font-size:13px;font-weight:700;color:var(--text2);margin:20px 0 8px;text-transform:capitalize}
 .tl-item{
   display:flex;gap:10px;align-items:baseline;background:var(--surface);border:1px solid var(--border);
-  border-radius:10px;padding:9px 13px;margin-bottom:6px;font-size:13.5px;
+  border-radius:10px;padding:9px 13px;margin-bottom:6px;font-size:calc(13.5px * var(--tscale,1));
 }
 .tl-time{font-variant-numeric:tabular-nums;color:var(--text2);font-size:12px;flex-shrink:0}
 .tl-note{color:var(--accent);cursor:pointer;font-weight:600}
@@ -388,7 +395,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 .rqa{display:flex;gap:5px;align-items:center;background:var(--surface);border:1px solid var(--border);
   border-radius:10px;padding:4px 4px 4px 11px;box-shadow:var(--shadow);margin-bottom:4px}
 .rqa:focus-within{border-color:var(--accent)}
-.rqa input{flex:1;min-width:0;border:none;outline:none;background:none;font-size:13.5px;padding:6px 0}
+.rqa input{flex:1;min-width:0;border:none;outline:none;background:none;font-size:calc(13.5px * var(--tscale,1));padding:6px 0}
 .rqa input::placeholder{color:var(--text2)}
 .qa-btn.sm{width:30px;height:30px;font-size:14px;border-radius:8px}
 .rsec .note{margin-bottom:8px}
@@ -399,7 +406,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 /* --- Öğrendiklerim defteri: bölümler --- */
 .lsec{margin-left:calc(var(--d,0) * 10px)}
 .lsec-h{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:pointer;
-  font-size:13px;font-weight:700;color:var(--text)}
+  font-size:calc(13px * var(--tscale,1));font-weight:700;color:var(--text)}
 .lsec-h:hover{background:var(--border)}
 .lsec-h .tw{width:12px;flex-shrink:0;font-size:9px;color:var(--text2);transition:transform .15s}
 .lsec-h.open .tw{transform:rotate(90deg)}
@@ -437,7 +444,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 /* Ana listeden "mentöre söyle" ile işaretlenmiş notların kısayol satırı */
 .mref{display:flex;gap:8px;align-items:flex-start;background:var(--surface);border:1px dashed var(--border);
   border-radius:10px;padding:8px 10px;margin-bottom:7px}
-.mref .t{flex:1;min-width:0;cursor:pointer;font-size:13.5px;font-weight:600;word-wrap:break-word}
+.mref .t{flex:1;min-width:0;cursor:pointer;font-size:calc(13.5px * var(--tscale,1));font-weight:600;word-wrap:break-word}
 .mref .t:hover{color:var(--accent)}
 .mref .src{display:block;font-size:11px;font-weight:400;color:var(--text2);margin-top:2px}
 .mref .mx{flex-shrink:0;color:var(--text2);font-size:14px;line-height:1;padding:6px 8px;border-radius:7px}
@@ -449,6 +456,8 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 .chip.tri-r{background:var(--red-soft);color:var(--red)}
 .chip.tri-y{background:var(--amber-soft);color:var(--amber)}
 .chip.tri-g{background:var(--green-soft);color:var(--green)}
+.note.vurgula{animation:kartVurgu 1.2s ease}
+@keyframes kartVurgu{0%{box-shadow:0 0 0 3px var(--accent),var(--shadow)}100%{box-shadow:0 0 0 0 transparent,var(--shadow)}}
 .note.tri-r{box-shadow:inset 3px 0 0 var(--red),var(--shadow)}
 .note.tri-y{box-shadow:inset 3px 0 0 var(--amber),var(--shadow)}
 .note.tri-g{box-shadow:inset 3px 0 0 var(--green),var(--shadow)}
@@ -508,6 +517,11 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
       <button id="syncbtn" title="Senkron"><span class="ico">☁️</span><span class="lbl">Senkron</span></button>
       <button id="exportbtn" title="Yedek al"><span class="ico">⬇︎</span><span class="lbl">Yedek</span></button>
       <button id="importbtn" title="Geri yükle"><span class="ico">⬆︎</span><span class="lbl">Geri Yükle</span></button>
+      <div class="textsize" id="textsize">
+        <button id="ts-minus" title="Yazıyı küçült">A－</button>
+        <span class="lbl"><span id="ts-val">100%</span></span>
+        <button id="ts-plus" title="Yazıyı büyüt">A＋</button>
+      </div>
       <button id="wipebtn" class="danger" title="Her şeyi temizle"><span class="ico">🧹</span><span class="lbl">Her Şeyi Temizle</span></button>
     </div>
     <div id="syncstat"></div>
@@ -936,7 +950,26 @@ function renderSidebar(){
   };
 }
 
+/* Kart üretimi pahalı (içerik temizleme + HTML ayrıştırma). Not değişmediyse
+   önceki çıktı kullanılır; böylece 100 notlu listede her dokunuşta 100 kart
+   yeniden üretilmez. `kartSurum` kategori/bölüm gibi dış değişikliklerde artar. */
+let kartSurum=0, kartOnbellek=new Map();
+const kartOnbellekTemizle=()=>{ kartOnbellek.clear(); kartSurum++; };
+function kartImza(n){
+  const zaman=n.deadline?Math.floor(Date.now()/3e4):0;          // geri sayım tazeliği
+  return [kartSurum,n.id,n.updatedAt,expandedId===n.id?1:0,n.done?1:0,n.doneAt||0,
+    n.triage||"",n.mentor?1:0,n.sec||"",n.cat,n.deadline||"",zaman,
+    n.files.length,n.audios.length,n.subs.length,n.subs.filter(x=>x.done).length].join("|");
+}
 function noteCardHTML(n){
+  const imza=kartImza(n);
+  const v=kartOnbellek.get(n.id);
+  if(v&&v.imza===imza) return v.html;
+  const html=kartHTMLUret(n);
+  kartOnbellek.set(n.id,{imza,html});
+  return html;
+}
+function kartHTMLUret(n){
   const cat=catOf(n.cat);
   const dl=n.deadline&&!n.done?timeLeft(n.deadline):null;
   const exp=expandedId===n.id;
@@ -1047,6 +1080,7 @@ function renderMain(){
   const list=$("#list");
   if(view.type==="log"){ list.innerHTML=timelineHTML(); bindTimeline(); return; }
   if(view.type==="learn"){ list.innerHTML=learnViewHTML(); return; }
+  // (aşağıdaki artımlı güncelleme yalnız düz not listesi için)
   const notes=visibleNotes();
   const acilIpucu=view.type==="cat"&&view.catId===URGENT_CAT
     ? `<div class="viewhint">🔴 Triyajı “Acil” olan notlar, kategorileri ne olursa olsun burada listelenir.</div>` : "";
@@ -1055,7 +1089,49 @@ function renderMain(){
       view.type==="done"?"Henüz tamamlanan iş yok.":"Buraya ilk notunu ekle — üstteki kutuya yaz ve Enter'a bas."}</div>`;
     return;
   }
-  list.innerHTML=acilIpucu+notes.map(noteCardHTML).join("");
+  listeSenkron(list,notes,acilIpucu);
+}
+/* Listenin tamamını yeniden kurmak (innerHTML) her dokunuşta yüzlerce düğümü
+   yok edip yeniden yaratıyordu: pahalı ve görüntüyü zıplatıyor. Artık yalnızca
+   DEĞİŞEN kartlar değiştirilir, sıra kayarsa düğüm taşınır. */
+const kartSablon=document.createElement("template");
+function kartDugumu(n,imza,html){
+  kartSablon.innerHTML=html;
+  const el=kartSablon.content.firstElementChild;
+  el.dataset.k=n.id; el.dataset.h=imza;
+  return el;
+}
+function listeSenkron(kap,notlar,ustHTML){
+  const eski=new Map();
+  for(const el of [...kap.children]) if(el.dataset.k) eski.set(el.dataset.k,el);
+
+  // 1) hedef düğüm dizisini kur (değişmeyen kartlar aynen kullanılır)
+  const hedef=[];
+  if(ustHTML){
+    let u=eski.get("__ust");
+    if(!u){ kartSablon.innerHTML=ustHTML; u=kartSablon.content.firstElementChild; u.dataset.k="__ust"; }
+    eski.delete("__ust");
+    hedef.push(u);
+  }
+  for(const n of notlar){
+    const imza=kartImza(n), mevcut=eski.get(n.id);
+    let el;
+    if(mevcut&&mevcut.dataset.h===imza) el=mevcut;                 // hiç dokunma
+    else{ el=kartDugumu(n,imza,noteCardHTML(n)); if(mevcut) mevcut.remove(); }
+    eski.delete(n.id);
+    hedef.push(el);
+  }
+  // 2) listeden çıkanları ve artıkları kaldır
+  for(const [,el] of eski) el.remove();
+  for(const el of [...kap.children]) if(!el.dataset.k) el.remove();
+
+  // 3) sırayı uygula (yalnız yeri değişen düğüm taşınır)
+  let ref=kap.firstChild;
+  for(const el of hedef){
+    if(el===ref) ref=ref.nextSibling;
+    else kap.insertBefore(el,ref);
+  }
+  while(ref){ const s2=ref.nextSibling; ref.remove(); ref=s2; }
 }
 
 /* ---------- sağ sütun: mentör + öğrendiklerim ---------- */
@@ -1153,26 +1229,9 @@ function renderRight(){
   const openInPanel=!!(expandedId&&S.notes.find(x=>x.id===expandedId)?.panel);
   $("#rightbar").classList.toggle("wide",openInPanel);
 }
-// Defter ağacı hem sağ panelde hem ana alanda çizilebildiği için bağlama belge genelinde
+// Defter ağacındaki form/giriş alanları (tıklama eylemleri delegasyonda)
 function bindPanels(){
   const rb=document;
-  rb.querySelectorAll("[data-reveal]").forEach(b=>b.onclick=()=>revealNote(b.dataset.reveal));
-  rb.querySelectorAll("[data-unmentor]").forEach(b=>b.onclick=()=>toggleMentor(b.dataset.unmentor));
-  rb.querySelectorAll("[data-addsec]").forEach(b=>b.onclick=()=>{
-    secAddFor=secAddFor==="root"?null:"root"; refreshPanels(); $("#lsec-input")?.focus();
-  });
-  // bölüm başlığı: aç/kapa · ＋ alt bölüm · ⋯ düzenle
-  rb.querySelectorAll("[data-lsec]").forEach(h=>{
-    h.onclick=e=>{
-      const add=e.target.closest("[data-lsadd]"), ed=e.target.closest("[data-lsedit]");
-      if(add){ const id=add.dataset.lsadd; secAddFor=secAddFor===id?null:id;
-        const s=secOf(id); if(secAddFor&&s&&!s.open){ s.open=true; save(); }
-        refreshPanels(); $("#lsec-input")?.focus(); return; }
-      if(ed){ openSecEditPop(ed,ed.dataset.lsedit); return; }
-      const s=secOf(h.dataset.lsec); if(!s)return;
-      s.open=!s.open; save(); refreshPanels();
-    };
-  });
   // yeni bölüm adı kutusu
   const si=$("#lsec-input");
   if(si) si.onkeydown=e=>{
@@ -1256,19 +1315,33 @@ function refreshPanels(){ view.type==="learn"?renderLists():refreshRight(); }
 /* Bir notu bulunduğu yerde aç: paneldeyse panelde, ana listedeyse doğru görünüme geçerek */
 function revealNote(id){
   const n=S.notes.find(x=>x.id===id); if(!n)return;
+  const dar=matchMedia("(max-width:1100px)").matches;
   if(n.panel==="learn"){
-    // Defter kaydı: panel açıksa orada, değilse (özellikle telefonda) geniş defter görünümünde aç
-    if(view.type!=="learn"&&(matchMedia("(max-width:1100px)").matches||!rightVisible())){
+    // Defter kaydı: dar ekranda paneli kapatıp geniş defter görünümünde aç
+    if(view.type!=="learn"&&(dar||!rightVisible())){
       if(expandedId) collapseNote(true); view={type:"learn"};
+      if(dar) openRight(false);
     }
-  }else if(n.panel){
-    if(matchMedia("(max-width:1100px)").matches) openRight(true);
+  }else if(n.panel==="mentor"){
+    // Danışman maddesi yalnız panelde yaşar: panel kapalıysa aç
+    if(dar&&!rightVisible()) openRight(true);
   }else{
+    // Ana listedeki not: dar ekranda panel kapanmalı, yoksa "tıkladım bir şey olmadı" hissi olur
+    if(dar) openRight(false);
     const okView=n.done?view.type==="done":(view.type==="active"||(view.type==="cat"&&inCatTree(n.cat,view.catId)));
     if(!okView){ if(expandedId) collapseNote(true); view={type:n.done?"done":"active"}; }
   }
   if(expandedId!==id) expandNote(id); else render();
-  setTimeout(()=>document.getElementById("note-"+id)?.scrollIntoView({behavior:"smooth",block:"center"}),60);
+  // Panel kapanma animasyonu ve yükseklik oturana kadar kartı üste almayı yinele
+  const getir=()=>{
+    const el=document.getElementById("note-"+id); if(!el)return;
+    const kap=kaydirilanKap(el); if(!kap)return;
+    const fark=el.getBoundingClientRect().top-kap.getBoundingClientRect().top-10;
+    if(Math.abs(fark)>2) kap.scrollTop+=fark;
+  };
+  requestAnimationFrame(getir); setTimeout(getir,140); setTimeout(getir,330);
+  const el=document.getElementById("note-"+id);
+  if(el){ el.classList.add("vurgula"); setTimeout(()=>el.classList.remove("vurgula"),1200); }
 }
 
 /* Notu mentör listesine ekle / çıkar — not yerinde kalır, veri kopyalanmaz */
@@ -1280,29 +1353,38 @@ function toggleMentor(id){
   save(); render();
 }
 
-function bindNotes(){
-  document.querySelectorAll("[data-done]").forEach(b=>{
-    b.onclick=e=>{ e.stopPropagation(); toggleDone(b.dataset.done); };
-  });
-  document.querySelectorAll("[data-catpick]").forEach(b=>{
-    b.onclick=e=>{ e.stopPropagation(); openCatPop(b, b.dataset.catpick); };
-  });
-  document.querySelectorAll("[data-triage]").forEach(b=>{
-    b.onclick=e=>{ e.stopPropagation(); openTriagePop(b, b.dataset.triage); };
-  });
-  document.querySelectorAll("[data-mentor]").forEach(b=>{
-    b.onclick=e=>{ e.stopPropagation(); toggleMentor(b.dataset.mentor); };
-  });
-  document.querySelectorAll("[data-secpick]").forEach(b=>{
-    b.onclick=e=>{ e.stopPropagation(); openSecPop(b, b.dataset.secpick); };
-  });
-  document.querySelectorAll("[data-open]").forEach(h=>{
-    h.onclick=e=>{
-      if(e.target.closest("button,a"))return;
-      const id=h.dataset.open;
+/* Kart ve panel eylemleri TEK bir dinleyiciyle yürür (olay delegasyonu):
+   liste her çizildiğinde yüzlerce onclick atanmaz — hem hızlı hem de
+   yeniden çizimde düğme bağlantısı kopma riski ortadan kalkar. */
+function delegeBaglan(){
+  document.addEventListener("click",e=>{
+    const el=e.target;
+    const bul=sec=>el.closest&&el.closest(sec);
+    let t;
+    if(t=bul("[data-done]")){ e.stopPropagation(); toggleDone(t.dataset.done); return; }
+    if(t=bul("[data-triage]")){ e.stopPropagation(); openTriagePop(t,t.dataset.triage); return; }
+    if(t=bul("[data-mentor]")){ e.stopPropagation(); toggleMentor(t.dataset.mentor); return; }
+    if(t=bul("[data-catpick]")){ e.stopPropagation(); openCatPop(t,t.dataset.catpick); return; }
+    if(t=bul("[data-secpick]")){ e.stopPropagation(); openSecPop(t,t.dataset.secpick); return; }
+    if(t=bul("[data-unmentor]")){ e.stopPropagation(); toggleMentor(t.dataset.unmentor); return; }
+    if(t=bul("[data-reveal]")){ e.stopPropagation(); revealNote(t.dataset.reveal); return; }
+    if(t=bul("[data-addsec]")){ e.stopPropagation();
+      secAddFor=secAddFor==="root"?null:"root"; refreshPanels(); $("#lsec-input")?.focus(); return; }
+    if(t=bul("[data-lsadd]")){ e.stopPropagation();
+      const id=t.dataset.lsadd; secAddFor=secAddFor===id?null:id;
+      const sec=secOf(id); if(secAddFor&&sec&&!sec.open){ sec.open=true; save(); }
+      refreshPanels(); $("#lsec-input")?.focus(); return; }
+    if(t=bul("[data-lsedit]")){ e.stopPropagation(); openSecEditPop(t,t.dataset.lsedit); return; }
+    if(t=bul("[data-lsec]")){ const sec=secOf(t.dataset.lsec); if(sec){ sec.open=!sec.open; save(); refreshPanels(); } return; }
+    if(t=bul("[data-open]")){
+      if(el.closest("button,a,input,textarea,[contenteditable=true]"))return;
+      const id=t.dataset.open;
       if(expandedId===id) collapseNote(); else expandNote(id);
-    };
+      return;
+    }
   });
+}
+function bindNotes(){
   document.querySelectorAll("[data-thumbs]").forEach(async w=>{
     const n=S.notes.find(x=>x.id===w.dataset.thumbs); if(!n)return;
     w.innerHTML="";
@@ -1916,7 +1998,7 @@ function openCatEditPop(anchor,catId){
   pop.querySelectorAll("[data-col]").forEach(s=>{
     s.onclick=()=>{
       c.color=s.dataset.col;
-      appLog("🎨 Kategori rengi değişti: "+c.name);
+      appLog("🎨 Kategori rengi değişti: "+c.name); kartOnbellekTemizle();
       save(); renderSidebar(); render();
       pop.style.display="none";
     };
@@ -1926,7 +2008,7 @@ function openCatEditPop(anchor,catId){
   ri.onkeydown=e=>{
     if(e.key==="Enter"&&ri.value.trim()){
       const old=c.name; c.name=ri.value.trim();
-      appLog("✎ Kategori adı: "+old+" → "+c.name);
+      appLog("✎ Kategori adı: "+old+" → "+c.name); kartOnbellekTemizle();
       save(); pop.style.display="none"; render();
     }
     if(e.key==="Escape") pop.style.display="none";
@@ -1944,7 +2026,7 @@ function openCatEditPop(anchor,catId){
     notes.forEach(n=>{ n.cat=fb.id; noteLog(n,"🏷 Kategori silindi → "+fb.name); });
     kids.forEach(k=>{ k.parent=c.parent||null; });
     S.cats=S.cats.filter(x=>x.id!==catId);
-    appLog("🗑 Kategori silindi: "+c.name+(notes.length?" ("+notes.length+" not “"+fb.name+"”e taşındı)":""));
+    appLog("🗑 Kategori silindi: "+c.name+(notes.length?" ("+notes.length+" not “"+fb.name+"”e taşındı)":"")); kartOnbellekTemizle();
     if(view.type==="cat"&&view.catId===catId) view={type:"active"};
     save(); pop.style.display="none"; render();
   };
@@ -1998,7 +2080,7 @@ function openSecEditPop(anchor,secId){
   ri.onkeydown=e=>{
     if(e.key==="Enter"&&ri.value.trim()){
       const eski=s.name; s.name=ri.value.trim();
-      appLog("✎ Defter bölümü: "+eski+" → "+s.name);
+      appLog("✎ Defter bölümü: "+eski+" → "+s.name); kartOnbellekTemizle();
       save(); pop.style.display="none"; render();
     }
     if(e.key==="Escape") pop.style.display="none";
@@ -2013,7 +2095,7 @@ function openSecEditPop(anchor,secId){
     notes.forEach(n=>{ n.sec=ust; noteLog(n,"📒 Bölüm silindi → "+ustAd); });
     kids.forEach(k=>{ k.parent=ust; });
     S.cats=S.cats.filter(c=>c.id!==secId);
-    appLog("🗑 Defter bölümü silindi: "+s.name+(notes.length?" ("+notes.length+" kayıt “"+ustAd+"”e taşındı)":""));
+    appLog("🗑 Defter bölümü silindi: "+s.name+(notes.length?" ("+notes.length+" kayıt “"+ustAd+"”e taşındı)":"")); kartOnbellekTemizle();
     save(); pop.style.display="none"; render();
   };
 }
@@ -2303,6 +2385,7 @@ async function doImport(file){
     S=data;
     S.notes.forEach(n=>{ if(!n.files)n.files=[]; if(!n.subs)n.subs=[]; if(!n.revs)n.revs=[]; });
     S.syncOn=keep.syncOn; S.gEmail=keep.gEmail; S.lastSync=keep.lastSync;
+    kartOnbellekTemizle();
     appLog("📦 Yedek geri yüklendi ("+S.notes.length+" not)");
     save(); render();
   }catch(e){ alert("Geri yükleme hatası: "+e.message); }
@@ -2413,6 +2496,7 @@ function mergeRemote(remote){
       ln.log=lg; ln.revs=rv;
     }
   }
+  kartOnbellekTemizle();
   for(const c of remote.cats||[]) if(!S.cats.some(x=>x.id===c.id)) S.cats.push(c);
   unionLog(S.appLog,remote.appLog);
 }
@@ -2523,10 +2607,26 @@ setInterval(()=>syncNow(),90000);
 
 /* ================= THEME ================= */
 function applyFont(){ document.documentElement.setAttribute("data-font",S.font||"sistem"); }
+/* Uygulama içi yazı boyutu — tarayıcı yakınlaştırması sabit kabukla çakıştığı için
+   büyütme/küçültme buradan yapılır; yerleşim bozulmaz, tercih cihazlar arası taşınır. */
+const TS_OLCEK=[0.85,1,1.15,1.3,1.5,1.75];
+function applyText(){
+  const o=S.textScale||1;
+  document.documentElement.style.setProperty("--tscale",o);
+  const el=$("#ts-val"); if(el) el.textContent=Math.round(o*100)+"%";
+}
+function textScaleAdim(yon){
+  const i=TS_OLCEK.indexOf(S.textScale||1);
+  const yeni=TS_OLCEK[Math.max(0,Math.min(TS_OLCEK.length-1,(i<0?1:i)+yon))];
+  if(yeni===(S.textScale||1))return;
+  S.textScale=yeni; save(); applyText();
+}
 function applyTheme(){
   const dark=S.theme==="dark"||(S.theme==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.setAttribute("data-theme",dark?"dark":"light");
 }
+$("#ts-plus").onclick=()=>textScaleAdim(1);
+$("#ts-minus").onclick=()=>textScaleAdim(-1);
 $("#themebtn").onclick=()=>{
   const dark=document.documentElement.getAttribute("data-theme")==="dark";
   S.theme=dark?"light":"dark"; save(); applyTheme();
@@ -2684,7 +2784,7 @@ async function doWipe(){
   try{ if(gTok&&gisReady()) google.accounts.oauth2.revoke(gTok.access_token,()=>{}); }catch(e){}
   dropToken();
 
-  S=seed();
+  S=seed(); kartOnbellekTemizle();
   S.appLog.push({t:Date.now(),a:"🧹 Her şey temizlendi"+(wipeDrive?" (cihaz + Drive)":" (yalnızca bu cihaz)"),noteId:null});
   expandedId=null; view={type:"active"}; searchQ="";
   save(); setSyncStat(""); render();
@@ -2830,7 +2930,7 @@ document.addEventListener("input",e=>{
 /* ================= INIT ================= */
 function render(){ renderSidebar(); renderLists(); }
 function init(){
-  applyTheme(); applyFont();
+  applyTheme(); applyFont(); applyText(); delegeBaglan();
   (function sessionLog(){
     const last=[...S.appLog].reverse().find(e=>e.a==="🔓 Oturum açıldı");
     if(!last||Date.now()-last.t>60000){ appLog("🔓 Oturum açıldı"); save(); }
