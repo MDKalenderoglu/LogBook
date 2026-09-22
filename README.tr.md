@@ -76,7 +76,7 @@ Cihazlar arası eşitleme için kenar çubuğundan **Senkron** → Google giriş
 **Üç katmanlı dayanıklılık:**
 
 1. **Yerel** — her tuş vuruşu cihaza kaydedilir
-2. **Bulut** — değişiklikten 4 sn sonra, 90 sn'de bir ve her açılışta Drive'a eşitlenir. Çakışmada hiçbir tarihçe kaybolmaz: loglar ve eski sürümler daima birleşir
+2. **Bulut** — değişiklikten 4 sn sonra, 90 sn'de bir ve her açılışta Drive'a eşitlenir. Çakışmada hiçbir tarihçe kaybolmaz: loglar ve eski sürümler daima birleşir. Notlar eklerden önce yazılır; aktarılamayan bir dosya senkron penceresinde adıyla bildirilir ve sonraki eşitlemede tekrar denenir, diğerlerini bekletmez
 3. **Elle** — sesler ve ekler dahil tek JSON dışa aktar, istediğin gibi taşı, başka cihazda geri yükle — geri yükleme o cihazın senkron bağlantısını bozmaz
 
 > ⚠️ Tarayıcı site verilerini temizlersen yerel notlar da gider. Senkronu açık tut ya da arada bir yedek al.

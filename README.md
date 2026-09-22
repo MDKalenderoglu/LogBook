@@ -76,7 +76,7 @@ For cross-device sync, use **Sync** in the sidebar and sign in with Google. Note
 **Three layers of durability:**
 
 1. **Local** — every keystroke is persisted to the device
-2. **Cloud** — synced to Drive 4s after a change, every 90s, and on every launch. On conflict, no history is lost: logs and prior versions always merge
+2. **Cloud** — synced to Drive 4s after a change, every 90s, and on every launch. On conflict, no history is lost: logs and prior versions always merge. Notes are written before attachments, so a file that cannot be transferred is named in the sync window and retried later instead of holding everything else back
 3. **Manual** — export a single JSON with audio and attachments included, move it however you like, and restore it elsewhere without breaking that device's sync link
 
 > ⚠️ Clearing your browser's site data also clears local notes. Keep sync on, or export a backup periodically.

@@ -4,6 +4,19 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] — 2026-09-22
+
+### Fixed
+
+- **Sync no longer stops at a single attachment.** A failure while transferring one file used to abort the whole run *before* the notes themselves were written to Drive, so a rejected image could keep everything else from syncing. The notes are now uploaded first and each attachment is transferred on its own: one that fails is reported by name while the rest go through, and it is retried on the next run
+- **Files larger than 5 MB are uploaded correctly.** Drive's single-request upload is limited to 5 MB, which quietly broke larger PDFs and images; anything above 4 MB now goes through a resumable upload session
+- **Drive errors say what is actually wrong.** A refused request used to read only "Drive error (403)" — the same text for a full Drive, a rate limit and a permission problem. The reason is now translated and shown ("Your Google Drive is full", "Drive rate limit — it will be retried"), with the status code kept for reference
+- **Rate limits and dropped connections resolve themselves.** Temporary failures (rate limits, server errors, a lost connection) are retried automatically with an increasing delay instead of surfacing as an error
+
+### Added
+
+- The sync window shows how much of your Drive is in use, and warns before it is full
+
 ## [1.4.0] — 2026-09-20
 
 ### Changed

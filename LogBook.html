@@ -2594,11 +2594,47 @@ function getToken(interactive){
 
 /* --- Drive REST yardımcıları (appDataFolder) --- */
 const gh=t=>({Authorization:"Bearer "+t});
-async function gFetch(url,opt){
-  const r=await fetch(url,opt);
+const bekle=ms=>new Promise(r=>setTimeout(r,ms));
+/* Drive'ın 403'leri çok farklı sebeplerden gelir; sebebi göstermezsek kullanıcı ne yapacağını bilemez. */
+const DRV_SEBEP={
+  storageQuotaExceeded:"Google Drive alanın dolu — Drive, Gmail veya Fotoğraflar'dan yer aç",
+  quotaExceeded:"Google Drive kotası aşıldı",
+  uploadRateLimitExceeded:"Drive yükleme sınırına takıldı — bir süre sonra kendiliğinden tekrar denenecek",
+  userRateLimitExceeded:"Drive istek sınırına takıldı — bir süre sonra kendiliğinden tekrar denenecek",
+  rateLimitExceeded:"Drive istek sınırına takıldı — bir süre sonra kendiliğinden tekrar denenecek",
+  dailyLimitExceeded:"Günlük Drive sınırı aşıldı — yarın tekrar denenecek",
+  insufficientFilePermissions:"Bu dosya için yetki yok",
+  appNotAuthorizedToFile:"Uygulamanın bu dosyaya erişimi yok",
+  cannotModifyRestrictedItem:"Drive bu dosyayı değiştirmeye izin vermiyor",
+  activeItemCreationLimitExceeded:"Drive'daki dosya sayısı sınırına ulaşıldı",
+  accessNotConfigured:"Drive API bu proje için açık değil"};
+const YENIDEN_DENE=new Set(["rateLimitExceeded","userRateLimitExceeded","uploadRateLimitExceeded",
+  "backendError","internalError","transientError","variableTermExpiredDailyExceeded"]);
+async function driveHata(r){
+  let sebep="",metin="";
+  try{ const j=await r.clone().json(), er=j.error||{};
+    sebep=(er.errors&&er.errors[0]&&er.errors[0].reason)||er.status||"";
+    metin=er.message||"";
+  }catch(e){}
+  return {sebep, metin:(DRV_SEBEP[sebep]||metin||"Drive hatası")+" ("+r.status+(sebep?" · "+sebep:"")+")"};
+}
+async function gFetch(url,opt,deneme){
+  deneme=deneme||0;
+  let r;
+  try{ r=await fetch(url,opt); }
+  catch(e){                                   // ağ koptu / istek düştü
+    if(deneme<2){ await bekle(900*Math.pow(2,deneme)+Math.random()*400); return gFetch(url,opt,deneme+1); }
+    throw new Error(navigator.onLine?"Drive'a ulaşılamadı":"çevrimdışı");
+  }
+  if(r.ok) return r;
   if(r.status===401){ dropToken(); throw new Error("Google oturumu doldu"); }
-  if(!r.ok) throw new Error("Drive hatası ("+r.status+")");
-  return r;
+  const d=await driveHata(r);
+  if((r.status>=500||r.status===429||YENIDEN_DENE.has(d.sebep))&&deneme<4){
+    const ra=Number(r.headers.get("Retry-After"))||0;
+    await bekle(ra?ra*1000:1200*Math.pow(2,deneme)+Math.random()*600);
+    return gFetch(url,opt,deneme+1);
+  }
+  const e=new Error(d.metin); e.status=r.status; e.sebep=d.sebep; throw e;
 }
 async function driveList(t,q){
   let files=[],pt="";
@@ -2612,7 +2648,24 @@ async function driveList(t,q){
 }
 const driveDownload=(t,id)=>gFetch(DRIVE_API+"/files/"+id+"?alt=media",{headers:gh(t)});
 const driveDelete=(t,id)=>gFetch(DRIVE_API+"/files/"+id,{method:"DELETE",headers:gh(t)});
+const COK_PARCALI_SINIR=4*1024*1024;   // Drive'ın multipart yükleme sınırı 5 MB; üstü resumable ister
+async function driveUploadResumable(t,name,blob,existingId){
+  const url=existingId?DRIVE_UP+"/files/"+existingId+"?uploadType=resumable"
+                      :DRIVE_UP+"/files?uploadType=resumable&fields=id";
+  const ac=await gFetch(url,{method:existingId?"PATCH":"POST",
+    headers:{...gh(t),"Content-Type":"application/json; charset=UTF-8",
+      "X-Upload-Content-Type":blob.type||"application/octet-stream",
+      "X-Upload-Content-Length":String(blob.size)},
+    body:JSON.stringify(existingId?{}:{name,parents:["appDataFolder"]})});
+  const oturum=ac.headers.get("Location")||ac.headers.get("location");
+  if(!oturum) throw new Error("Drive yükleme oturumu açılamadı");
+  const up=await gFetch(oturum,{method:"PUT",
+    headers:{"Content-Type":blob.type||"application/octet-stream"},body:blob});
+  const j=await up.json().catch(()=>({}));
+  return j.id||existingId;
+}
 async function driveUpload(t,name,blob,existingId){
+  if(blob.size>COK_PARCALI_SINIR) return driveUploadResumable(t,name,blob,existingId);
   if(existingId){
     await gFetch(DRIVE_UP+"/files/"+existingId+"?uploadType=media",
       {method:"PATCH",headers:{...gh(t),"Content-Type":blob.type||"application/octet-stream"},body:blob});
@@ -2671,9 +2724,17 @@ function syncRender(){
   // Kullanıcı yazarken imleci kaçırmamak için açık editör varsa sadece kenar çubuğu tazelenir
   if(expandedId) renderSidebar(); else render();
 }
+let blobSorun=[];                       // son eşitlemede aktarılamayan ekler
+function blobAdi(bid){
+  for(const n of S.notes){
+    const f=n.files.find(x=>x.id===bid); if(f) return f.name;
+    if(n.audios.some(a=>a.id===bid)) return "ses kaydı";
+  }
+  return "ek dosya";
+}
 async function syncNow(manual){
   if(!S.syncOn||syncBusy)return;
-  syncBusy=true; setSyncStat("☁️ Eşitleniyor…");
+  syncBusy=true; blobSorun=[]; let notlarGitti=false; setSyncStat("☁️ Eşitleniyor…");
   try{
     const t=await getToken(!!manual);
     const all=await driveList(t);
@@ -2690,31 +2751,62 @@ async function syncNow(manual){
       }
     }
     save(); syncRender();
-    // --- blob senkronu (ses + dosyalar): sadece eksikler aktarılır ---
-    const localIds=[]; S.notes.forEach(n=>{n.audios.forEach(a=>localIds.push(a.id)); n.files.forEach(f=>localIds.push(f.id));});
-    const remoteBlobs=new Map(all.filter(f=>f.name.startsWith("blob-")).map(f=>[f.name.slice(5),f.id]));
-    let gotNew=false;
-    for(const bid of localIds){
-      const have=await idbGet(bid);
-      if(have && !remoteBlobs.has(bid)) await driveUpload(t,"blob-"+bid,have);
-      else if(!have && remoteBlobs.has(bid)){
-        await idbPut(bid,await(await driveDownload(t,remoteBlobs.get(bid))).blob());
-        gotNew=true;
-      }
-    }
+    // --- 1) ÖNCE notların kendisi: bir ek aktarılamasa bile yazdıkların Drive'a ulaşsın ---
     const stateBlob=new Blob([JSON.stringify({notes:S.notes,cats:S.cats,appLog:S.appLog})],{type:"application/json"});
     fidCache.state=await driveUpload(t,"notebookmd.json",stateBlob,stateId); saveFid();
-    S.lastSync=Date.now(); save();
-    setSyncStat("☁️ Eşitlendi ✓ "+fmtTime(Date.now()));
-    if(manual) syncMsg("Eşitleme başarılı ✓");
+    notlarGitti=true; S.lastSync=Date.now(); save();
+    // --- 2) SONRA ekler (ses + dosyalar): sadece eksikler, her biri tek tek ---
+    const localIds=[]; S.notes.forEach(n=>{n.audios.forEach(a=>localIds.push(a.id)); n.files.forEach(f=>localIds.push(f.id));});
+    const remoteBlobs=new Map(all.filter(f=>f.name.startsWith("blob-")).map(f=>[f.name.slice(5),f.id]));
+    const isler=[];
+    for(const bid of localIds){
+      const have=await idbGet(bid);
+      if(have && !remoteBlobs.has(bid)) isler.push({bid,blob:have,yon:"yukle"});
+      else if(!have && remoteBlobs.has(bid)) isler.push({bid,yon:"indir"});
+    }
+    let gotNew=false;
+    for(let i=0;i<isler.length;i++){
+      const is=isler[i];
+      if(isler.length>1) setSyncStat("☁️ Ekler aktarılıyor… "+(i+1)+"/"+isler.length);
+      try{
+        if(is.yon==="yukle") await driveUpload(t,"blob-"+is.bid,is.blob);
+        else{ await idbPut(is.bid,await(await driveDownload(t,remoteBlobs.get(is.bid))).blob()); gotNew=true; }
+      }catch(e){
+        console.error("blob",is.bid,e);
+        blobSorun.push({ad:blobAdi(is.bid),mesaj:e.message});
+        // kota/yetki gibi kalıcı engellerde kalan ekleri denemenin anlamı yok
+        if(e.status===403&&!YENIDEN_DENE.has(e.sebep)) throw e;
+      }
+    }
+    if(blobSorun.length){
+      setSyncStat("☁️ Notlar eşitlendi · "+blobSorun.length+" ek bekliyor");
+      if(manual) syncMsg("Notlar eşitlendi. Aktarılamayan ek ("+blobSorun.length+"): "+
+        blobSorun.map(x=>x.ad).join(", ")+" — "+blobSorun[0].mesaj);
+    }else{
+      setSyncStat("☁️ Eşitlendi ✓ "+fmtTime(Date.now()));
+      if(manual) syncMsg("Eşitleme başarılı ✓");
+    }
     if(gotNew) syncRender();
   }catch(e){
     console.error("sync",e);
+    const ek=notlarGitti?" (notların eşitlendi, sorun eklerde)":"";
     setSyncStat("☁️ ⚠️ "+(navigator.onLine?e.message+" — tekrar denemek için tıkla":"çevrimdışı — bağlanınca eşitlenecek"));
-    if(manual) syncMsg("Hata: "+e.message);
+    if(manual) syncMsg("Hata: "+e.message+ek);
   }
   syncBusy=false;
   if(pendingSync){ pendingSync=false; scheduleSync(); }
+}
+const fmtGB=b=>{ b=Number(b)||0; return b>=1073741824?(b/1073741824).toFixed(1)+" GB":Math.round(b/1048576)+" MB"; };
+async function kotaGoster(){
+  const el=$("#sync-kota"); if(!el||!tokenValid()) return;
+  try{
+    const j=await(await gFetch(DRIVE_API+"/about?fields=storageQuota",{headers:gh(gTok.access_token)})).json();
+    const q=j.storageQuota||{}, lim=Number(q.limit)||0, kul=Number(q.usage)||0;
+    if(!lim){ el.textContent="Drive alanı: sınırsız"; return; }
+    const y=Math.round(kul/lim*100);
+    el.textContent="Drive alanı: "+fmtGB(kul)+" / "+fmtGB(lim)+" (%"+y+")"+
+      (y>=97?" — dolmak üzere; yeni dosyalar yüklenemeyebilir":"");
+  }catch(e){ el.textContent=""; }
 }
 const syncModal=$("#syncmodal");
 const syncMsg=t=>{ const el=$("#sync-msg"); if(el) el.textContent=t; };
@@ -2744,7 +2836,10 @@ function renderSyncModal(){
     };
   }else{
     body.innerHTML=`<p>Bağlı hesap: <b>${esc(S.gEmail||"Google")}</b></p>
-      <p class="sync-note">Her değişiklik otomatik eşitlenir. Son eşitleme: ${S.lastSync?fmtDT(S.lastSync):"—"}</p>`;
+      <p class="sync-note">Her değişiklik otomatik eşitlenir. Son eşitleme: ${S.lastSync?fmtDT(S.lastSync):"—"}</p>
+      ${blobSorun.length?`<p class="sync-note">⚠️ ${blobSorun.length} ek aktarılamadı: ${esc(blobSorun.map(x=>x.ad).join(", "))} — ${esc(blobSorun[0].mesaj)}</p>`:""}
+      <p class="sync-note" id="sync-kota"></p>`;
+    kotaGoster();
     btns.innerHTML=`<button class="tool" id="sync-now">↻ Şimdi Eşitle</button>
       <button class="tool danger" id="sync-off">Bağlantıyı Kes</button>
       <button class="tool" id="sync-close">Kapat</button>`;
