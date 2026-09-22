@@ -428,6 +428,11 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 .sync-card input:focus{border-color:var(--accent)}
 .sync-btns{display:flex;gap:8px;flex-wrap:wrap}
 #sync-msg{font-size:12.5px;color:var(--text2);margin-top:10px;min-height:16px}
+#sync-tani{display:none;margin-top:10px;padding:9px 11px;border:1px solid var(--border);border-radius:9px;
+  background:var(--surface2);font-size:12px;line-height:1.65;color:var(--text2);
+  max-height:230px;overflow:auto;overscroll-behavior:contain;word-break:break-word}
+#sync-tani div+div{border-top:1px dashed var(--border);padding-top:4px;margin-top:4px}
+.sync-surum{font-size:11px;color:var(--text2);opacity:.6;margin-top:8px;text-align:right}
 
 /* ---------- Sağ sütun: Mentör + Öğrendiklerim ---------- */
 #rightbar{
@@ -654,6 +659,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
     <div id="sync-body"></div>
     <div class="sync-btns" id="sync-btns"></div>
     <div id="sync-msg"></div>
+    <div id="sync-tani"></div>
   </div>
 </div>
 
@@ -661,6 +667,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 "use strict";
 /* ================= STATE ================= */
 const LS_KEY="nbmd_v1";
+const SURUM="1.4.2";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
 const CAT_COLORS=["#5B5BD6","#3E8E5A","#B57E1E","#C4442E","#2E7DB5","#8E5BAB","#5A8E7A","#B5573E"];
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
@@ -2563,6 +2570,8 @@ const blobToDataURL=bl=>new Promise(res=>{const fr=new FileReader();fr.onload=()
 
 /* --- Google girişi (GIS token modeli) --- */
 let gTok=null; try{ gTok=JSON.parse(localStorage.getItem("nbmd_gtok"))||null; }catch(e){}
+let izinSorunu=false;                     // Drive izni verilmemişse bir sonraki giriş onay ekranını zorlar
+const DRIVE_APPDATA="https://www.googleapis.com/auth/drive.appdata";
 const tokenValid=()=>!!(gTok&&Date.now()<gTok.exp-60000);
 const gisReady=()=>!!(window.google&&google.accounts&&google.accounts.oauth2);
 function dropToken(){ gTok=null; try{ localStorage.removeItem("nbmd_gtok"); }catch(e){} }
@@ -2579,7 +2588,14 @@ function getToken(interactive){
           invalid_request:"bu adres Google'da yetkili değil — uygulamayı yayın adresinden (github.io) veya localhost:8000'den aç"};
         return rej(new Error(friendly[t.error]||t.error_description||t.error));
       }
-      gTok={access_token:t.access_token,exp:Date.now()+(Number(t.expires_in)||3600)*1000};
+      // Google artık izinleri tek tek onaylatıyor: Drive kutusu işaretlenmezse token gelir ama
+      // her Drive isteği 403 döner. Bunu girişte yakala, sessizce bozuk oturumla devam etme.
+      const izinTam=!(gisReady()&&google.accounts.oauth2.hasGrantedAllScopes)||
+        google.accounts.oauth2.hasGrantedAllScopes(t,DRIVE_APPDATA);
+      if(!izinTam){ izinSorunu=true; dropToken();
+        return rej(new Error("Drive izni verilmedi — giriş ekranındaki Drive kutusunu işaretlemelisin")); }
+      izinSorunu=false;
+      gTok={access_token:t.access_token,scope:t.scope||"",exp:Date.now()+(Number(t.expires_in)||3600)*1000};
       try{ localStorage.setItem("nbmd_gtok",JSON.stringify(gTok)); }catch(e){}
       if(!S.gEmail){ try{
         const r=await fetch("https://www.googleapis.com/oauth2/v3/userinfo",{headers:{Authorization:"Bearer "+gTok.access_token}});
@@ -2588,7 +2604,8 @@ function getToken(interactive){
       res(gTok.access_token);
     };
     tokenClient.error_callback=e=>rej(new Error(e&&e.type==="popup_closed"?"giriş penceresi kapatıldı":"Google giriş penceresi açılamadı"));
-    tokenClient.requestAccessToken(interactive?{prompt:"select_account"}:{prompt:"",login_hint:S.gEmail||""});
+    tokenClient.requestAccessToken(interactive?{prompt:izinSorunu?"consent":"select_account"}
+                                              :{prompt:"",login_hint:S.gEmail||""});
   });
 }
 
@@ -2604,6 +2621,8 @@ const DRV_SEBEP={
   rateLimitExceeded:"Drive istek sınırına takıldı — bir süre sonra kendiliğinden tekrar denenecek",
   dailyLimitExceeded:"Günlük Drive sınırı aşıldı — yarın tekrar denenecek",
   insufficientFilePermissions:"Bu dosya için yetki yok",
+  insufficientPermissions:"Drive izni eksik — Senkron'dan tekrar giriş yapıp Drive kutusunu işaretle",
+  forbidden:"Drive isteği reddedildi",
   appNotAuthorizedToFile:"Uygulamanın bu dosyaya erişimi yok",
   cannotModifyRestrictedItem:"Drive bu dosyayı değiştirmeye izin vermiyor",
   activeItemCreationLimitExceeded:"Drive'daki dosya sayısı sınırına ulaşıldı",
@@ -2629,6 +2648,10 @@ async function gFetch(url,opt,deneme){
   if(r.ok) return r;
   if(r.status===401){ dropToken(); throw new Error("Google oturumu doldu"); }
   const d=await driveHata(r);
+  if(r.status===403&&(d.sebep==="insufficientPermissions"||/scope/i.test(d.metin))){
+    dropToken(); izinSorunu=true;                 // eksik izinle alınmış token tekrar kullanılmasın
+    throw new Error("Drive izni eksik — Senkron penceresinden tekrar giriş yapıp Drive kutusunu işaretle");
+  }
   if((r.status>=500||r.status===429||YENIDEN_DENE.has(d.sebep))&&deneme<4){
     const ra=Number(r.headers.get("Retry-After"))||0;
     await bekle(ra?ra*1000:1200*Math.pow(2,deneme)+Math.random()*600);
@@ -2808,10 +2831,43 @@ async function kotaGoster(){
       (y>=97?" — dolmak üzere; yeni dosyalar yüklenemeyebilir":"");
   }catch(e){ el.textContent=""; }
 }
+/* Drive hataları tek satır mesajla çözülmüyor; bu tanı, nerede takıldığını adım adım gösterir. */
+async function taniCalistir(){
+  const kutu=$("#sync-tani"); if(!kutu) return;
+  const satir=[]; const yaz=x=>{ satir.push(x); kutu.innerHTML=satir.map(y=>"<div>"+y+"</div>").join(""); kutu.scrollTop=kutu.scrollHeight; };
+  kutu.style.display="block"; kutu.innerHTML=""; yaz("🩺 Tanı çalışıyor…");
+  let t=null;
+  try{ t=await getToken(true); yaz("✓ Google oturumu alındı"); }
+  catch(e){ yaz("✗ Oturum açılamadı: "+esc(e.message)); return; }
+  const izin=(gTok&&gTok.scope)||"";
+  yaz((izin.includes("drive.appdata")?"✓":(izin?"✗":"?"))+" Verilen izinler: "+esc(izin||"bu oturumda bilinmiyor"));
+  try{
+    const j=await(await gFetch(DRIVE_API+"/about?fields=storageQuota,user",{headers:gh(t)})).json();
+    const q=j.storageQuota||{}, lim=Number(q.limit)||0, kul=Number(q.usage)||0;
+    yaz("✓ Drive hesabı: "+esc((j.user&&j.user.emailAddress)||"?"));
+    yaz((lim&&kul/lim>=.99?"✗":"✓")+" Alan: "+(lim?fmtGB(kul)+" / "+fmtGB(lim)+" (%"+Math.round(kul/lim*100)+")":"sınırsız"));
+  }catch(e){ yaz("✗ Hesap/alan okunamadı: "+esc(e.message)); }
+  try{ const l=await driveList(t); yaz("✓ Uygulama alanı okundu: "+l.length+" dosya"); }
+  catch(e){ yaz("✗ Dosya listesi okunamadı: "+esc(e.message)); }
+  try{
+    const id=await driveUpload(t,"logbook-tani-"+Date.now(),new Blob([new Uint8Array(32)],{type:"application/octet-stream"}));
+    yaz("✓ Yazma testi (küçük dosya) başarılı");
+    try{ await driveDelete(t,id); }catch(e){}
+  }catch(e){ yaz("✗ Yazma testi: "+esc(e.message)); }
+  try{
+    const id=await driveUpload(t,"logbook-tani-buyuk-"+Date.now(),new Blob([new Uint8Array(5*1024*1024)],{type:"application/octet-stream"}));
+    yaz("✓ Büyük dosya testi (5 MB) başarılı");
+    try{ await driveDelete(t,id); }catch(e){}
+  }catch(e){ yaz("✗ Büyük dosya testi: "+esc(e.message)); }
+  const ekSayisi=S.notes.reduce((a,n)=>a+n.files.length+n.audios.length,0);
+  yaz("ℹ️ "+S.notes.length+" not · "+ekSayisi+" ek"+(blobSorun.length?" · bekleyen ek: "+esc(blobSorun.map(x=>x.ad).join(", ")):""));
+  yaz("ℹ️ Sürüm "+SURUM+" — tanı bitti");
+}
 const syncModal=$("#syncmodal");
 const syncMsg=t=>{ const el=$("#sync-msg"); if(el) el.textContent=t; };
 function renderSyncModal(){
-  const body=$("#sync-body"), btns=$("#sync-btns");
+  const body=$("#sync-body"), btns=$("#sync-btns"), tani=$("#sync-tani");
+  if(tani){ tani.style.display="none"; tani.innerHTML=""; }
   if(location.protocol==="file:"){
     // Google, güvenlik gereği file:// sayfalardan OAuth girişine izin vermez ("Erişim engellendi / invalid_request").
     body.innerHTML=`<p>⚠️ <b>Senkron, dosyayı çift tıklayarak açınca çalışamaz.</b></p>
@@ -2838,12 +2894,16 @@ function renderSyncModal(){
     body.innerHTML=`<p>Bağlı hesap: <b>${esc(S.gEmail||"Google")}</b></p>
       <p class="sync-note">Her değişiklik otomatik eşitlenir. Son eşitleme: ${S.lastSync?fmtDT(S.lastSync):"—"}</p>
       ${blobSorun.length?`<p class="sync-note">⚠️ ${blobSorun.length} ek aktarılamadı: ${esc(blobSorun.map(x=>x.ad).join(", "))} — ${esc(blobSorun[0].mesaj)}</p>`:""}
-      <p class="sync-note" id="sync-kota"></p>`;
+      <p class="sync-note" id="sync-kota"></p>
+      <div class="sync-surum">Sürüm ${SURUM}</div>`;
     kotaGoster();
     btns.innerHTML=`<button class="tool" id="sync-now">↻ Şimdi Eşitle</button>
+      <button class="tool" id="sync-tanibtn">🩺 Sorunu Bul</button>
       <button class="tool danger" id="sync-off">Bağlantıyı Kes</button>
       <button class="tool" id="sync-close">Kapat</button>`;
     $("#sync-now").onclick=()=>syncNow(true);
+    $("#sync-tanibtn").onclick=e=>{ e.currentTarget.disabled=true;
+      taniCalistir().finally(()=>{ const b=$("#sync-tanibtn"); if(b) b.disabled=false; }); };
     $("#sync-off").onclick=()=>{
       try{ if(gTok&&gisReady()) google.accounts.oauth2.revoke(gTok.access_token,()=>{}); }catch(e){}
       dropToken();

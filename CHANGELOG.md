@@ -4,6 +4,16 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] — 2026-09-22
+
+### Added
+
+- **Sync diagnostics.** A *Find the problem* button in the sync window checks the session, the permissions actually granted, the Drive account and its free space, reading the app folder, and writing both a small and a 5 MB file — each step reported with the exact reason it failed. The window also shows which version of the app is running
+
+### Fixed
+
+- **A missing Drive permission is now caught at sign-in.** Google grants permissions individually: if the Drive box is left unticked, a token is still issued but every Drive request is refused, and the app kept reusing that token indefinitely. The permission is now verified when signing in, a request refused for insufficient scope discards the token, and the next sign-in asks for consent again
+
 ## [1.4.1] — 2026-09-22
 
 ### Fixed
