@@ -782,7 +782,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 "use strict";
 /* ================= STATE ================= */
 const LS_KEY="nbmd_v1";
-const SURUM="1.5.1";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
+const SURUM="1.5.2";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
 const CAT_COLORS=["#5B5BD6","#3E8E5A","#B57E1E","#C4442E","#2E7DB5","#8E5BAB","#5A8E7A","#B5573E"];
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
@@ -1595,16 +1595,46 @@ function ankrajUygula(kap,a){
 }
 function konumAl(){ return {c:ankrajAl($("#content")), r:ankrajAl($("#rightbar"))}; }
 function konumKoy(k){ ankrajUygula($("#content"),k.c); ankrajUygula($("#rightbar"),k.r); }
+/* Liste yeniden çizilince içindeki yazma kutuları (takvimde "Bu güne not ekle", defter
+   bölüm kutuları…) da yeniden oluşuyor ve yazılan metin siliniyordu. Çizimden önce yarım
+   kalmış metin, odak ve imleç alınır; yeni kutuya aynen geri konur. */
+function taslakAnahtari(el){
+  const f=el.closest("form");
+  if(f&&f.dataset.takvimekle) return '[data-takvimekle="'+f.dataset.takvimekle+'"] input';
+  if(f&&f.dataset.lsform!==undefined) return '[data-lsform="'+f.dataset.lsform+'"] input';
+  if(el.id) return "#"+el.id;
+  return null;
+}
+function taslakAl(){
+  const ae=document.activeElement, t=[];
+  document.querySelectorAll("#list input,#list textarea,#rightbar input,#rightbar textarea").forEach(el=>{
+    if(el.type==="file"||el.type==="datetime-local"||el.type==="checkbox") return;
+    if(!el.value&&el!==ae) return;
+    const anahtar=taslakAnahtari(el); if(!anahtar) return;
+    t.push({el,anahtar,v:el.value,odak:el===ae,s:el.selectionStart,e:el.selectionEnd});
+  });
+  return t;
+}
+function taslakKoy(t){
+  for(const x of t){
+    const el=document.querySelector(x.anahtar);
+    if(!el||el===x.el) continue;                     // aynı düğüm duruyorsa dokunma
+    if(!el.value) el.value=x.v;
+    if(x.odak){ el.focus({preventScroll:true}); try{ el.setSelectionRange(x.s,x.e); }catch(e){} }
+  }
+}
 function renderLists(){
-  const k=konumAl();
+  const k=konumAl(), t=taslakAl();
   renderMain(); renderRight(); bindNotes(); bindPanels();
+  taslakKoy(t);
   konumKoy(k);
 }
 // Yalnız sağ sütunu tazele — kart düğmeleri (triyaj/mentör/bölüm/aç) yeniden bağlanmalı,
 // yoksa bölüm aç/kapa sonrası paneldeki kartlar tıklanamaz hale gelir.
 function refreshRight(){
-  const k=konumAl();
+  const k=konumAl(), t=taslakAl();
   renderRight(); bindNotes(); bindPanels();
+  taslakKoy(t);
   konumKoy(k);
 }
 // Defter ana alandayken bölüm işlemleri ana listeyi de tazelemeli
@@ -2924,10 +2954,20 @@ function scheduleSync(){
   clearTimeout(syncTimer);
   syncTimer=setTimeout(()=>syncNow(),4000);
 }
+const yaziyorMu=()=>{ const ae=document.activeElement;
+  return !!(ae&&ae.matches&&ae.matches("input,textarea")&&ae.closest("#list,#rightbar")); };
+let ertelenenCizim=false;
 function syncRender(){
-  // Kullanıcı yazarken imleci kaçırmamak için açık editör varsa sadece kenar çubuğu tazelenir
-  if(expandedId) renderSidebar(); else render();
+  // Kullanıcı yazarken (açık editör ya da listedeki bir yazma kutusu) yalnız kenar çubuğu tazelenir;
+  // telefonda kutu yeniden oluşursa klavye kapanır, o yüzden liste çizimi kutudan çıkılana ertelenir.
+  if(expandedId){ renderSidebar(); return; }
+  if(yaziyorMu()){ renderSidebar(); ertelenenCizim=true; return; }
+  render();
 }
+document.addEventListener("focusout",()=>{
+  if(!ertelenenCizim) return;
+  setTimeout(()=>{ if(ertelenenCizim&&!yaziyorMu()&&!expandedId){ ertelenenCizim=false; render(); } },200);
+});
 let blobSorun=[];                       // son eşitlemede aktarılamayan ekler
 function blobAdi(bid){
   for(const n of S.notes){
@@ -3553,7 +3593,7 @@ function takvimdenNot(k,metin){
   n.deadline=d.toISOString();
   noteLog(n,"⏰ Bitiş tarihi eklendi: "+fmtDT(n.deadline)+" (takvimden)");
   save(); render();
-  setTimeout(()=>document.querySelector(`[data-takvimekle="${k}"] input`)?.focus(),0);
+  document.querySelector(`[data-takvimekle="${k}"] input`)?.focus({preventScroll:true});
 }
 document.addEventListener("click",e=>{
   if(view.type!=="takvim") return;
@@ -3575,6 +3615,7 @@ document.addEventListener("submit",e=>{
   const f=e.target.closest&&e.target.closest("[data-takvimekle]"); if(!f) return;
   e.preventDefault();
   const inp=f.querySelector("input"), v=inp.value.trim(); if(!v) return;
+  inp.value="";
   takvimdenNot(f.dataset.takvimekle,v);
 });
 
@@ -3730,7 +3771,7 @@ async function takvimKapat(){
 }
 
 /* ================= INIT ================= */
-function render(){ renderSidebar(); renderLists(); }
+function render(){ ertelenenCizim=false; renderSidebar(); renderLists(); }
 function init(){
   applyTheme(); applyFont(); applyText(); applyDizilim(); delegeBaglan();
   (function sessionLog(){
