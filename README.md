@@ -36,6 +36,7 @@ Every edit keeps its predecessor. You can change your mind freely without losing
 - **Sectioned study notebook** — a reference notebook rather than a task list: entries carry no completion state and remain where they were written. Sections nest to any depth, each with its own capture box, and the notebook also opens full width in the main area
 - **Triage marks** — classify a note as red, amber, or green; the card is colour-coded accordingly and the change is recorded in the log
 - **Queue for review** — add a note to the mentor list without moving or duplicating it; a second click removes it from the queue
+- **Calendar** — every note with a deadline on a month or week calendar; tap a day to see its notes or add one due that day. Optionally exported to Google Calendar as all-day events in a separate “LogBook” calendar (the app cannot see your other calendars)
 - **Pen annotation** — draw on PDFs and images with Apple Pencil or mouse; four colors, highlighter, eraser, undo. Finger scrolls, pen draws
 - **Full edit history** — nothing is deleted or overwritten; every version persists with its date
 - **Turkish dictation** — speech-to-text via the Web Speech API
@@ -43,7 +44,7 @@ Every edit keeps its predecessor. You can change your mind freely without losing
 - **Attachments of any type** — drag, drop, or paste; images and PDFs open in-app; reorder or remove them (removals are logged too)
 - **Nested categories** — arbitrarily deep; a parent category also surfaces its children's notes
 - **Deadline countdown** — live "3 hours left" counter that turns amber, then red
-- **Sub-tasks** — a checkable mini-list inside any note, with progress
+- **Sub-tasks** — a checkable mini-list inside any note, with progress; visible and tickable on the collapsed card, editable and deletable with every change logged
 - **Automatic date separators** — return to a note after a long gap and the continuation is stamped, so the chronology is visible in the text itself
 - **Complete activity log** — every addition, edit, and completion recorded with its date
 - **Light / dark theme**

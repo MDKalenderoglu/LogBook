@@ -4,6 +4,23 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] — 2026-10-16
+
+### Added
+
+- **Calendar.** A *Takvim* view shows every note with a deadline on its day — month or week, starting on Monday, with completed notes faded. Selecting a day lists its notes underneath, fully editable, together with a capture box that adds a new note due that day (all day). On the current day, overdue notes are listed as well. The sidebar shows how many notes are due today or overdue. On phones the month view collapses to coloured dots and the week view to a day-by-day list
+- **Google Calendar export.** From the sync window, notes with a deadline can be sent to Google Calendar as all-day events in a dedicated “LogBook” calendar, coloured by triage. The permission requested covers only calendars the app creates — personal calendars are neither read nor modified. Changing a deadline, title or triage updates the event; completing a note or removing its deadline removes it. Event IDs are derived from note IDs, so several devices update the same event rather than creating copies. Export runs with every sync and does not depend on the Drive side succeeding. Turning it off can optionally delete the LogBook calendar
+- **Drive usage beside sync.** Below the sync status, the sidebar shows how much space LogBook itself occupies in Drive and how full the Google account is overall (shared with Gmail and Photos), with details on hover; the sync window shows both figures too
+- **Sub-tasks on collapsed cards.** In list view, a note's open sub-tasks (up to four, then “+N more”) are shown on the card without opening it, and can be ticked from there. Grid tiles and the side column keep the compact counter
+
+### Changed
+
+- **Sub-tasks can be edited and deleted.** Tap a sub-task's text in the editor to change it (Enter saves, Esc cancels); ✕ deletes it after confirmation. Both are recorded in the note's history and the log with the previous wording, so nothing changes without a trace
+
+### Fixed
+
+- **Grid tiles no longer cut off the title.** When a note had a title, an excerpt, an image and several badges, the tile squeezed the title and the badge row to make room, clipping the title in half and leaving the badges half-hidden behind the image. The title and badges now keep their full height, the excerpt gives way first, the image moves to a small thumbnail in the top-right corner, and a badge row that does not fit is dropped whole from the bottom (counters first) rather than shown in slivers. The empty triage badge shows only its icon in the grid, leaving room for the deadline
+
 ## [1.4.2] — 2026-09-22
 
 ### Added

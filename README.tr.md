@@ -36,6 +36,7 @@ Her düzenlemenin öncesi saklanır. Fikir değiştirmek serbest — kaybettiği
 - **Bölümlü çalışma defteri** — öğrenme alanı görev listesi değil, başvuru defteridir: kayıtların tamamlanma durumu yoktur, yazıldıkları yerde kalır. Bölümler istenen derinlikte iç içe kurulur, her birinin kendi yazma kutusu vardır; defter ayrıca ana alanda tam genişlikte açılır
 - **Triyaj işareti** — notu kırmızı, sarı veya yeşil olarak sınıflandır; kart buna göre renklenir, değişiklik günlüğe işlenir
 - **Görüşme listesine al** — notu taşımadan ve çoğaltmadan mentör listesine ekle; ikinci tıkta listeden çıkar
+- **Takvim** — bitiş tarihli tüm notlar ay ya da hafta takviminde; bir güne dokun, o günün notlarını gör veya o güne not ekle. İstersen ayrı bir “LogBook” takvimiyle Google Takvim'e tüm gün etkinliği olarak aktarılır (uygulama diğer takvimlerini göremez)
 - **Kalemle çizim** — PDF ve görsellerin üzerine Apple Pencil / fareyle yaz; 4 renk, fosforlu, silgi, geri al. Parmak kaydırır, kalem çizer
 - **Düzenleme tarihçesi** — silmek yok, üzerine yazmak yok; her sürüm tarihiyle durur
 - **Türkçe dikte** — konuş, metne dönüşsün (Web Speech API)
@@ -43,7 +44,7 @@ Her düzenlemenin öncesi saklanır. Fikir değiştirmek serbest — kaybettiği
 - **Her tür dosya eki** — sürükle-bırak veya yapıştır; görsel ve PDF'ler uygulama içinde açılır; ekleri sırala, kaldır (kaldırma bile günlüğe işlenir)
 - **İç içe kategoriler** — istediğin kadar derin; üst kategori alt notları da gösterir
 - **Deadline geri sayımı** — "3 saat kaldı" canlı sayaç; yaklaşınca sarı, geçince kırmızı
-- **Alt maddeler** — not içinde tikli mini görev listesi, ilerleme göstergeli
+- **Alt maddeler** — not içinde tikli mini görev listesi, ilerleme göstergeli; kapalı kartta görünür ve işaretlenir, düzenlenip silinebilir — her değişiklik günlüğe işlenir
 - **Otomatik tarih ayracı** — uzun aradan sonra döndüğünde notun devamına tarih düşülür; ne zaman ne düşündüğün metnin kendisinde görünür
 - **Tam günlük** — her ekleme, düzenleme, tamamlama tarihiyle kayıtta
 - **Açık / koyu tema**

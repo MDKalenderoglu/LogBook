@@ -106,7 +106,7 @@ button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
 #sidebar.collapsed .tw,
 #sidebar.collapsed #newcat-row,
 #sidebar.collapsed .subcat-row,
-#sidebar.collapsed #syncstat,
+#sidebar.collapsed #syncstat,#sidebar.collapsed #drivekul,
 #sidebar.collapsed .credit{display:none}
 #sidebar.collapsed .brand{flex-direction:column;justify-content:center;gap:10px;padding:6px 0 14px}
 #sidebar.collapsed .brand #collapsebtn{margin-left:0}
@@ -168,28 +168,35 @@ button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
 /* kare (ızgara) görünüm — eşit yükseklikli, hizalı kutular */
 #list.izgara{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));
   gap:10px;align-items:stretch}
-#list.izgara .note{margin-bottom:0;height:calc(178px * var(--tscale,1));display:flex;flex-direction:column;overflow:hidden}
+#list.izgara .note{margin-bottom:0;height:calc(178px * var(--tscale,1));display:flex;flex-direction:column;overflow:hidden;position:relative}
 #list.izgara .note.exp{height:auto;grid-column:1 / -1;overflow:visible}   /* açılan not tam satır */
 #list.izgara .viewhint,#list.izgara .empty{grid-column:1 / -1}
 #list.izgara .note-head{flex:1;min-height:0;padding:12px 13px;align-items:flex-start}
 #list.izgara .note-body{display:flex;flex-direction:column;height:100%;min-height:0}
 #list.izgara .note-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-  overflow:hidden;line-height:1.35}
+  overflow:hidden;line-height:1.35;flex-shrink:0}
 /* Zengin içerikte satır sayısıyla kırpma güvenilir değil (blok öğeler var):
    yüksekliği tam satıra sabitle ve altını yumuşatarak kes. */
 #list.izgara .note-preview{display:block;-webkit-line-clamp:initial;line-height:1.5;
-  flex:1 1 auto;min-height:0;max-height:4.5em;overflow:hidden;margin-top:4px;
+  flex:1 1 0;min-height:0;max-height:4.5em;overflow:hidden;margin-top:4px;
   -webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent);
   mask-image:linear-gradient(to bottom,#000 72%,transparent)}
 /* Rozetler yarıdan kesilmesin: en çok iki satır, sığmayan satır gizlenir */
-#list.izgara .note-meta{margin-top:auto;padding-top:8px;flex-wrap:wrap;gap:4px;
-  max-height:58px;overflow:hidden;align-content:flex-end}
-#list.izgara .chip{white-space:nowrap;flex:0 0 auto}
+/* Rozet satırı sıkışmaz; en çok tam iki sıra (2×22px + boşluk). Sığmayan sıra ALTTAN gizlenir:
+   triyaj / danışman / kategori hep görünür, sayaçlar (☑, 📎) gerekirse düşer — yarım rozet görünmez */
+#list.izgara .note-meta{margin-top:auto;padding-top:8px;flex-wrap:wrap;gap:4px;flex-shrink:0;
+  max-height:56px;overflow:hidden;align-content:flex-start}
+#list.izgara .chip{white-space:nowrap;flex:0 0 auto;height:22px;box-sizing:border-box}
 #list.izgara .chip.dl-ok,#list.izgara .chip.dl-soon,#list.izgara .chip.dl-over{
   max-width:110px;overflow:hidden;text-overflow:ellipsis}
 #list.izgara .created{display:none}
-#list.izgara .thumbstrip{min-height:0;margin-top:6px}
-#list.izgara .thumbstrip img{width:40px;height:40px}
+/* İşaretsiz triyaj rozetinde "Triyaj" yazısı karede yer kaplamasın — bitiş tarihine yer kalsın */
+#list.izgara .chip[data-triage]:not(.tri-r):not(.tri-y):not(.tri-g) .ck{display:none}
+/* Görsel küçük resmi karede sağ üst köşeye alınır: alt alta dizilip başlığı ve rozetleri itmesin */
+#list.izgara .thumbstrip{position:absolute;top:12px;right:12px;margin:0;min-height:0;gap:0}
+#list.izgara .thumbstrip img{width:38px;height:38px}
+#list.izgara .thumbstrip img+img{display:none}
+#list.izgara .note.hasthumb .note-title,#list.izgara .note.hasthumb .note-preview{padding-right:44px}
 #list.izgara .note-preview a{word-break:break-all}
 .inner.genis{max-width:1280px}
 @media(max-width:560px){
@@ -202,6 +209,11 @@ button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
   #list.izgara .note-title{font-size:calc(13.5px * var(--tscale,1));-webkit-line-clamp:2}
   #list.izgara .note-preview{max-height:4.5em;font-size:calc(12px * var(--tscale,1))}
   #list.izgara .chk{width:18px;height:18px;margin-top:1px}
+  #list.izgara .chip{height:23px}
+  #list.izgara .note-meta{max-height:58px}
+  #list.izgara .thumbstrip{top:10px;right:10px}
+  #list.izgara .thumbstrip img{width:32px;height:32px}
+  #list.izgara .note.hasthumb .note-title,#list.izgara .note.hasthumb .note-preview{padding-right:38px}
 }
 
 /* liste çubuğu: sıralama + süzgeç */
@@ -345,6 +357,21 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 .sub{display:flex;gap:8px;align-items:flex-start;padding:3px 0;font-size:calc(14px * var(--tscale,1))}
 .sub.done .chk-sm{background:var(--green);border-color:var(--green);color:#fff}
 .sub.done span{text-decoration:line-through;color:var(--text2)}
+.sub .subtxt{flex:1;min-width:0;cursor:text;word-wrap:break-word;border-radius:5px}
+.sub .subtxt:hover{background:var(--surface2)}
+.subdel{flex-shrink:0;color:var(--text2);font-size:12px;padding:1px 6px;border-radius:6px;opacity:0;line-height:1.4}
+.sub:hover .subdel,.subdel:focus{opacity:.75}
+.subdel:hover{color:var(--red);background:var(--red-soft);opacity:1}
+@media(hover:none){ .subdel{opacity:.55} }
+.subedit-in{flex:1;min-width:0;font:inherit;color:var(--text);background:var(--surface);
+  border:1px solid var(--accent);border-radius:6px;padding:1px 6px;outline:none}
+/* kapalı kartta açık alt maddeler (liste görünümü) */
+.csubs{margin-top:7px;display:flex;flex-direction:column;gap:1px}
+.csub{display:flex;gap:8px;align-items:flex-start;font-size:calc(13px * var(--tscale,1));color:var(--text);line-height:1.45}
+.csub span{min-width:0;word-wrap:break-word}
+.csub .chk-sm{margin-top:1px}
+.csub-more{font-size:12px;color:var(--text2);padding-left:25px}
+#list.izgara .csubs,#rightbar .csubs{display:none}
 .sub-add input{width:100%;border:none;outline:none;background:none;font-size:13.5px;padding:5px 0;color:var(--text)}
 .sub-add input::placeholder{color:var(--text2)}
 
@@ -419,6 +446,10 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 
 /* sync */
 #syncstat{font-size:11px;color:var(--text2);padding:6px 10px 0;text-align:center;min-height:16px;cursor:pointer}
+#drivekul{font-size:11px;color:var(--text2);padding:2px 10px 0;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums}
+#drivekul:hover{color:var(--accent)}
+#drivekul b{font-weight:700}
+#drivekul b.dolu{color:var(--red)}
 #syncmodal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;align-items:center;justify-content:center;padding:20px}
 .sync-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);max-width:440px;width:100%;padding:20px}
 .sync-card h3{font-size:16px;margin-bottom:8px}
@@ -433,6 +464,63 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
   max-height:230px;overflow:auto;overscroll-behavior:contain;word-break:break-word}
 #sync-tani div+div{border-top:1px dashed var(--border);padding-top:4px;margin-top:4px}
 .sync-surum{font-size:11px;color:var(--text2);opacity:.6;margin-top:8px;text-align:right}
+
+/* ---------- Takvim ---------- */
+.tust{display:flex;align-items:center;gap:10px;margin:4px 0 10px;flex-wrap:wrap}
+.tnav{display:flex;gap:4px}
+.tnav .tool{padding:5px 10px}
+.tbaslik{font-size:16px;font-weight:700;flex:1;min-width:140px;text-transform:capitalize}
+.tmod{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.tmod button{padding:5px 12px;font-size:12.5px;font-weight:600;color:var(--text2);background:var(--surface2)}
+.tmod button.on{background:var(--accent-soft);color:var(--accent)}
+.tizgara{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:14px}
+.tgad{font-size:11px;font-weight:700;color:var(--text2);text-align:center;padding:2px 0 4px;letter-spacing:.03em}
+.tgun{background:var(--surface);border:1px solid var(--border);border-radius:9px;min-height:92px;padding:5px 5px 6px;
+  cursor:pointer;display:flex;flex-direction:column;gap:3px;min-width:0;overflow:hidden}
+.tizgara.hafta .tgun{min-height:180px}
+.tgun:hover{border-color:var(--text2)}
+.tgun.dis{opacity:.45}
+.tgun.secili{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tgun-no{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--text2)}
+.tgun.bugun .tgun-no span{background:var(--accent);color:#fff;border-radius:99px;min-width:21px;height:21px;
+  display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+.tgun-no em{margin-left:auto;font-style:normal;font-size:10.5px;color:var(--accent);font-weight:700}
+.thaplar{display:flex;flex-direction:column;gap:2px;min-width:0}
+.thap{display:block;width:100%;text-align:left;font-size:11px;line-height:1.3;padding:2px 5px;border-radius:5px;
+  background:var(--surface2);color:var(--text);border-left:3px solid var(--r);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thap:hover{background:var(--accent-soft)}
+.thap.bitti{opacity:.5;text-decoration:line-through}
+.tdaha{font-size:10.5px;color:var(--text2);padding-left:4px}
+.tnokta{display:none;gap:3px;flex-wrap:wrap}
+.tnokta i{width:6px;height:6px;border-radius:50%;display:block}
+.tnokta i.bitti{opacity:.4}
+.tpanel{border-top:1px solid var(--border);padding-top:12px}
+.tpanel-h{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;font-size:14px}
+.tpanel-h b{text-transform:capitalize}
+.tpanel-h span{font-size:12px;color:var(--text2)}
+.tekle{display:flex;gap:6px;align-items:center;background:var(--surface);border:1px dashed var(--border);
+  border-radius:10px;padding:4px 4px 4px 11px;margin-bottom:10px}
+.tekle:focus-within{border-style:solid;border-color:var(--accent)}
+.tekle input{flex:1;min-width:0;border:none;outline:none;background:none;font-size:calc(13.5px * var(--tscale,1));padding:6px 0;color:var(--text)}
+.tgec-h{font-size:12px;font-weight:700;color:var(--red);margin:14px 0 6px;letter-spacing:.02em}
+@media(max-width:640px){
+  .tgun{min-height:52px;padding:4px;border-radius:8px}
+  .tizgara{gap:3px}
+  .tizgara.ay .thaplar{display:none}
+  .tizgara.ay .tnokta{display:flex}
+  .tgun-no em{display:none}
+  .tizgara.hafta{grid-template-columns:1fr}
+  .tizgara.hafta .tgad{display:none}
+  .tizgara.hafta .tgun{min-height:0;flex-direction:row;align-items:flex-start;gap:8px}
+  .tizgara.hafta .tgun-no{width:30px;flex-shrink:0}
+  .tizgara.hafta .thaplar{flex:1}
+}
+/* senkron penceresi: Google Takvim satırı */
+.sync-takvim{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin:4px 0 12px}
+.sync-takvim .st-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:12.5px}
+.sync-takvim .st-m span{color:var(--text2)}
+.sync-takvim small{color:var(--text2);font-size:11.5px}
+.sync-takvim small:empty{display:none}
 
 /* ---------- Sağ sütun: Mentör + Öğrendiklerim ---------- */
 #rightbar{
@@ -580,6 +668,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
     <button class="navitem" data-view="active" title="Aktif Notlar"><span class="ico">📥</span><span class="lbl">Aktif Notlar</span><span class="count" id="c-active"></span></button>
     <button class="navitem" data-view="done" title="Tamamlananlar"><span class="ico">✅</span><span class="lbl">Tamamlananlar</span><span class="count" id="c-done"></span></button>
     <button class="navitem" data-view="learn" title="Çalışma Defteri"><span class="ico">📚</span><span class="lbl">Çalışma Defteri</span><span class="count" id="c-learn-nav"></span></button>
+    <button class="navitem" data-view="takvim" title="Takvim"><span class="ico">📅</span><span class="lbl">Takvim</span><span class="count" id="c-takvim"></span></button>
     <button class="navitem" data-view="log" title="Günlük (Log)"><span class="ico">🕘</span><span class="lbl">Günlük (Log)</span></button>
     <div class="navsec"><span class="lbl">Kategoriler</span><button id="addcat" title="Kategori ekle">＋</button></div>
     <div id="newcat-row"><input id="newcat-input" placeholder="Kategori adı, Enter'a bas"></div>
@@ -597,6 +686,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
       <button id="wipebtn" class="danger" title="Her şeyi temizle"><span class="ico">🧹</span><span class="lbl">Her Şeyi Temizle</span></button>
     </div>
     <div id="syncstat"></div>
+    <div id="drivekul" style="display:none"></div>
     <div class="credit"><a href="https://github.com/MDKalenderoglu/LogBook" target="_blank" rel="noopener">MDKalenderoglu</a> tarafından ✱</div>
     <input type="file" id="importfile" accept=".json" style="display:none">
   </nav>
@@ -667,7 +757,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 "use strict";
 /* ================= STATE ================= */
 const LS_KEY="nbmd_v1";
-const SURUM="1.4.2";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
+const SURUM="1.5.0";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
 const CAT_COLORS=["#5B5BD6","#3E8E5A","#B57E1E","#C4442E","#2E7DB5","#8E5BAB","#5A8E7A","#B5573E"];
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
@@ -979,6 +1069,9 @@ function renderSidebar(){
   $("#c-active").textContent=S.notes.filter(n=>!n.done&&!n.panel).length||"";
   $("#c-done").textContent=S.notes.filter(n=>n.done).length||"";
   $("#c-learn-nav").textContent=S.notes.filter(n=>n.panel==="learn"&&!n.done).length||"";
+  { const gunSonu=new Date(); gunSonu.setHours(23,59,59,999);      // bugün bitmesi gereken + gecikenler
+    const c=$("#c-takvim"), say=S.notes.filter(n=>n.deadline&&!n.done&&new Date(n.deadline)<=gunSonu).length;
+    c.textContent=say||""; c.title=say?say+" not bugün bitiyor ya da gecikti":""; }
   const catBtn=(c,depth)=>{
     const cnt=S.notes.filter(n=>!n.done&&!n.panel&&(inCatTree(n.cat,c.id)||acilde(n,c.id))).length;
     const kids=kidsOf(c.id);
@@ -1133,19 +1226,40 @@ function kartHTMLUret(n){
   // Öğrendiklerim bir çalışma defteri — görev değil: tik yok, yazılan orada kalır.
   // (Eskiden yanlışlıkla tamamlanmış bir kayıt varsa tiki gösterip geri açılabilsin.)
   const defter=n.panel==="learn"&&!n.done;
-  return `<div class="note ${n.done?"done":""} ${exp?"exp":""} ${tri?"tri-"+n.triage:""} ${defter?"nb":""}" id="note-${n.id}">
+  const kucukResim=!exp&&n.files.some(f=>(f.type||"").startsWith("image/"));
+  return `<div class="note ${n.done?"done":""} ${exp?"exp":""} ${tri?"tri-"+n.triage:""} ${defter?"nb":""} ${kucukResim?"hasthumb":""}" id="note-${n.id}">
     <div class="note-head" data-open="${n.id}">
       ${defter?"":`<button class="chk" data-done="${n.id}" title="${n.done?"Yeniden aç":"Tamamlandı"}">✓</button>`}
       <div class="note-body">
         ${n.title?`<div class="note-title">${esc(n.title)}</div>`:""}
         ${!exp&&n.content?`<div class="note-preview">${renderContent(n.content)}</div>`:""}
         ${!n.title&&!n.content?`<div class="note-preview">Başlıksız not</div>`:""}
+        ${!exp&&!n.done?kapaliAltMaddeler(n):""}
         ${!exp&&n.files.some(f=>(f.type||"").startsWith("image/"))?`<div class="thumbstrip" data-thumbs="${n.id}"></div>`:""}
         <div class="note-meta">${noteMetaHTML(n)}</div>
       </div>
     </div>
     ${exp?editorHTML(n):""}
   </div>`;
+}
+/* Kapalı kartta açık alt maddeler: not açılmadan görülsün, doğrudan işaretlenebilsin.
+   Kare görünümde ve dar yan sütunda CSS ile gizlenir (orada sayı rozeti yeterli). */
+const ALT_GOSTER=4;
+function kapaliAltMaddeler(n){
+  const acik=n.subs.filter(x=>!x.done); if(!acik.length) return "";
+  return `<div class="csubs">${acik.slice(0,ALT_GOSTER).map(x=>`<div class="csub">
+      <button class="chk chk-sm" data-csub="${n.id}" data-sid="${x.id}" title="Tamamla">✓</button>
+      <span>${linkify(esc(x.text))}</span></div>`).join("")}${
+    acik.length>ALT_GOSTER?`<div class="csub-more">+${acik.length-ALT_GOSTER} madde daha</div>`:""}</div>`;
+}
+const kisa=(t,k=40)=>t.length>k?t.slice(0,k)+"…":t;
+/* Alt maddeyi tamamla / yeniden aç — editörden ve kapalı karttan aynı yol */
+function altMaddeIsaretle(n,sid){
+  const x=n.subs.find(y=>y.id===sid); if(!x) return false;
+  x.done=!x.done;
+  noteLog(n,(x.done?"☑ Alt madde tamamlandı: ":"☐ Alt madde yeniden açıldı: ")+x.text);
+  appLog((x.done?"☑ Alt madde tamamlandı: ":"☐ Alt madde yeniden açıldı: ")+"“"+kisa(x.text)+"” — "+titleOf(n),n.id);
+  save(); return true;
 }
 function noteMetaHTML(n){
   const cat=catOf(n.cat);
@@ -1226,16 +1340,17 @@ function kartMetaYenile(n){
 }
 
 function renderMain(){
-  const titles={active:"Aktif Notlar",done:"Tamamlananlar",log:"Günlük",learn:"Çalışma Defteri"};
+  const titles={active:"Aktif Notlar",done:"Tamamlananlar",log:"Günlük",learn:"Çalışma Defteri",takvim:"Takvim"};
   $("#viewtitle").textContent=view.type==="cat"?(()=>{
     const c=catOf(view.catId); if(!c)return "";
     const p=c.parent?catOf(c.parent):null;
     return p?p.name+" › "+c.name:c.name;
   })():titles[view.type];
-  $("#quickadd").style.display=view.type==="log"||view.type==="done"||view.type==="learn"?"none":"flex";
+  $("#quickadd").style.display=["log","done","learn","takvim"].includes(view.type)?"none":"flex";
   const list=$("#list");
   if(view.type==="log"){ list.innerHTML=timelineHTML(); bindTimeline(); applyDizilim(); listeCubuguGuncelle(); return; }
   if(view.type==="learn"){ list.innerHTML=learnViewHTML(); applyDizilim(); listeCubuguGuncelle(); return; }
+  if(view.type==="takvim"){ list.innerHTML=takvimViewHTML(); applyDizilim(); listeCubuguGuncelle(); return; }
   // (aşağıdaki artımlı güncelleme yalnız düz not listesi için)
   const notes=visibleNotes();
   const acilIpucu=view.type==="cat"&&view.catId===URGENT_CAT
@@ -1519,6 +1634,10 @@ function delegeBaglan(){
     const bul=sec=>el.closest&&el.closest(sec);
     let t;
     if(t=bul("[data-suzsil]")){ e.stopPropagation(); suzgec.delete(t.dataset.suzsil); siraKilidi=null; render(); return; }
+    if(t=bul("[data-csub]")){ e.stopPropagation();
+      const n=S.notes.find(x=>x.id===t.dataset.csub);
+      if(n&&altMaddeIsaretle(n,t.dataset.sid)){ renderSidebar(); renderLists(); }
+      return; }
     if(t=bul("[data-done]")){ e.stopPropagation(); toggleDone(t.dataset.done); return; }
     if(t=bul("[data-triage]")){ e.stopPropagation(); openTriagePop(t,t.dataset.triage); return; }
     if(t=bul("[data-mentor]")){ e.stopPropagation(); toggleMentor(t.dataset.mentor); return; }
@@ -1799,14 +1918,48 @@ function renderSubs(n){
   w.innerHTML=(n.subs.length?`<div class="subs-title">Alt maddeler · ${done}/${n.subs.length}</div>`:"")+
     n.subs.map(s=>`<div class="sub ${s.done?"done":""}">
       <button class="chk chk-sm" data-subtoggle="${s.id}" title="${s.done?"Yeniden aç":"Tamamla"}">✓</button>
-      <span>${linkify(esc(s.text))}</span></div>`).join("")+
+      <span class="subtxt" data-subedit="${s.id}" title="Düzenlemek için dokun">${linkify(esc(s.text))}</span>
+      <button class="subdel" data-subdel="${s.id}" title="Alt maddeyi sil">✕</button></div>`).join("")+
     `<form class="sub-add" id="sub-add"><input id="sub-input" autocomplete="off" enterkeyhint="done" placeholder="＋ Alt madde ekle…  (Enter)"></form>`;
   w.querySelectorAll("[data-subtoggle]").forEach(b=>{
+    b.onclick=()=>{ if(altMaddeIsaretle(n,b.dataset.subtoggle)){ renderSubs(n); kartMetaYenile(n); } };
+  });
+  // Metne dokununca yerinde düzenleme: Enter/odak kaybı kaydeder, Esc vazgeçer.
+  // Eski ve yeni metin geçmişe yazılır — hiçbir şey iz bırakmadan değişmez.
+  w.querySelectorAll("[data-subedit]").forEach(sp=>{
+    sp.onclick=e=>{
+      if(e.target.closest("a")) return;                       // bağlantıya dokunmak düzenleme açmasın
+      const s=n.subs.find(x=>x.id===sp.dataset.subedit); if(!s) return;
+      const inp=document.createElement("input");
+      inp.className="subedit-in"; inp.value=s.text; inp.setAttribute("enterkeyhint","done");
+      sp.replaceWith(inp); inp.focus(); inp.setSelectionRange(inp.value.length,inp.value.length);
+      let bitti=false;
+      const bitir=iptal=>{
+        if(bitti) return; bitti=true;
+        const v=inp.value.trim();
+        if(!iptal&&v&&v!==s.text){
+          const eski=s.text; s.text=v;
+          noteLog(n,"✏️ Alt madde düzenlendi: “"+eski+"” → “"+v+"”");
+          appLog("✏️ Alt madde düzenlendi: “"+kisa(eski)+"” → “"+kisa(v)+"” — "+titleOf(n),n.id);
+          save(); kartMetaYenile(n);
+        }
+        renderSubs(n);
+      };
+      inp.onkeydown=ev=>{
+        if(ev.key==="Enter"){ ev.preventDefault(); bitir(false); }
+        if(ev.key==="Escape"){ ev.preventDefault(); ev.stopPropagation(); bitir(true); }
+      };
+      inp.onblur=()=>bitir(false);
+    };
+  });
+  w.querySelectorAll("[data-subdel]").forEach(b=>{
     b.onclick=()=>{
-      const s=n.subs.find(x=>x.id===b.dataset.subtoggle); if(!s)return;
-      s.done=!s.done;
-      noteLog(n,(s.done?"☑ Alt madde tamamlandı: ":"☐ Alt madde yeniden açıldı: ")+s.text);
-      appLog((s.done?"☑ Alt madde tamamlandı: ":"☐ Alt madde yeniden açıldı: ")+"“"+s.text.slice(0,40)+"” — "+titleOf(n),n.id);
+      const i=n.subs.findIndex(x=>x.id===b.dataset.subdel); if(i<0) return;
+      const s=n.subs[i];
+      if(!confirm("“"+kisa(s.text,60)+"” alt maddesi silinsin mi?\n(Metni notun geçmişinde kalır.)")) return;
+      n.subs.splice(i,1);
+      noteLog(n,"🗑 Alt madde silindi: "+s.text);
+      appLog("🗑 Alt madde silindi: “"+kisa(s.text)+"” — "+titleOf(n),n.id);
       save(); renderSubs(n); kartMetaYenile(n);
     };
   });
@@ -2580,7 +2733,8 @@ function getToken(interactive){
     if(tokenValid()) return res(gTok.access_token);
     if(!GOOGLE_CLIENT_ID) return rej(new Error("uygulamada Google Client ID tanımlı değil"));
     if(!gisReady()) return rej(new Error("Google bağlantısı yüklenemedi"));
-    if(!tokenClient) tokenClient=google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID,scope:DRIVE_SCOPE,callback:()=>{}});
+    if(!tokenClient) tokenClient=google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID,
+      scope:DRIVE_SCOPE+(S.takvimOn?" "+CAL_SCOPE:""),callback:()=>{}});
     tokenClient.callback=async t=>{
       if(t.error){
         const friendly={interaction_required:"Google girişi gerekiyor",login_required:"Google girişi gerekiyor",
@@ -2662,7 +2816,7 @@ async function gFetch(url,opt,deneme){
 async function driveList(t,q){
   let files=[],pt="";
   do{
-    const u=DRIVE_API+"/files?spaces=appDataFolder&pageSize=1000&fields=nextPageToken,files(id,name)"+
+    const u=DRIVE_API+"/files?spaces=appDataFolder&pageSize=1000&fields=nextPageToken,files(id,name,size)"+
       (q?"&q="+encodeURIComponent(q):"")+(pt?"&pageToken="+pt:"");
     const j=await(await gFetch(u,{headers:gh(t)})).json();
     files=files.concat(j.files||[]); pt=j.nextPageToken||"";
@@ -2733,6 +2887,7 @@ function mergeRemote(remote){
   }
   kartOnbellekTemizle();
   for(const c of remote.cats||[]) if(!S.cats.some(x=>x.id===c.id)) S.cats.push(c);
+  if(!S.takvimId&&remote.takvimId) S.takvimId=remote.takvimId;
   unionLog(S.appLog,remote.appLog);
 }
 function setSyncStat(t){ const el=$("#syncstat"); if(el) el.textContent=t; }
@@ -2761,6 +2916,7 @@ async function syncNow(manual){
   try{
     const t=await getToken(!!manual);
     const all=await driveList(t);
+    driveKullanimGuncelle(t,all);
     let stateId=fidCache.state||null;
     if(!stateId){
       const f=all.find(x=>x.name==="notebookmd.json");
@@ -2775,7 +2931,7 @@ async function syncNow(manual){
     }
     save(); syncRender();
     // --- 1) ÖNCE notların kendisi: bir ek aktarılamasa bile yazdıkların Drive'a ulaşsın ---
-    const stateBlob=new Blob([JSON.stringify({notes:S.notes,cats:S.cats,appLog:S.appLog})],{type:"application/json"});
+    const stateBlob=new Blob([JSON.stringify({notes:S.notes,cats:S.cats,appLog:S.appLog,takvimId:S.takvimId||null})],{type:"application/json"});
     fidCache.state=await driveUpload(t,"notebookmd.json",stateBlob,stateId); saveFid();
     notlarGitti=true; S.lastSync=Date.now(); save();
     // --- 2) SONRA ekler (ses + dosyalar): sadece eksikler, her biri tek tek ---
@@ -2787,12 +2943,12 @@ async function syncNow(manual){
       if(have && !remoteBlobs.has(bid)) isler.push({bid,blob:have,yon:"yukle"});
       else if(!have && remoteBlobs.has(bid)) isler.push({bid,yon:"indir"});
     }
-    let gotNew=false;
+    let gotNew=false, yuklenenBayt=0;
     for(let i=0;i<isler.length;i++){
       const is=isler[i];
       if(isler.length>1) setSyncStat("☁️ Ekler aktarılıyor… "+(i+1)+"/"+isler.length);
       try{
-        if(is.yon==="yukle") await driveUpload(t,"blob-"+is.bid,is.blob);
+        if(is.yon==="yukle"){ await driveUpload(t,"blob-"+is.bid,is.blob); yuklenenBayt+=is.blob.size||0; }
         else{ await idbPut(is.bid,await(await driveDownload(t,remoteBlobs.get(is.bid))).blob()); gotNew=true; }
       }catch(e){
         console.error("blob",is.bid,e);
@@ -2801,6 +2957,7 @@ async function syncNow(manual){
         if(e.status===403&&!YENIDEN_DENE.has(e.sebep)) throw e;
       }
     }
+    if(yuklenenBayt) driveKullanimGuncelle(t,all,yuklenenBayt);
     if(blobSorun.length){
       setSyncStat("☁️ Notlar eşitlendi · "+blobSorun.length+" ek bekliyor");
       if(manual) syncMsg("Notlar eşitlendi. Aktarılamayan ek ("+blobSorun.length+"): "+
@@ -2816,18 +2973,47 @@ async function syncNow(manual){
     setSyncStat("☁️ ⚠️ "+(navigator.onLine?e.message+" — tekrar denemek için tıkla":"çevrimdışı — bağlanınca eşitlenecek"));
     if(manual) syncMsg("Hata: "+e.message+ek);
   }
+  // Google Takvim aktarımı Drive'dan bağımsız: Drive tarafı hata verse de tarihler aktarılır
+  if(S.takvimOn&&tokenValid()) await takvimEsitle();
   syncBusy=false;
   if(pendingSync){ pendingSync=false; scheduleSync(); }
 }
-const fmtGB=b=>{ b=Number(b)||0; return b>=1073741824?(b/1073741824).toFixed(1)+" GB":Math.round(b/1048576)+" MB"; };
+const fmtGB=b=>{ b=Number(b)||0; return b>=1073741824?(b/1073741824).toFixed(1).replace(".",",")+" GB":Math.round(b/1048576)+" MB"; };
+/* Drive kullanımı: LogBook'un kendi kapladığı alan (uygulama klasöründeki dosyaların toplamı)
+   + Google hesabının genel doluluğu (Gmail ve Fotoğraflar'la ortak). Her eşitlemede güncellenir;
+   hesap doluluğu ayrı bir istek gerektirdiği için en çok yarım saatte bir sorulur. Cihaza özel. */
+let driveKul=(()=>{ try{ return JSON.parse(localStorage.getItem("nbmd_drivekul"))||null; }catch(e){ return null; } })();
+const fmtBoyut=b=>{ b=Number(b)||0;
+  return b<1048576?Math.max(1,Math.round(b/1024))+" KB":b<1073741824?(b/1048576).toFixed(1).replace(".",",")+" MB"
+    :(b/1073741824).toFixed(2).replace(".",",")+" GB"; };
+async function driveKullanimGuncelle(t,all,ekBayt){
+  const k={lb:all.reduce((a,f)=>a+(Number(f.size)||0),0)+(ekBayt||0),adet:all.length,
+    kul:driveKul?driveKul.kul:0,lim:driveKul?driveKul.lim:0,qt:driveKul?driveKul.qt:0,t:Date.now()};
+  if(Date.now()-(k.qt||0)>30*60e3){
+    try{ const j=await(await gFetch(DRIVE_API+"/about?fields=storageQuota",{headers:gh(t)})).json();
+      const q=j.storageQuota||{}; k.kul=Number(q.usage)||0; k.lim=Number(q.limit)||0; k.qt=Date.now(); }catch(e){}
+  }
+  driveKul=k; try{ localStorage.setItem("nbmd_drivekul",JSON.stringify(k)); }catch(e){}
+  driveKulGoster();
+}
+function driveKulGoster(){
+  const el=$("#drivekul"); if(!el) return;
+  if(!S.syncOn||!driveKul){ el.style.display="none"; el.textContent=""; return; }
+  const y=driveKul.lim?Math.round(driveKul.kul/driveKul.lim*100):null;
+  el.style.display="";
+  el.innerHTML="💾 LogBook "+fmtBoyut(driveKul.lb)+(y!=null?` · Drive <b class="${y>=95?"dolu":""}">%${y}</b>`:"");
+  el.title="LogBook'un Drive'da kapladığı alan: "+fmtBoyut(driveKul.lb)+" ("+driveKul.adet+" dosya)"+
+    (driveKul.lim?"\nGoogle hesabının toplam doluluğu (Gmail ve Fotoğraflar dahil): "+fmtGB(driveKul.kul)+" / "+fmtGB(driveKul.lim):"");
+}
 async function kotaGoster(){
   const el=$("#sync-kota"); if(!el||!tokenValid()) return;
   try{
     const j=await(await gFetch(DRIVE_API+"/about?fields=storageQuota",{headers:gh(gTok.access_token)})).json();
     const q=j.storageQuota||{}, lim=Number(q.limit)||0, kul=Number(q.usage)||0;
-    if(!lim){ el.textContent="Drive alanı: sınırsız"; return; }
+    const lbSatir=driveKul?"LogBook: "+fmtBoyut(driveKul.lb)+" ("+driveKul.adet+" dosya) · ":"";
+    if(!lim){ el.textContent=lbSatir+"Drive alanı: sınırsız"; return; }
     const y=Math.round(kul/lim*100);
-    el.textContent="Drive alanı: "+fmtGB(kul)+" / "+fmtGB(lim)+" (%"+y+")"+
+    el.textContent=lbSatir+"Google hesabı: "+fmtGB(kul)+" / "+fmtGB(lim)+" (%"+y+")"+
       (y>=97?" — dolmak üzere; yeni dosyalar yüklenemeyebilir":"");
   }catch(e){ el.textContent=""; }
 }
@@ -2895,6 +3081,10 @@ function renderSyncModal(){
       <p class="sync-note">Her değişiklik otomatik eşitlenir. Son eşitleme: ${S.lastSync?fmtDT(S.lastSync):"—"}</p>
       ${blobSorun.length?`<p class="sync-note">⚠️ ${blobSorun.length} ek aktarılamadı: ${esc(blobSorun.map(x=>x.ad).join(", "))} — ${esc(blobSorun[0].mesaj)}</p>`:""}
       <p class="sync-note" id="sync-kota"></p>
+      <div class="sync-takvim"><div class="st-m"><b>📅 Google Takvim</b>
+          <span>${S.takvimOn?"Açık · bitiş tarihli notlar “LogBook” takviminde tüm gün etkinliği":"Kapalı · bitiş tarihli notları Google Takvim'e aktar"}</span>
+          <small id="sync-takvim-durum">${esc(S.takvimOn?takvimDurum:"")}</small></div>
+        <button class="tool" id="sync-takvim-btn">${S.takvimOn?"Kapat":"Aç"}</button></div>
       <div class="sync-surum">Sürüm ${SURUM}</div>`;
     kotaGoster();
     btns.innerHTML=`<button class="tool" id="sync-now">↻ Şimdi Eşitle</button>
@@ -2902,12 +3092,13 @@ function renderSyncModal(){
       <button class="tool danger" id="sync-off">Bağlantıyı Kes</button>
       <button class="tool" id="sync-close">Kapat</button>`;
     $("#sync-now").onclick=()=>syncNow(true);
+    $("#sync-takvim-btn").onclick=()=>S.takvimOn?takvimKapat():takvimAc();
     $("#sync-tanibtn").onclick=e=>{ e.currentTarget.disabled=true;
       taniCalistir().finally(()=>{ const b=$("#sync-tanibtn"); if(b) b.disabled=false; }); };
     $("#sync-off").onclick=()=>{
       try{ if(gTok&&gisReady()) google.accounts.oauth2.revoke(gTok.access_token,()=>{}); }catch(e){}
       dropToken();
-      S.syncOn=false; S.gEmail=""; appLog("☁️ Bulut senkronu kapatıldı"); save();
+      S.syncOn=false; S.gEmail=""; S.takvimOn=false; appLog("☁️ Bulut senkronu kapatıldı"); save(); driveKulGoster();
       setSyncStat(""); renderSyncModal();
       syncMsg("Senkron kapatıldı. Drive'daki veriler durur; yerel verilere dokunulmaz.");
     };
@@ -2916,6 +3107,7 @@ function renderSyncModal(){
 }
 $("#syncbtn").onclick=()=>{ renderSyncModal(); syncMsg(""); syncModal.style.display="flex"; };
 syncModal.addEventListener("click",e=>{ if(e.target===syncModal) syncModal.style.display="none"; });
+$("#drivekul").onclick=()=>{ syncModal.style.display="flex"; renderSyncModal(); };
 $("#syncstat").onclick=()=>{ if(S.syncOn&&!syncBusy) syncNow(true); };
 setInterval(()=>syncNow(),90000);
 
@@ -3248,6 +3440,221 @@ document.addEventListener("input",e=>{
   },{passive:true});
 })();
 
+/* ================= TAKVİM ================= */
+/* Bitiş tarihi olan her not (tamamlananlar soluk) takvimde günü üzerinde görünür.
+   Bir güne dokununca o günün notları altta açılır; oradan o tarihe yeni not eklenir. */
+const gunAnahtar=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const anahtarTarih=k=>{ const [y,m,g]=k.split("-").map(Number); return new Date(y,m-1,g); };
+const AYLAR=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+const GUNLER=["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
+let takvimSecili=gunAnahtar(new Date());
+let takvimMod=(()=>{ try{ return localStorage.getItem("nbmd_takvimmod")==="hafta"?"hafta":"ay"; }catch(e){ return "ay"; } })();
+const tamBaslik=n=>n.title||htmlToText(n.content).trim().split("\n")[0]||"Başlıksız not";
+function takvimNotlari(){
+  const m=new Map();
+  for(const n of S.notes){
+    if(!n.deadline) continue;
+    const k=gunAnahtar(new Date(n.deadline));
+    if(!m.has(k)) m.set(k,[]);
+    m.get(k).push(n);
+  }
+  for(const l of m.values()) l.sort((a,b)=>(a.done?1:0)-(b.done?1:0)||triRank(a)-triRank(b)||new Date(a.deadline)-new Date(b.deadline));
+  return m;
+}
+const haftaBasi=d=>{ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); x.setDate(x.getDate()-((x.getDay()+6)%7)); return x; };
+function takvimHap(n){
+  const cat=catOf(n.cat), renk=n.triage?({r:"var(--red)",y:"var(--amber)",g:"var(--green)"})[n.triage]:(cat?cat.color:"var(--accent)");
+  return `<button class="thap ${n.done?"bitti":""}" data-thap="${n.id}" style="--r:${renk}" title="${esc(tamBaslik(n))}">${esc(tamBaslik(n))}</button>`;
+}
+function takvimViewHTML(){
+  const harita=takvimNotlari(), bugun=gunAnahtar(new Date()), sec=anahtarTarih(takvimSecili);
+  let gunler=[], baslik;
+  if(takvimMod==="ay"){
+    const ilk=new Date(sec.getFullYear(),sec.getMonth(),1), bas=haftaBasi(ilk);
+    for(let i=0;i<42;i++){ const d=new Date(bas); d.setDate(bas.getDate()+i); gunler.push(d); }
+    if(gunler[35].getMonth()!==sec.getMonth()) gunler=gunler.slice(0,35);   // 5 hafta yetiyorsa 6. sıra boş kalmasın
+    baslik=AYLAR[sec.getMonth()]+" "+sec.getFullYear();
+  }else{
+    const bas=haftaBasi(sec);
+    for(let i=0;i<7;i++){ const d=new Date(bas); d.setDate(bas.getDate()+i); gunler.push(d); }
+    const son=gunler[6];
+    baslik=bas.getDate()+(bas.getMonth()!==son.getMonth()?" "+AYLAR[bas.getMonth()]:"")+" – "+son.getDate()+" "+AYLAR[son.getMonth()]+" "+son.getFullYear();
+  }
+  const enFazla=takvimMod==="ay"?3:8;
+  const hucre=d=>{
+    const k=gunAnahtar(d), l=harita.get(k)||[], disarida=takvimMod==="ay"&&d.getMonth()!==sec.getMonth();
+    const bekleyen=l.filter(n=>!n.done).length;
+    return `<div class="tgun ${k===bugun?"bugun":""} ${k===takvimSecili?"secili":""} ${disarida?"dis":""}" data-tgun="${k}">
+      <div class="tgun-no"><span>${d.getDate()}</span>${bekleyen?`<em>${bekleyen}</em>`:""}</div>
+      <div class="thaplar">${l.slice(0,enFazla).map(takvimHap).join("")}${l.length>enFazla?`<span class="tdaha">+${l.length-enFazla}</span>`:""}</div>
+      <div class="tnokta">${l.slice(0,4).map(n=>`<i class="${n.done?"bitti":""}" style="background:${n.triage?({r:"var(--red)",y:"var(--amber)",g:"var(--green)"})[n.triage]:(catOf(n.cat)?.color||"var(--accent)")}"></i>`).join("")}</div>
+    </div>`;
+  };
+  // Seçili günün notları — açık editördeki not tarihi değişse de burada kalsın (yazarken kaybolmasın)
+  let gunun=(harita.get(takvimSecili)||[]).slice();
+  const acik=expandedId&&S.notes.find(x=>x.id===expandedId);
+  if(acik&&!gunun.includes(acik)) gunun.unshift(acik);
+  const gecikenler=takvimSecili===bugun?S.notes.filter(n=>n.deadline&&!n.done&&new Date(n.deadline)<anahtarTarih(bugun)&&n!==acik)
+    .sort((a,b)=>new Date(a.deadline)-new Date(b.deadline)):[];
+  const secAd=sec.toLocaleDateString("tr-TR",{weekday:"long",day:"numeric",month:"long"});
+  return `<div class="tust">
+      <div class="tnav"><button class="tool" data-tnav="-1" title="Önceki">‹</button><button class="tool" data-tnav="0">Bugün</button><button class="tool" data-tnav="1" title="Sonraki">›</button></div>
+      <div class="tbaslik">${baslik}</div>
+      <div class="tmod"><button class="${takvimMod==="ay"?"on":""}" data-tmod="ay">Ay</button><button class="${takvimMod==="hafta"?"on":""}" data-tmod="hafta">Hafta</button></div>
+    </div>
+    <div class="tizgara ${takvimMod}">${GUNLER.map(g=>`<div class="tgad">${g}</div>`).join("")}${gunler.map(hucre).join("")}</div>
+    <div class="tpanel">
+      <div class="tpanel-h"><b>${secAd}</b><span>${gunun.length?gunun.length+" not":""}</span></div>
+      <form class="tekle" data-takvimekle="${takvimSecili}" autocomplete="off">
+        <input placeholder="＋ Bu güne not ekle…" enterkeyhint="done">
+        <button type="submit" class="qa-btn sm primary" title="Ekle">＋</button></form>
+      ${gunun.length?gunun.map(noteCardHTML).join(""):`<div class="rempty">Bu güne bitiş tarihli not yok.</div>`}
+      ${gecikenler.length?`<div class="tgec-h">⏰ Geciken (${gecikenler.length})</div>`+gecikenler.map(noteCardHTML).join(""):""}
+    </div>`;
+}
+function takvimGit(adim){
+  if(adim===0){ takvimSecili=gunAnahtar(new Date()); return; }
+  const d=anahtarTarih(takvimSecili);
+  if(takvimMod==="ay"){ const g=d.getDate(); d.setDate(1); d.setMonth(d.getMonth()+adim);
+    d.setDate(Math.min(g,new Date(d.getFullYear(),d.getMonth()+1,0).getDate())); }
+  else d.setDate(d.getDate()+7*adim);
+  takvimSecili=gunAnahtar(d);
+}
+function takvimdenNot(k,metin){
+  stopDictation();
+  const n=newNote("",metin);
+  const d=anahtarTarih(k); d.setHours(23,59,0,0);         // tüm gün: o günün sonuna kadar
+  n.deadline=d.toISOString();
+  noteLog(n,"⏰ Bitiş tarihi eklendi: "+fmtDT(n.deadline)+" (takvimden)");
+  save(); render();
+  setTimeout(()=>document.querySelector(`[data-takvimekle="${k}"] input`)?.focus(),0);
+}
+document.addEventListener("click",e=>{
+  if(view.type!=="takvim") return;
+  const el=e.target, bul=s=>el.closest&&el.closest(s); let t;
+  if(t=bul("[data-thap]")){ e.stopPropagation();
+    const n=S.notes.find(x=>x.id===t.dataset.thap); if(!n) return;
+    takvimSecili=gunAnahtar(new Date(n.deadline));
+    if(expandedId!==n.id) expandNote(n.id); else render();
+    setTimeout(()=>document.getElementById("note-"+n.id)?.scrollIntoView({block:"nearest"}),30);
+    return; }
+  if(t=bul("[data-tgun]")){
+    if(takvimSecili!==t.dataset.tgun){ takvimSecili=t.dataset.tgun; if(expandedId) collapseNote(true); render(); }
+    return; }
+  if(t=bul("[data-tnav]")){ if(expandedId) collapseNote(true); takvimGit(+t.dataset.tnav); render(); return; }
+  if(t=bul("[data-tmod]")){ takvimMod=t.dataset.tmod; try{ localStorage.setItem("nbmd_takvimmod",takvimMod); }catch(e){} render(); return; }
+});
+document.addEventListener("submit",e=>{
+  const f=e.target.closest&&e.target.closest("[data-takvimekle]"); if(!f) return;
+  e.preventDefault();
+  const inp=f.querySelector("input"), v=inp.value.trim(); if(!v) return;
+  takvimdenNot(f.dataset.takvimekle,v);
+});
+
+/* ================= GOOGLE TAKVİM'E AKTARIM (tek yön: LogBook → Google) =================
+   Bitiş tarihli notlar Google Takvim'de uygulamanın kendi açtığı "LogBook" takviminde tüm gün
+   etkinliği olur. İzin yalnızca bu takvimi kapsar (calendar.app.created): kişisel takvimlerin
+   okunmaz ve değiştirilmez. Etkinlik kimliği notun kimliğinden türetildiği için birden çok cihaz
+   aynı etkinliği günceller, kopya oluşmaz. Not tamamlanınca ya da tarihi kaldırılınca etkinlik silinir. */
+const CAL_SCOPE="https://www.googleapis.com/auth/calendar.app.created";
+const CAL_API="https://www.googleapis.com/calendar/v3";
+const takvimIzinVar=()=>!!(gTok&&gTok.scope&&gTok.scope.includes("calendar.app.created"));
+const etkinlikId=id=>"lb"+[...id].map(c=>c.charCodeAt(0).toString(16).padStart(2,"0")).join("");   // yalnız 0-9a-f
+let takvimOnb=(()=>{ try{ return JSON.parse(localStorage.getItem("nbmd_gcal"))||{}; }catch(e){ return {}; } })();
+const takvimOnbYaz=()=>{ try{ localStorage.setItem("nbmd_gcal",JSON.stringify(takvimOnb)); }catch(e){} };
+let takvimCalisiyor=false, takvimDurum="";
+function takvimDurumYaz(m){ takvimDurum=m; const el=$("#sync-takvim-durum"); if(el) el.textContent=m; }
+function etkinlikGovdesi(n){
+  const d=new Date(n.deadline), ert=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1);
+  const acikAlt=n.subs.filter(x=>!x.done).map(x=>"☐ "+x.text);
+  const metin=htmlToText(n.content).trim();
+  const ev={summary:(n.triage==="r"?"🔴 ":"")+tamBaslik(n),
+    description:[metin.length>600?metin.slice(0,600)+"…":metin, acikAlt.join("\n")].filter(Boolean).join("\n\n")+"\n\n— LogBook",
+    start:{date:gunAnahtar(d)}, end:{date:gunAnahtar(ert)}, transparency:"transparent", status:"confirmed"};
+  const renk={r:"11",y:"5",g:"10"}[n.triage]; if(renk) ev.colorId=renk;
+  return ev;
+}
+async function takvimHazirla(t){
+  if(S.takvimId) return S.takvimId;
+  const j=await(await gFetch(CAL_API+"/calendars",{method:"POST",headers:{...gh(t),"Content-Type":"application/json"},
+    body:JSON.stringify({summary:"LogBook",description:"LogBook notlarının bitiş tarihleri",
+      timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone||"Europe/Istanbul"})})).json();
+  S.takvimId=j.id; takvimOnb={}; takvimOnbYaz(); save();
+  appLog("📅 Google Takvim'de “LogBook” takvimi oluşturuldu");
+  return S.takvimId;
+}
+async function etkinlikYaz(t,cal,id,ev){
+  const eid=etkinlikId(id), taban=CAL_API+"/calendars/"+encodeURIComponent(cal)+"/events";
+  const opt=(m,b)=>({method:m,headers:{...gh(t),"Content-Type":"application/json"},body:JSON.stringify(b)});
+  try{ await gFetch(taban+"/"+eid,opt("PUT",ev)); }            // varsa güncelle (silinmişse geri getirir)
+  catch(e){
+    if(e.status!==404) throw e;
+    try{ await gFetch(taban,opt("POST",{...ev,id:eid})); }
+    catch(e2){ if(e2.status===409) await gFetch(taban+"/"+eid,opt("PUT",ev)); else throw e2; }
+  }
+}
+async function etkinlikSil(t,cal,id){
+  try{ await gFetch(CAL_API+"/calendars/"+encodeURIComponent(cal)+"/events/"+etkinlikId(id),{method:"DELETE",headers:gh(t)}); }
+  catch(e){ if(e.status!==404&&e.status!==410) throw e; }
+}
+async function takvimEsitle(){
+  if(!S.syncOn||!S.takvimOn||takvimCalisiyor) return;
+  if(!tokenValid()) return;
+  if(!takvimIzinVar()){ takvimDurumYaz("⚠️ Takvim izni yok — aşağıdan Google Takvim'i yeniden aç"); return; }
+  takvimCalisiyor=true;
+  const t=gTok.access_token;
+  try{
+    let cal=await takvimHazirla(t);
+    const istenen=new Map(S.notes.filter(n=>n.deadline&&!n.done).map(n=>[n.id,n]));
+    let yazilan=0, silinen=0;
+    for(const [id,n] of istenen){
+      const ev=etkinlikGovdesi(n), imza=JSON.stringify(ev);
+      if(takvimOnb[id]===imza) continue;
+      try{ await etkinlikYaz(t,cal,id,ev); }
+      catch(e){
+        // Takvim Google tarafında silinmişse bir kez yeniden kur
+        if(e.status===404){ S.takvimId=null; takvimOnb={}; cal=await takvimHazirla(t); await etkinlikYaz(t,cal,id,ev); }
+        else throw e;
+      }
+      takvimOnb[id]=imza; takvimOnbYaz(); yazilan++;
+    }
+    for(const id of Object.keys(takvimOnb)) if(!istenen.has(id)){
+      await etkinlikSil(t,cal,id); delete takvimOnb[id]; takvimOnbYaz(); silinen++;
+    }
+    takvimDurumYaz("📅 Google Takvim eşitlendi "+fmtTime(Date.now())+" · "+istenen.size+" etkinlik"+
+      (yazilan||silinen?" ("+[yazilan?yazilan+" güncellendi":"",silinen?silinen+" kaldırıldı":""].filter(Boolean).join(", ")+")":""));
+  }catch(e){
+    console.error("takvim",e);
+    const m=e.sebep==="accessNotConfigured"||/has not been used|is disabled/i.test(e.message)
+      ?"Google Cloud projesinde Calendar API etkin değil":e.message;
+    takvimDurumYaz("⚠️ Google Takvim: "+m);
+  }
+  takvimCalisiyor=false;
+}
+async function takvimAc(){
+  syncMsg("Google izin penceresi açılıyor…");
+  S.takvimOn=true; save();
+  dropToken(); tokenClient=null;                  // yeni izin (takvim) için oturum yeniden alınır
+  try{
+    await getToken(true);
+    if(!takvimIzinVar()){
+      S.takvimOn=false; save(); renderSyncModal();
+      syncMsg("Takvim izni verilmedi — Google giriş ekranında Takvim kutusunu işaretlemelisin."); return;
+    }
+    appLog("📅 Google Takvim aktarımı açıldı"); save(); renderSyncModal(); syncMsg("");
+    await takvimEsitle();
+  }catch(e){ S.takvimOn=false; save(); renderSyncModal(); syncMsg("Hata: "+e.message); }
+}
+async function takvimKapat(){
+  const sil=S.takvimId&&confirm("Google Takvim aktarımı kapatılacak.\n\nGoogle Takvim'deki “LogBook” takvimi de silinsin mi?\n(Tamam: silinsin · İptal: takvim kalsın, yalnızca güncellenmesin)");
+  if(sil&&tokenValid()&&takvimIzinVar()){
+    try{ await gFetch(CAL_API+"/calendars/"+encodeURIComponent(S.takvimId),{method:"DELETE",headers:gh(gTok.access_token)}); S.takvimId=null; }
+    catch(e){ syncMsg("Takvim silinemedi: "+e.message); }
+  }
+  S.takvimOn=false; takvimOnb={}; takvimOnbYaz(); takvimDurumYaz("");
+  appLog("📅 Google Takvim aktarımı kapatıldı"+(sil?" (LogBook takvimi silindi)":"")); save(); renderSyncModal();
+}
+
 /* ================= INIT ================= */
 function render(){ renderSidebar(); renderLists(); }
 function init(){
@@ -3256,7 +3663,7 @@ function init(){
     const last=[...S.appLog].reverse().find(e=>e.a==="🔓 Oturum açıldı");
     if(!last||Date.now()-last.t>60000){ appLog("🔓 Oturum açıldı"); save(); }
   })();
-  render();
+  render(); driveKulGoster();
   /* PWA: çevrimdışı kabuk (yalnızca http/https'te; file:// açılışta atlanır) */
   if("serviceWorker" in navigator && location.protocol.startsWith("http"))
     navigator.serviceWorker.register("sw.js").catch(()=>{});
