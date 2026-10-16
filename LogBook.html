@@ -108,6 +108,7 @@ button,.navitem,.chip,.tool,.fbtn,.qa-btn,.lsec-h{touch-action:manipulation}
 #sidebar.collapsed .subcat-row,
 #sidebar.collapsed #syncstat,#sidebar.collapsed #drivekul,
 #sidebar.collapsed .credit{display:none}
+#sidebar.collapsed #minitakvim{display:none}
 #sidebar.collapsed .brand{flex-direction:column;justify-content:center;gap:10px;padding:6px 0 14px}
 #sidebar.collapsed .brand #collapsebtn{margin-left:0}
 #sidebar.collapsed .navitem{justify-content:center;padding-left:0!important;padding-right:0;gap:0}
@@ -465,6 +466,29 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 #sync-tani div+div{border-top:1px dashed var(--border);padding-top:4px;margin-top:4px}
 .sync-surum{font-size:11px;color:var(--text2);opacity:.6;margin-top:8px;text-align:right}
 
+/* ---------- Kenar çubuğunda küçük takvim ---------- */
+#minitakvim{margin:12px 2px 2px;padding:8px 6px 6px;border:1px solid var(--border);border-radius:11px;background:var(--surface)}
+.mt-ust{display:flex;align-items:center;gap:2px;padding:0 2px 6px}
+.mt-ay{flex:1;font-size:13.5px;font-weight:700;text-align:left;color:var(--text);padding:2px 4px;border-radius:6px}
+.mt-ay:hover{color:var(--accent)}
+.mt-ust .mt-nav{width:22px;height:22px;border-radius:6px;color:var(--text2);font-size:10px;display:flex;align-items:center;justify-content:center}
+.mt-ust .mt-nav:hover{background:var(--surface2);color:var(--accent)}
+.mt-ust .mt-bugun{font-size:9px}
+.mt-izgara{display:grid;grid-template-columns:repeat(7,1fr);row-gap:1px}
+.mt-gad{font-size:10.5px;font-weight:700;color:var(--text2);text-align:center;padding:2px 0 3px}
+.mt-gun{position:relative;height:27px;border-radius:7px;font-size:12.5px;color:var(--text);
+  display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.mt-gun:hover{background:var(--surface2)}
+.mt-gun.dis{color:var(--text2);opacity:.5}
+.mt-gun.bugun{color:var(--accent);font-weight:700}
+.mt-gun.secili{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.mt-gun.bugun.secili{background:var(--accent);color:#fff}
+.mt-gun i{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent)}
+.mt-gun i.gec{background:var(--red)}
+.mt-gun i.bitti{background:var(--text2);opacity:.6}
+.mt-gun.bugun.secili i{background:#fff}
+@media(hover:none){ .mt-gun{height:31px;font-size:13.5px} }
+
 /* ---------- Takvim ---------- */
 .tust{display:flex;align-items:center;gap:10px;margin:4px 0 10px;flex-wrap:wrap}
 .tnav{display:flex;gap:4px}
@@ -670,6 +694,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
     <button class="navitem" data-view="learn" title="Çalışma Defteri"><span class="ico">📚</span><span class="lbl">Çalışma Defteri</span><span class="count" id="c-learn-nav"></span></button>
     <button class="navitem" data-view="takvim" title="Takvim"><span class="ico">📅</span><span class="lbl">Takvim</span><span class="count" id="c-takvim"></span></button>
     <button class="navitem" data-view="log" title="Günlük (Log)"><span class="ico">🕘</span><span class="lbl">Günlük (Log)</span></button>
+    <div id="minitakvim"></div>
     <div class="navsec"><span class="lbl">Kategoriler</span><button id="addcat" title="Kategori ekle">＋</button></div>
     <div id="newcat-row"><input id="newcat-input" placeholder="Kategori adı, Enter'a bas"></div>
     <div id="catlist"></div>
@@ -757,7 +782,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 "use strict";
 /* ================= STATE ================= */
 const LS_KEY="nbmd_v1";
-const SURUM="1.5.0";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
+const SURUM="1.5.1";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
 const CAT_COLORS=["#5B5BD6","#3E8E5A","#B57E1E","#C4442E","#2E7DB5","#8E5BAB","#5A8E7A","#B5573E"];
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
@@ -1069,6 +1094,7 @@ function renderSidebar(){
   $("#c-active").textContent=S.notes.filter(n=>!n.done&&!n.panel).length||"";
   $("#c-done").textContent=S.notes.filter(n=>n.done).length||"";
   $("#c-learn-nav").textContent=S.notes.filter(n=>n.panel==="learn"&&!n.done).length||"";
+  miniTakvimCiz();
   { const gunSonu=new Date(); gunSonu.setHours(23,59,59,999);      // bugün bitmesi gereken + gecikenler
     const c=$("#c-takvim"), say=S.notes.filter(n=>n.deadline&&!n.done&&new Date(n.deadline)<=gunSonu).length;
     c.textContent=say||""; c.title=say?say+" not bugün bitiyor ya da gecikti":""; }
@@ -3541,7 +3567,8 @@ document.addEventListener("click",e=>{
   if(t=bul("[data-tgun]")){
     if(takvimSecili!==t.dataset.tgun){ takvimSecili=t.dataset.tgun; if(expandedId) collapseNote(true); render(); }
     return; }
-  if(t=bul("[data-tnav]")){ if(expandedId) collapseNote(true); takvimGit(+t.dataset.tnav); render(); return; }
+  if(t=bul("[data-tnav]")){ if(expandedId) collapseNote(true); takvimGit(+t.dataset.tnav);
+    const d=anahtarTarih(takvimSecili); miniAy=new Date(d.getFullYear(),d.getMonth(),1); render(); return; }
   if(t=bul("[data-tmod]")){ takvimMod=t.dataset.tmod; try{ localStorage.setItem("nbmd_takvimmod",takvimMod); }catch(e){} render(); return; }
 });
 document.addEventListener("submit",e=>{
@@ -3549,6 +3576,53 @@ document.addEventListener("submit",e=>{
   e.preventDefault();
   const inp=f.querySelector("input"), v=inp.value.trim(); if(!v) return;
   takvimdenNot(f.dataset.takvimekle,v);
+});
+
+/* ---- Kenar çubuğundaki küçük takvim: bir güne dokununca o gün Takvim'de açılır ----
+   Gün altındaki nokta: mavi = bekleyen iş, kırmızı = gecikmiş, gri = hepsi tamamlanmış. */
+let miniAy=(()=>{ const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),1); })();
+function miniTakvimCiz(){
+  const kap=$("#minitakvim"); if(!kap) return;
+  const harita=takvimNotlari(), bugun=gunAnahtar(new Date()), bas=haftaBasi(miniAy);
+  const secili=view.type==="takvim"?takvimSecili:null;
+  let h="";
+  for(let i=0;i<42;i++){
+    const d=new Date(bas); d.setDate(bas.getDate()+i);
+    if(i===35&&d.getMonth()!==miniAy.getMonth()) break;                 // 5 hafta yetiyorsa boş sıra çizilmesin
+    const k=gunAnahtar(d), l=harita.get(k)||[], bekleyen=l.filter(n=>!n.done).length;
+    const nokta=!l.length?"":bekleyen?(k<bugun?"gec":""):"bitti";
+    h+=`<button class="mt-gun ${d.getMonth()!==miniAy.getMonth()?"dis":""} ${k===bugun?"bugun":""} ${k===secili?"secili":""}"
+      data-mgun="${k}" title="${d.toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"})}${
+        l.length?" · "+(bekleyen?bekleyen+" bekleyen":"")+(l.length-bekleyen?(bekleyen?", ":"")+(l.length-bekleyen)+" tamamlanan":""):""}">${d.getDate()}${
+        l.length?`<i class="${nokta}"></i>`:""}</button>`;
+  }
+  kap.innerHTML=`<div class="mt-ust">
+      <button class="mt-ay" data-mac="1" title="Takvimi aç">${AYLAR[miniAy.getMonth()]} ${miniAy.getFullYear()}</button>
+      <button class="mt-nav" data-mnav="-1" title="Önceki ay">◀</button>
+      <button class="mt-nav mt-bugun" data-mnav="0" title="Bugün">●</button>
+      <button class="mt-nav" data-mnav="1" title="Sonraki ay">▶</button>
+    </div>
+    <div class="mt-izgara">${["P","S","Ç","P","C","C","P"].map(g=>`<div class="mt-gad">${g}</div>`).join("")}${h}</div>`;
+}
+$("#minitakvim").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.dataset.mnav!==undefined){
+    const a=+b.dataset.mnav;
+    miniAy=a===0?(()=>{ const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),1); })()
+                :new Date(miniAy.getFullYear(),miniAy.getMonth()+a,1);
+    miniTakvimCiz(); return;
+  }
+  if(b.dataset.mac){ setView({type:"takvim"}); return; }
+  if(b.dataset.mgun){
+    takvimSecili=b.dataset.mgun;
+    const d=anahtarTarih(takvimSecili); miniAy=new Date(d.getFullYear(),d.getMonth(),1);
+    if(view.type==="takvim"){ if(expandedId) collapseNote(true); render(); }
+    else setView({type:"takvim"});
+    $("#sidebar").classList.remove("open"); $("#overlay").classList.remove("show");
+    // Fareyle kullanımda doğrudan yazmaya başlansın; dokunmatikte klavye kendiliğinden açılmasın
+    if(matchMedia("(hover:hover)").matches)
+      setTimeout(()=>document.querySelector(`[data-takvimekle="${takvimSecili}"] input`)?.focus(),0);
+  }
 });
 
 /* ================= GOOGLE TAKVİM'E AKTARIM (tek yön: LogBook → Google) =================

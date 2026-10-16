@@ -36,7 +36,7 @@ Her düzenlemenin öncesi saklanır. Fikir değiştirmek serbest — kaybettiği
 - **Bölümlü çalışma defteri** — öğrenme alanı görev listesi değil, başvuru defteridir: kayıtların tamamlanma durumu yoktur, yazıldıkları yerde kalır. Bölümler istenen derinlikte iç içe kurulur, her birinin kendi yazma kutusu vardır; defter ayrıca ana alanda tam genişlikte açılır
 - **Triyaj işareti** — notu kırmızı, sarı veya yeşil olarak sınıflandır; kart buna göre renklenir, değişiklik günlüğe işlenir
 - **Görüşme listesine al** — notu taşımadan ve çoğaltmadan mentör listesine ekle; ikinci tıkta listeden çıkar
-- **Takvim** — bitiş tarihli tüm notlar ay ya da hafta takviminde; bir güne dokun, o günün notlarını gör veya o güne not ekle. İstersen ayrı bir “LogBook” takvimiyle Google Takvim'e tüm gün etkinliği olarak aktarılır (uygulama diğer takvimlerini göremez)
+- **Takvim** — bitiş tarihli tüm notlar ay ya da hafta takviminde, kenar çubuğunda da küçük bir takvim; bir güne dokun, o günün notlarını gör veya o güne not ekle. İstersen ayrı bir “LogBook” takvimiyle Google Takvim'e tüm gün etkinliği olarak aktarılır (uygulama diğer takvimlerini göremez)
 - **Kalemle çizim** — PDF ve görsellerin üzerine Apple Pencil / fareyle yaz; 4 renk, fosforlu, silgi, geri al. Parmak kaydırır, kalem çizer
 - **Düzenleme tarihçesi** — silmek yok, üzerine yazmak yok; her sürüm tarihiyle durur
 - **Türkçe dikte** — konuş, metne dönüşsün (Web Speech API)

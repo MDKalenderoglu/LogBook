@@ -4,6 +4,12 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] — 2026-10-16
+
+### Added
+
+- **Mini calendar in the sidebar.** A compact month calendar under the main sections, with ◀ ● ▶ to move between months. A dot under a day marks notes due that day — blue for pending, red for overdue, grey when everything is done — and hovering shows the counts. Selecting a day opens it in the calendar view, ready to add a task or note for that day; on phones the drawer closes and the keyboard is not forced open
+
 ## [1.5.0] — 2026-10-16
 
 ### Added
