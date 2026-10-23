@@ -83,6 +83,8 @@ Cihazlar arası eşitleme için kenar çubuğundan **Senkron** → Google giriş
 
 > ⚠️ Tarayıcı site verilerini temizlersen yerel notlar da gider. Senkronu açık tut ya da arada bir yedek al.
 
+**Güvenlik.** Not içeriği etkisiz bir ayrıştırıcıda sıkı bir beyaz listeyle temizlenir, içe aktarılan ve eşitlenen veri doğrulanır, PDF'ler kod çalıştırma kapalıyken açılır, güvenlik politikası (CSP) uygulamanın kendi kodu dışındaki her kodu engeller. Yerel depodaki, yedekteki ve Drive'daki veri şifreli değildir; Drive verisi hesabının gizli uygulama klasöründe durur. Tarayıcıda çalışan güvenlik testleri `tests/guvenlik.html` içindedir. LogBook kişisel bir defterdir — klinik kayıt için onaylı bir sistem değildir; kimliği belirlenebilir hasta verisi saklamak kullanıcının sorumluluğundadır.
+
 ## Mimari
 
 Tek HTML dosyası. Framework yok, derleme yok, sunucu yok, izleme yok. `index.html` uygulamanın tamamı; `LogBook.html` aynı dosyanın çift-tıklanabilir kopyası. Service worker çevrimdışı kabuk sağlar; PDF motoru (pdf.js) ilk kullanımda bir kez indirilir, sonra önbellekten çalışır.

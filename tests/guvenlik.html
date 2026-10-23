@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LogBook güvenlik testleri</title>
+<style>
+:root{--bg:#FAF9F6;--yuzey:#fff;--cizgi:#E8E5DF;--yazi:#37352F;--soluk:#8A8477;--yesil:#3E8E5A;--kirmizi:#C4442E;--sari:#B57E1E;--vurgu:#5B5BD6}
+@media(prefers-color-scheme:dark){:root{--bg:#1B1A18;--yuzey:#232220;--cizgi:#383631;--yazi:#ECEAE4;--soluk:#9B968C;--yesil:#6CBF8B;--kirmizi:#E07B67;--sari:#D9A94E;--vurgu:#8583E8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--yazi);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:20px 16px 40px}
+main{max-width:860px;margin:0 auto}
+h1{font-size:20px;margin:0 0 4px}
+.not{color:var(--soluk);font-size:13px;margin:0 0 14px}
+button{font:inherit;font-weight:600;padding:8px 16px;border-radius:9px;border:1px solid var(--vurgu);background:var(--vurgu);color:#fff;cursor:pointer}
+button:disabled{opacity:.5}
+#ozet{margin-left:10px;font-weight:600}
+table{width:100%;border-collapse:collapse;margin-top:16px;background:var(--yuzey);border:1px solid var(--cizgi);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:8px 10px;border-top:1px solid var(--cizgi);vertical-align:top;font-size:13px}
+th{background:var(--bg);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--soluk);border-top:none}
+td.d{white-space:nowrap;font-weight:700}
+.gecti{color:var(--yesil)} .kaldi{color:var(--kirmizi)} .atlandi{color:var(--sari)}
+.ayrinti{color:var(--soluk);font-size:12px;word-break:break-word}
+tr.grup td{background:var(--bg);font-weight:700;font-size:12px;color:var(--soluk)}
+iframe{width:1px;height:1px;border:0;position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<main>
+<h1>LogBook — güvenlik testleri</h1>
+<p class="not">Uygulama ayrı bir <b>test deposunda</b> açılır (<code>?guvenlik-testi</code>): gerçek notlarına, eklerine,
+Drive'a ve Google oturumuna dokunulmaz; testler yalnız yapay veri kullanır. Ağ gerektiren iki test (PDF motoru,
+Google giriş betiği) çevrimdışıyken "atlandı" görünür.</p>
+<button id="basla">Testleri çalıştır</button><span id="ozet"></span>
+<table><thead><tr><th style="width:90px">Sonuç</th><th>Test</th></tr></thead><tbody id="sonuc"></tbody></table>
+</main>
+<iframe id="uyg" title="Test edilen uygulama"></iframe>
+<script>
+"use strict";
+const prm=new URLSearchParams(location.search);
+const HEDEF=prm.get("hedef")||"../index.html";   // yerel karşılaştırma için: ?hedef=…&eski=1
+const ESKI=prm.has("eski");
+const bekle=ms=>new Promise(r=>setTimeout(r,ms));
+const $=s=>document.querySelector(s);
+const satir=(durum,ad,ayr)=>{
+  const tr=document.createElement("tr");
+  const etiket={gecti:"✓ GEÇTİ",kaldi:"✗ KALDI",atlandi:"– ATLANDI"}[durum];
+  tr.innerHTML=`<td class="d ${durum}">${etiket}</td><td></td>`;
+  tr.children[1].textContent=ad;
+  if(ayr){ const d=document.createElement("div"); d.className="ayrinti"; d.textContent=ayr; tr.children[1].appendChild(d); }
+  $("#sonuc").appendChild(tr);
+};
+const grup=ad=>{ const tr=document.createElement("tr"); tr.className="grup"; tr.innerHTML="<td colspan=2></td>"; tr.firstChild.textContent=ad; $("#sonuc").appendChild(tr); };
+class Atla extends Error{}
+
+// Zararsız işaretleyiciler: bir girdi kod çalıştırırsa yalnız window.__isaret[...] dolar
+const ISARET="(window.__isaret=window.__isaret||[]).push";
+
+/* ---------- Yapay veri ---------- */
+const simdi=1790000000000;
+const GECERLI={
+  notes:[
+    {id:"mf1a2b3c4d",title:"Yapay vaka notu",content:"<h2>Başlık</h2><div><b>kalın</b> <i>italik</i> <a href=\"https://ornek.com\" target=\"_blank\" rel=\"noopener\">bağlantı</a></div><div class=\"pdate\">⏱ 01 Oca 2026 10:00</div>",
+     cat:"genel",createdAt:simdi,updatedAt:simdi+5,deadline:"2026-11-02T09:30:00.000Z",done:false,doneAt:null,triage:"r",mentor:true,grup:"kgrup1",
+     audios:[{id:"aud1",dur:3.2,mime:"audio/webm;codecs=opus",t:simdi}],
+     files:[{id:"fil1",name:"rapor.pdf",type:"application/pdf",size:12345,t:simdi,ink:{"1":[[1,2,3]]}}],
+     subs:[{id:"s1",text:"alt madde",done:false,t:simdi},{id:"s2",text:"bitti",done:true}],
+     revs:[{t:simdi-10,title:"eski",content:"eski metin"}],log:[{t:simdi,a:"Not oluşturuldu"}]},
+    {id:"mf9z8y7x6w",title:"Defter kaydı",content:"düz metin\n- madde",cat:"genel",createdAt:simdi,updatedAt:simdi,
+     deadline:"2026-07-20T12:30",done:true,doneAt:simdi+9,panel:"learn",sec:"bolum1",audios:[],files:[],subs:[],revs:[],log:[]}
+  ],
+  cats:[{id:"genel",name:"Genel",color:"#5B5BD6"},{id:"acil",name:"Acil",color:"#C4442E",open:true},
+        {id:"bolum1",name:"Bölüm",parent:null,scope:"learn",open:true},{id:"kgrup1",name:"Klasör",scope:"grup",t:simdi}],
+  appLog:[{t:simdi,a:"Yeni not",noteId:"mf1a2b3c4d"},{t:simdi+1,a:"Oturum açıldı",noteId:null}],
+  theme:"auto",textScale:1.1
+};
+const KOTU_NOT=()=>({id:'z1" data-kirik="1',title:"t",content:"<b>x</b>",cat:'genel" data-kirik="2',createdAt:simdi,updatedAt:simdi,
+  deadline:'2030-01-01" data-kirik="3',done:false,triage:'r" data-kirik="4',panel:'x" data-kirik="5',
+  audios:[{id:'a" data-kirik="6',mime:'audio/x" data-kirik="7'}],files:[{id:"f1",name:"<img src=x>",type:'image/png" data-kirik="8',size:"9"}],
+  subs:[{id:'s" data-kirik="9',text:"<b>a</b>",done:0}],revs:[],log:[]});
+const KOTU_KAT=()=>({id:"kotukat",name:"<b>k</b>",color:'red" data-kirik="10'});
+
+/* Asgari geçerli PDF (tek boş sayfa) — çapraz başvuru tablosu doğru ofsetlerle kurulur */
+function asgariPdf(){
+  const nes=["<< /Type /Catalog /Pages 2 0 R >>","<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>"];
+  let s="%PDF-1.4\n"; const ofs=[];
+  nes.forEach((o,i)=>{ ofs.push(s.length); s+=`${i+1} 0 obj\n${o}\nendobj\n`; });
+  const xref=s.length;
+  s+=`xref\n0 ${nes.length+1}\n0000000000 65535 f \n`+ofs.map(o=>String(o).padStart(10,"0")+" 00000 n \n").join("");
+  s+=`trailer\n<< /Size ${nes.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return new TextEncoder().encode(s);
+}
+
+/* ---------- Testler ---------- */
+const T=[];
+const test=(grupAdi,ad,fn)=>T.push({grupAdi,ad,fn});
+let W, KAYNAK="", ihlaller=[];
+// Yeni sürümde iç durum test kancasından (CSP eval'e izin vermez), eski sürümde eval ile okunur
+const uygS=()=>W.__test?W.__test.S:W.eval("S");
+const onbellekTemizle=()=>W.__test?W.__test.kartOnbellekTemizle():W.eval("kartOnbellekTemizle")();
+const isaretler=()=>[...(W.__isaret||[]),...(window.__isaret||[])];
+const isaretSifirla=()=>{ W.__isaret=[]; window.__isaret=[]; };
+// Temizlenmiş HTML'i ETKİSİZ bir şablonda inceler: izinsiz etiket / öznitelik / bağlantı var mı?
+function ciktiDenetle(html){
+  const t=document.createElement("template"); t.innerHTML=html;
+  const izin=new Set(["B","STRONG","I","EM","U","S","STRIKE","MARK","BR","DIV","P","SPAN","UL","OL","LI","BLOCKQUOTE","H1","H2","H3","A"]);
+  const sorun=[];
+  t.content.querySelectorAll("*").forEach(el=>{
+    if(!izin.has(el.tagName.toUpperCase())) sorun.push("etiket:"+el.tagName);
+    for(const a of el.attributes){
+      const ad=a.name.toLowerCase();
+      if(ad==="href"){ if(!/^(https?:|mailto:)/i.test(a.value)) sorun.push("href:"+a.value.slice(0,30)); }
+      else if(ad==="class"){ if(a.value!=="pdate") sorun.push("class:"+a.value); }
+      else if(!(el.tagName==="A"&&(ad==="target"||ad==="rel"))) sorun.push("öznitelik:"+ad);
+    }
+  });
+  return sorun;
+}
+
+test("HTML temizleyici","Ayrıştırma sırasında kod çalışmıyor (resim onerror)",async()=>{
+  isaretSifirla(); W.sanitizeHTML(`<img src="x:/yok" onerror="${ISARET}('a1')">`); await bekle(400);
+  return isaretler().length?["Temizlemeden önce kod çalıştı"]:true;
+});
+test("HTML temizleyici","Metne çevirme (arama, önizleme) kod çalıştırmıyor",async()=>{
+  isaretSifirla(); W.htmlToText(`<div>a</div><img src="x:/yok" onerror="${ISARET}('a2')">`); await bekle(400);
+  return isaretler().length?["htmlToText ayrıştırırken kod çalıştı"]:true;
+});
+test("HTML temizleyici","İç içe etiketle denetim atlatılamıyor",async()=>{
+  const g=`<font><font><a href="javascript:${ISARET}('a3')">x</a><b onclick="${ISARET}('a3')">y</b></font></font>`;
+  const ilk=W.sanitizeHTML(g), gosterim=W.renderContent(ilk);
+  const s=[...ciktiDenetle(ilk),...ciktiDenetle(gosterim)];
+  return s.length?["Kalan: "+s.join(", ")]:true;
+});
+const SALDIRILAR=[
+  `<svg onload="${ISARET}('s1')"><circle r=1></circle></svg>`,
+  `<math><mtext><table><mglyph><style><img src=x:/ onerror="${ISARET}('s2')">`,
+  `<noscript><p title="</noscript><img src=x:/ onerror=${ISARET}('s3')>">`,
+  `<a href="  javascript:${ISARET}('s4')">x</a>`,
+  `<a href="java&#x09;script:${ISARET}('s5')">x</a>`,
+  `<a href="JaVaScRiPt:${ISARET}('s6')">x</a>`,
+  `<a href="data:text/html,<script>${ISARET}('s7')<\/script>">x</a>`,
+  `<a href="vbscript:msgbox(1)">x</a>`,
+  `<div style="background:url(javascript:${ISARET}('s8'))">x</div>`,
+  `<iframe srcdoc="<script>parent.__isaret=[1]<\/script>"></iframe>`,
+  `<object data="javascript:${ISARET}('s9')"></object>`,
+  `<form><button formaction="javascript:${ISARET}('s10')">x</button></form>`,
+  `<template><img src=x:/ onerror="${ISARET}('s11')"></template>`,
+  `<!--<img src=x:/ onerror="${ISARET}('s12')">-->`,
+  `<b onclick="${ISARET}('s13')" onmouseover="${ISARET}('s13')">x</b>`,
+  `<details open ontoggle="${ISARET}('s14')">x</details>`,
+  `<video><source onerror="${ISARET}('s15')"></video>`,
+  `<input autofocus onfocus="${ISARET}('s16')">`,
+  `<marquee onstart="${ISARET}('s17')">x</marquee>`,
+  `<div class="x" id="y" data-a="1" style="color:red">temiz metin</div>`,
+  `<span><span><span><a href="javascript:${ISARET}('s18')"><i onclick="${ISARET}('s18')">derin</i></a></span></span></span>`,
+];
+test("HTML temizleyici",`Bilinen ${SALDIRILAR.length} saldırı girdisi temiz çıkıyor ve hiçbiri kod çalıştırmıyor`,async()=>{
+  isaretSifirla(); const sorun=[];
+  const sahne=W.document.createElement("div"); sahne.style.display="none"; W.document.body.appendChild(sahne);
+  SALDIRILAR.forEach((g,i)=>{
+    const c=W.sanitizeHTML(g), r=W.renderContent(c);
+    const s=[...ciktiDenetle(c),...ciktiDenetle(r)]; if(s.length) sorun.push("#"+(i+1)+" "+s.join(","));
+    sahne.innerHTML+=r;                                   // canlı sayfaya koy: yine de çalışmamalı
+  });
+  sahne.querySelectorAll("a,b,i").forEach(el=>{ try{ el.click(); }catch(e){} });
+  await bekle(500); sahne.remove();
+  if(isaretler().length) sorun.push("kod çalıştı: "+isaretler().join(","));
+  return sorun.length?sorun:true;
+});
+test("HTML temizleyici","Biçimlendirme korunuyor (kalın, italik, başlık, liste, alıntı, bağlantı, tarih ayracı)",async()=>{
+  const g=`<b>a</b><strong>b</strong><i>c</i><em>d</em><u>e</u><s>f</s><mark>g</mark><h1>h</h1><h2>i</h2><h3>j</h3>`+
+    `<ul><li>k</li></ul><ol><li>l</li></ol><blockquote>m</blockquote><p>n</p><div class="pdate">⏱ 01 Oca</div>`+
+    `<div>o<br>p</div><a href="https://ornek.com/yol?q=1">q</a><a href="mailto:a@b.co">r</a>`;
+  const beklenen=g.replace('<a href="https://ornek.com/yol?q=1">','<a href="https://ornek.com/yol?q=1" target="_blank" rel="noopener noreferrer">')
+                  .replace('<a href="mailto:a@b.co">','<a href="mailto:a@b.co" target="_blank" rel="noopener noreferrer">');
+  const c=W.sanitizeHTML(g);
+  return c===beklenen?true:["Beklenen ile farklı: "+c.slice(0,160)];
+});
+test("HTML temizleyici","Dışarıdan yapıştırılan biçimli metin temizleniyor",async()=>{
+  isaretSifirla();
+  const n=W.newNote("","Yapıştırma testi"); W.render(); W.expandNote(n.id); await bekle(150);
+  const ed=W.document.querySelector("#ed-content"); if(!ed) throw new Error("editör açılmadı");
+  const dt=new W.DataTransfer(); dt.setData("text/html",`<p>merhaba <img src=x:/ onerror="${ISARET}('y1')"><a href="javascript:${ISARET}('y1')">b</a></p>`);
+  let ev; try{ ev=new W.ClipboardEvent("paste",{clipboardData:dt,bubbles:true,cancelable:true}); }catch(e){ throw new Atla("Bu tarayıcı yapay yapıştırma olayını desteklemiyor"); }
+  if(!ev.clipboardData) throw new Atla("Bu tarayıcı yapay yapıştırma olayını desteklemiyor");
+  ed.focus(); ed.dispatchEvent(ev); await bekle(400);
+  const icerik=uygS().notes.find(x=>x.id===n.id).content; W.collapseNote();
+  const s=ciktiDenetle(icerik); if(isaretler().length) s.push("kod çalıştı");
+  if(!icerik.includes("merhaba")) s.push("metin yapıştırılmadı");
+  return s.length?s:true;
+});
+
+test("Veri doğrulama","Kötü niyetli yedek dosyası sayfaya öznitelik/kod sokamıyor",async()=>{
+  const veri={notes:[KOTU_NOT()],cats:[...GECERLI.cats,KOTU_KAT()],appLog:[{t:"x",a:{},noteId:'q" data-kirik="11'}]};
+  veri.notes[0].cat="kotukat";
+  await W.doImport(new W.File([JSON.stringify(veri)],"kotu.json",{type:"application/json"}));
+  W.setView({type:"active"}); W.setView({type:"cat",catId:"kotukat"}); W.setView({type:"log"}); W.setView({type:"active"});
+  await bekle(150);
+  const kirik=W.document.querySelectorAll("[data-kirik]").length;
+  return kirik?[kirik+" yerde öznitelik kırıldı"]:true;
+});
+test("Veri doğrulama","Yedek, uygulamaya dış adres çağırtamıyor (yalnız data: kabul)",async()=>{
+  const istekler=[]; const gercek=W.fetch;
+  W.fetch=(u,o)=>{ istekler.push(String(u).slice(0,40)); return gercek.call(W,u,o); };
+  const veri={...JSON.parse(JSON.stringify(GECERLI)),_audio:{aud1:"data:audio/webm;base64,AAAA",fil1:"http://127.0.0.1:9/zararsiz-test"}};
+  try{ await W.doImport(new W.File([JSON.stringify(veri)],"y.json")); } finally { W.fetch=gercek; }
+  const dis=istekler.filter(u=>!u.startsWith("data:"));
+  return dis.length?["Dış adrese istek: "+dis.join(", ")]:(istekler.length?true:["data: eki de yüklenmedi"]);
+});
+test("Veri doğrulama","Drive'dan gelen veri de doğrulanıyor",async()=>{
+  W.mergeRemote({notes:[KOTU_NOT()],cats:[KOTU_KAT()],appLog:[]});
+  onbellekTemizle(); W.render(); await bekle(100);
+  const kirik=W.document.querySelectorAll("[data-kirik]").length;
+  return kirik?[kirik+" yerde öznitelik kırıldı"]:true;
+});
+test("Veri doğrulama","Geçerli veri doğrulamadan birebir aynı çıkıyor (hiçbir alan silinmiyor)",async()=>{
+  if(typeof W.veriDogrula!=="function") return ["veriDogrula yok"];
+  const kopya=JSON.parse(JSON.stringify(GECERLI));
+  const sonuc=W.veriDogrula(kopya);
+  return JSON.stringify(sonuc)===JSON.stringify(GECERLI)?true:["Değişen var: "+JSON.stringify(sonuc).slice(0,200)];
+});
+test("Veri doğrulama","Yedek → geri yükleme turunda notlar, ekler, geçmiş korunuyor",async()=>{
+  await W.doImport(new W.File([JSON.stringify(GECERLI)],"y.json"));
+  const S=uygS();
+  const ayni=JSON.stringify(S.notes)===JSON.stringify(GECERLI.notes)&&JSON.stringify(S.cats)===JSON.stringify(GECERLI.cats);
+  return ayni?true:["Geri yüklenen veri farklı"];
+});
+
+test("PDF","PDF motoru açığı (CVE-2024-4367) kapalı: tüm açılışlarda isEvalSupported:false",async()=>{
+  const toplam=(KAYNAK.match(/getDocument\(/g)||[]).length, guvenli=(KAYNAK.match(/getDocument\(\{[^}]*isEvalSupported:false/g)||[]).length;
+  return toplam&&toplam===guvenli?true:[`${toplam} açılıştan ${guvenli} tanesi korumalı`];
+});
+test("PDF","PDF, güvenlik politikası altında açılıp çiziliyor",async()=>{
+  try{ await W.loadPdfjs(); }catch(e){ throw new Atla("pdf.js indirilemedi (çevrimdışı olabilir)"); }
+  const pdf=await W.pdfjsLib.getDocument({data:asgariPdf(),isEvalSupported:false}).promise;
+  const sayfa=await pdf.getPage(1), vp=sayfa.getViewport({scale:1});
+  const cv=W.document.createElement("canvas"); cv.width=vp.width; cv.height=vp.height;
+  await sayfa.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;
+  return pdf.numPages===1?true:["sayfa sayısı "+pdf.numPages];
+});
+
+test("Güvenlik politikası (CSP)","Uygulamanın kendi kodu politika altında engellenmeden çalışıyor",async()=>{
+  if(typeof W.render!=="function"||!W.document.querySelector("#list")) return ["uygulama kodu çalışmadı"];
+  const satirIci=ihlaller.filter(v=>/script-src/.test(v));
+  if(!W.document.querySelector('meta[http-equiv="Content-Security-Policy"]')) return ["CSP meta etiketi yok"];
+  return satirIci.length?["Engellenen: "+satirIci.join("; ")]:true;
+});
+test("Güvenlik politikası (CSP)","CSP özeti uygulama koduyla eşleşiyor",async()=>{
+  const m=KAYNAK.match(/'sha256-([A-Za-z0-9+/=]+)'/), k=KAYNAK.match(/<script>([\s\S]*?)<\/script>/);
+  if(!m) return ["CSP özeti yok"]; if(!k) return ["satır içi kod bulunamadı"];
+  const oz=btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(k[1])))));
+  return oz===m[1]?true:["Özet uyuşmuyor — tools/csp-hash.py çalıştırılmalı"];
+});
+test("Güvenlik politikası (CSP)","Sayfaya sızan satır içi kod (onclick, javascript: bağlantısı) çalışmıyor",async()=>{
+  isaretSifirla();
+  const d=W.document.createElement("div"); d.setAttribute("onclick",`${ISARET}('c1')`); W.document.body.appendChild(d); d.click();
+  const a=W.document.createElement("a"); a.href=`javascript:${ISARET}('c2')`; W.document.body.appendChild(a); a.click();
+  await bekle(400); d.remove(); a.remove();
+  return isaretler().length?["Çalıştı: "+isaretler().join(",")]:true;
+});
+test("Güvenlik politikası (CSP)","Google giriş betiği politika altında yükleniyor",async()=>{
+  for(let i=0;i<30;i++){ if(W.google&&W.google.accounts&&W.google.accounts.oauth2) return true; await bekle(200); }
+  throw new Atla("Google betiği yüklenmedi (çevrimdışı olabilir)");
+});
+
+test("Google Takvim","Varsayılan olarak etkinliğe not içeriği gitmiyor; açıkça istenirse gidiyor",async()=>{
+  if(typeof W.etkinlikGovdesi!=="function") throw new Atla("Takvim aktarımı bu sürümde yok");
+  const S=uygS(), n={id:"tk1",title:"Toplantı",content:"<div>gizli klinik bilgi</div>",deadline:"2026-11-02T09:30:00.000Z",
+    subs:[{id:"x",text:"gizli alt madde",done:false}],files:[],audios:[]};
+  const eski=S.takvimIcerik;
+  S.takvimIcerik=false; const kapali=W.etkinlikGovdesi(n);
+  S.takvimIcerik=true; const acik=W.etkinlikGovdesi(n); S.takvimIcerik=eski;
+  const s=[];
+  if(/gizli/.test(kapali.description||"")) s.push("varsayılanda içerik gidiyor");
+  if(!/gizli klinik/.test(acik.description||"")) s.push("açıkken içerik gitmiyor");
+  if(kapali.summary!=="Toplantı") s.push("başlık beklenenden farklı");
+  return s.length?s:true;
+});
+test("Google oturumu","Erişim anahtarı (token) konsola yazılmıyor",async()=>{
+  const satirlar=KAYNAK.split("\n").filter(l=>/console\.(log|error|warn|info)/.test(l)&&/access_token|gTok/.test(l));
+  return satirlar.length?["Şüpheli satır: "+satirlar[0].trim().slice(0,80)]:true;
+});
+
+/* ---------- Çalıştırıcı ---------- */
+async function calistir(){
+  $("#basla").disabled=true; $("#sonuc").innerHTML=""; $("#ozet").textContent="Hazırlanıyor…";
+  if(!ESKI){ try{ localStorage.removeItem("nbmd_guvenlik_testi"); indexedDB.deleteDatabase("nbmd-guvenlik-testi"); }catch(e){} }
+  KAYNAK=await (await fetch(HEDEF,{cache:"no-store"})).text();
+  const fr=$("#uyg");
+  await new Promise(r=>{ fr.onload=r; fr.src=HEDEF+(HEDEF.includes("?")?"&":"?")+"guvenlik-testi"; });
+  W=fr.contentWindow; await bekle(500);
+  // Güvenlik kilidi: test modu yoksa (eski sürüm/önbellek) gerçek veriye dokunmamak için dur
+  const testModu=!!(W.__test&&W.__test.TEST_MODU);
+  if(!testModu&&!ESKI){ $("#ozet").textContent="Durduruldu: uygulama test modunda açılmadı (eski sürüm önbellekte olabilir). Sayfayı yenileyip tekrar dene."; $("#basla").disabled=false; return; }
+  W.confirm=()=>true; W.alert=()=>{}; W.prompt=()=>null;
+  ihlaller=[]; W.document.addEventListener("securitypolicyviolation",e=>ihlaller.push(e.violatedDirective+" "+(e.blockedURI||"satır içi")));
+  let gecti=0,kaldi=0,atlandi=0,sonGrup="";
+  for(const t of T){
+    if(t.grupAdi!==sonGrup){ grup(t.grupAdi); sonGrup=t.grupAdi; }
+    $("#ozet").textContent="Çalışıyor: "+t.ad;
+    try{
+      const r=await t.fn();
+      if(r===true){ satir("gecti",t.ad); gecti++; } else { satir("kaldi",t.ad,(r||[]).join(" · ")); kaldi++; }
+    }catch(e){
+      if(e instanceof Atla){ satir("atlandi",t.ad,e.message); atlandi++; }
+      else{ satir("kaldi",t.ad,"Hata: "+e.message); kaldi++; }
+    }
+  }
+  $("#ozet").innerHTML="";
+  $("#ozet").textContent=`${gecti} geçti · ${kaldi} kaldı · ${atlandi} atlandı`;
+  $("#ozet").className=kaldi?"kaldi":"gecti";
+  if(!ESKI){ try{ localStorage.removeItem("nbmd_guvenlik_testi"); indexedDB.deleteDatabase("nbmd-guvenlik-testi"); }catch(e){} }
+  $("#basla").disabled=false;
+}
+$("#basla").onclick=calistir;
+if(prm.has("otomatik")) calistir();
+</script>
+</body>
+</html>

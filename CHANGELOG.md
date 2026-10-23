@@ -4,6 +4,20 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] — 2026-10-23
+
+### Security
+
+- **HTML sanitiser rewritten.** Incoming HTML (pasted text, restored backups, synced data) was parsed inside the live page, so an `<img onerror>` payload ran *before* sanitising; and children of a removed tag were moved up without being checked again, so nested tags could smuggle `javascript:` links and `onclick` handlers past two passes. HTML is now parsed in an inert `<template>` (nothing loads or runs) and the clean result is rebuilt from scratch with a strict allow-list; SVG and MathML are dropped. Plain-text extraction uses the same inert parsing. Existing formatting is preserved exactly
+- **PDF engine hardened against CVE-2024-4367.** pdf.js 3.11.174 could execute code embedded in a crafted PDF's font data. Every PDF is now opened with `isEvalSupported: false`, the mitigation recommended by the pdf.js project
+- **Imported and synced data is validated.** IDs, deadlines, colours, triage marks and attachment types were written into HTML attributes unchecked, so a crafted backup file (or tampered sync data) could inject markup — or crash the app. Backups, Drive data and stored data now pass a validator before use; valid data is left byte-for-byte unchanged and nothing is ever dropped. Restoring a backup only accepts embedded `data:` attachments and no longer fetches arbitrary addresses listed in the file
+- **Content Security Policy.** A policy delivered via `<meta>` (GitHub Pages cannot send headers) allows only the app's own code — pinned by its SHA-256 hash — plus Google sign-in and the pdf.js CDN; inline handlers, `javascript:` links, `eval`, plugins and connections to any other host are blocked. `tools/csp-hash.py` updates the hash whenever the code changes
+- **Google Calendar sends only title and date by default.** Note content and open sub-tasks are added to events only when the new option in the sync window is ticked
+
+### Added
+
+- `tests/guvenlik.html` — an in-browser security regression suite (19 tests: sanitiser bypasses, parse-time execution, 21 known payloads, paste, malicious backups, Drive data, data integrity, PDF, CSP, Calendar). It opens the app in an isolated test mode (`?guvenlik-testi`: separate storage, no sync, no service worker), so real notes are never touched. Before the fixes 15 of the tests failed; all 19 pass now
+
 ## [1.6.0] — 2026-10-23
 
 ### Added

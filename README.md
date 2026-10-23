@@ -83,6 +83,8 @@ For cross-device sync, use **Sync** in the sidebar and sign in with Google. Note
 
 > ⚠️ Clearing your browser's site data also clears local notes. Keep sync on, or export a backup periodically.
 
+**Security.** Note content is sanitised with a strict allow-list in an inert parser, imported and synced data is validated, PDFs open with code execution disabled, and a Content Security Policy blocks any code other than the app's own. Data in local storage, backups and Drive is not encrypted; Drive data sits in your account's hidden app folder. An in-browser regression suite lives in `tests/guvenlik.html`. LogBook is a personal notebook — it is not a certified system for clinical records, and storing identifiable patient data in it is your responsibility.
+
 ## Architecture
 
 One HTML file. No framework, no build step, no server, no telemetry. `index.html` is the entire application; `LogBook.html` is a double-clickable copy of the same file. A service worker provides the offline shell, and the PDF engine (pdf.js) is fetched once on first use, then served from cache.
