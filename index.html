@@ -466,6 +466,91 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 #sync-tani div+div{border-top:1px dashed var(--border);padding-top:4px;margin-top:4px}
 .sync-surum{font-size:11px;color:var(--text2);opacity:.6;margin-top:8px;text-align:right}
 
+/* ---------- Klasörler: sütun görünümü (Finder gibi) ---------- */
+.chip.fold.on{background:var(--accent-soft);color:var(--accent)}
+#list.izgara .chip.fold .ck{display:none}
+/* Sütun genişlikleri orantılı: dar alanda (sağ panel açıkken) not sütunu sıkışmasın */
+.sutunlar{display:grid;grid-template-columns:clamp(150px,22%,220px) clamp(170px,26%,290px) minmax(0,1fr);
+  border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden;
+  height:calc(var(--app-h,100dvh) - 200px);min-height:380px}
+.sk{overflow-y:auto;overscroll-behavior:contain;min-width:0;border-right:1px solid var(--border);padding-bottom:10px}
+.sk3{border-right:none;background:var(--bg);padding:0 12px 14px}
+.skh{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:6px;padding:9px 10px 8px;
+  background:var(--surface);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--text2);margin-bottom:4px}
+.skh .skad{flex:1;min-width:0;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.skh .ssay{text-transform:none;letter-spacing:0;font-weight:600}
+.skbtn{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--text2);padding:3px 9px;border-radius:6px;
+  border:1px solid var(--border);background:var(--surface2);text-transform:none;letter-spacing:0}
+.skbtn:hover,.skbtn.on{color:var(--accent);border-color:var(--accent)}
+.kitem,.srow{display:flex;align-items:center;gap:8px;padding:6px 9px;margin:1px 6px;border-radius:7px;
+  cursor:pointer;font-size:calc(13.5px * var(--tscale,1));color:var(--text);user-select:none;-webkit-user-select:none}
+.kitem:hover,.srow:hover{background:var(--surface2)}
+.kitem.secili{background:var(--surface2);font-weight:600}
+.srow.acik{background:var(--accent);color:#fff}
+.srow.secili{background:var(--accent-soft);color:var(--accent)}
+.kitem.hedef{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
+.kico{flex-shrink:0;font-size:14px}
+.kad,.sad{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ksay,.sme{font-size:11.5px;color:var(--text2);flex-shrink:0}
+.sme.dl-soon{color:var(--amber)} .sme.dl-over{color:var(--red)}
+.sok{color:var(--text2);font-size:15px;line-height:1;flex-shrink:0;opacity:.7}
+.srow.acik .sme,.srow.acik .sok{color:#fff}
+.kduz{flex-shrink:0;color:var(--text2);font-size:13px;padding:0 4px;border-radius:5px;line-height:1.3;display:none}
+.kitem:hover .kduz{display:inline-block}
+.kitem:hover .ksay{display:none}             /* fareyle üstüne gelince sayı yerine ⋯ — dar sütunda ad kısalmasın */
+.kduz:hover{color:var(--accent);background:var(--surface)}
+@media(hover:none){ .kduz{display:inline-block;opacity:.55} .kitem:hover .ksay{display:inline} }
+.kyok{margin-top:8px;position:relative}
+.kyok::before{content:"";position:absolute;left:4px;right:4px;top:-5px;border-top:1px solid var(--border)}
+.snokta{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.srow.acik .snokta{box-shadow:0 0 0 1.5px #fff}
+.skutu{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--text2);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.srow.secili .skutu{background:var(--accent);border-color:var(--accent);color:#fff}
+.kipucu{font-size:12.5px;color:var(--text2);padding:10px 14px;line-height:1.5}
+.kipucu.bos{text-align:center;padding:90px 24px}
+.kekle{padding:2px 6px 6px}
+.kekle input{width:100%;padding:6px 9px;border:1px solid var(--accent);border-radius:7px;background:var(--surface);
+  color:var(--text);font-size:13px;outline:none}
+.sk3 .note{margin:12px 0 0}
+.sgeri,.sk3h{display:none}
+.ssecim{text-align:center;padding:70px 20px;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:8px}
+.ssecim .big{font-size:42px;font-weight:700;color:var(--accent);line-height:1}
+.ssecim p{font-size:12.5px;max-width:260px;margin:4px 0 8px}
+.sbar{display:none}
+.tool.sm{padding:4px 9px;font-size:12px}
+.surukad{position:fixed;top:-200px;left:-200px;background:var(--accent);color:#fff;padding:5px 11px;
+  border-radius:8px;font-size:13px;font-weight:600;white-space:nowrap}
+body.suruklu .sk1{background:color-mix(in srgb,var(--accent-soft) 35%,var(--surface))}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);
+  background:var(--text);color:var(--bg);font-size:13px;font-weight:600;padding:9px 16px;border-radius:99px;
+  box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:80;max-width:calc(100% - 32px)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+/* Telefonda Dosyalar uygulaması gibi: klasörler → notlar → not, geri düğmesiyle */
+@media(max-width:760px){
+  .sutunlar{display:block;height:auto;min-height:0;border:none;background:none;overflow:visible}
+  .sutunlar .sk{display:none;border:none;overflow:visible;padding:0}
+  .sutunlar.sv1 .sk1,.sutunlar.sv2 .sk2,.sutunlar.sv3 .sk3{display:block}
+  .sk3{background:none}
+  .skh{position:static;background:none;border-bottom:none;padding:4px 2px 8px}
+  .sgeri{display:inline-flex;align-items:center;font-size:14px;font-weight:600;color:var(--accent);
+    text-transform:none;letter-spacing:0;padding:4px 6px 4px 0}
+  .sk3h{display:flex}
+  .sk2 .skad{text-align:center}
+  .kitem,.srow{padding:12px 10px;margin:0 0 4px;font-size:calc(15px * var(--tscale,1));
+    background:var(--surface);border:1px solid var(--border);border-radius:10px}
+  .kitem.secili{background:var(--surface)}
+  .kduz{opacity:.6;font-size:16px;padding:2px 8px}
+  .kyok{margin-top:12px}
+  .kyok::before{display:none}
+  .sk3 .note{margin-top:4px}
+  /* telefonda sağ sütun görünmediği için seçim eylemi not listesinin üstünde */
+  .sbar{display:flex;align-items:center;gap:8px;justify-content:space-between;background:var(--accent-soft);
+    color:var(--accent);font-size:13px;font-weight:600;border-radius:10px;padding:7px 8px 7px 12px;margin:0 0 8px}
+}
+
 /* ---------- Kenar çubuğunda küçük takvim ---------- */
 #minitakvim{margin:12px 2px 2px;padding:8px 6px 6px;border:1px solid var(--border);border-radius:11px;background:var(--surface)}
 .mt-ust{display:flex;align-items:center;gap:2px;padding:0 2px 6px}
@@ -782,7 +867,7 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 "use strict";
 /* ================= STATE ================= */
 const LS_KEY="nbmd_v1";
-const SURUM="1.5.2";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
+const SURUM="1.6.0";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
 const CAT_COLORS=["#5B5BD6","#3E8E5A","#B57E1E","#C4442E","#2E7DB5","#8E5BAB","#5A8E7A","#B5573E"];
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
@@ -1076,8 +1161,9 @@ function siraSabitle(arr){
 }
 
 // Kenar çubuğu kategorileri — defter bölümleri (scope:"learn") buraya karışmaz
-const kidsOf=id=>S.cats.filter(k=>k.parent===id&&!isSec(k));
-const rootCats=()=>S.cats.filter(c=>!c.parent&&!isSec(c));
+const isKat=c=>!c.scope;                       // scope:"learn" defter bölümü, scope:"grup" klasör
+const kidsOf=id=>S.cats.filter(k=>k.parent===id&&isKat(k));
+const rootCats=()=>S.cats.filter(c=>!c.parent&&isKat(c));
 // noteCat, catId'nin kendisi mi yoksa herhangi bir derinlikteki alt-torunu mu? (sınırsız iç içe)
 function inCatTree(noteCat,catId){
   let c=catOf(noteCat), guard=0;
@@ -1210,17 +1296,19 @@ function filterPop(anchor){
 }
 
 /* Görünüm dizilimi: dikey liste ya da kare ızgara (cihaza özel tercih) */
-let dizilim=(()=>{ try{ return localStorage.getItem("nbmd_dizilim")==="izgara"?"izgara":"liste"; }catch(e){ return "liste"; } })();
+let dizilim=(()=>{ try{ const v=localStorage.getItem("nbmd_dizilim"); return v==="izgara"||v==="sutun"?v:"liste"; }catch(e){ return "liste"; } })();
 function applyDizilim(){
   const izgaraOlur=["active","done","cat"].includes(view.type);
-  const acik=dizilim==="izgara"&&izgaraOlur;
+  const acik=dizilim==="izgara"&&izgaraOlur, sutun=sutunAcik();
   $("#list")?.classList.toggle("izgara",acik);
-  document.querySelector(".inner")?.classList.toggle("genis",acik);
+  $("#list")?.classList.toggle("sutun",sutun);
+  document.querySelector(".inner")?.classList.toggle("genis",acik||sutun);
   const b=$("#gridbtn");
   if(b){
-    b.textContent=dizilim==="izgara"?"▤":"▦";
-    b.title=dizilim==="izgara"?"Liste görünümü":"Kare görünüm — ekrana daha fazla not sığar";
-    b.classList.toggle("on",acik);
+    const etkin=sutun?"sutun":acik?"izgara":"liste";       // Tamamlananlar'da sütun yok → liste
+    b.textContent=DIZILIM[etkin].i;
+    b.title="Görünüm: "+DIZILIM[etkin].ad+" — değiştirmek için dokun";
+    b.classList.toggle("on",etkin!=="liste");
     b.style.display=izgaraOlur?"":"none";
   }
 }
@@ -1234,7 +1322,7 @@ function kartImza(n){
   const zaman=n.deadline?Math.floor(Date.now()/3e4):0;          // geri sayım tazeliği
   return [kartSurum,n.id,n.updatedAt,expandedId===n.id?1:0,n.done?1:0,n.doneAt||0,
     n.triage||"",n.mentor?1:0,n.sec||"",n.cat,n.deadline||"",zaman,
-    n.files.length,n.audios.length,n.subs.length,n.subs.filter(x=>x.done).length].join("|");
+    n.files.length,n.audios.length,n.subs.length,n.subs.filter(x=>x.done).length,n.grup||""].join("|");
 }
 function noteCardHTML(n){
   const imza=kartImza(n);
@@ -1301,6 +1389,8 @@ function noteMetaHTML(n){
           n.panel?`<span class="chip panelad">${PANEL_ICO[n.panel]} ${esc(PANEL_LBL[n.panel])}</span>`:
           `<button class="chip" data-catpick="${n.id}" title="Kategori değiştir">
             <span class="dot" style="background:${cat?cat.color:"#999"};width:7px;height:7px"></span><span class="ck">${cat?esc(cat.name):"—"}</span></button>`}
+          ${!n.panel?(()=>{const k=klasorOf(n.grup);
+            return `<button class="chip fold ${k?"on":""}" data-grup="${n.id}" title="${k?"Klasör: "+esc(k.name)+" — değiştir":"Klasöre koy"}">📁<span class="ck">${k?" "+esc(k.name):""}</span></button>`;})():""}
           ${dl?`<span class="chip ${dl.cls}" data-deadline="${n.deadline}">${dl.txt}</span>`:""}
           ${n.done&&n.doneAt?`<span class="chip" style="background:var(--green-soft);color:var(--green)">✅ ${fmtDT(n.doneAt)}</span>`:""}
           ${n.subs.length?`<span class="chip">☑ ${n.subs.filter(s=>s.done).length}/${n.subs.length}</span>`:""}
@@ -1377,6 +1467,11 @@ function renderMain(){
   if(view.type==="log"){ list.innerHTML=timelineHTML(); bindTimeline(); applyDizilim(); listeCubuguGuncelle(); return; }
   if(view.type==="learn"){ list.innerHTML=learnViewHTML(); applyDizilim(); listeCubuguGuncelle(); return; }
   if(view.type==="takvim"){ list.innerHTML=takvimViewHTML(); applyDizilim(); listeCubuguGuncelle(); return; }
+  if(sutunAcik()){
+    const kay=sutunKaydirmaAl();
+    list.innerHTML=sutunViewHTML(); applyDizilim(); listeCubuguGuncelle(sutunNotlari.length);
+    sutunYukseklik(); sutunKaydirmaKoy(kay); return;
+  }
   // (aşağıdaki artımlı güncelleme yalnız düz not listesi için)
   const notes=visibleNotes();
   const acilIpucu=view.type==="cat"&&view.catId===URGENT_CAT
@@ -1698,6 +1793,7 @@ function delegeBaglan(){
     if(t=bul("[data-triage]")){ e.stopPropagation(); openTriagePop(t,t.dataset.triage); return; }
     if(t=bul("[data-mentor]")){ e.stopPropagation(); toggleMentor(t.dataset.mentor); return; }
     if(t=bul("[data-catpick]")){ e.stopPropagation(); openCatPop(t,t.dataset.catpick); return; }
+    if(t=bul("[data-grup]")){ e.stopPropagation(); klasorPop(t,[t.dataset.grup]); return; }
     if(t=bul("[data-secpick]")){ e.stopPropagation(); openSecPop(t,t.dataset.secpick); return; }
     if(t=bul("[data-unmentor]")){ e.stopPropagation(); toggleMentor(t.dataset.unmentor); return; }
     if(t=bul("[data-reveal]")){ e.stopPropagation(); revealNote(t.dataset.reveal); return; }
@@ -2389,9 +2485,9 @@ function openCatEditPop(anchor,catId){
   };
 
   pop.querySelector("[data-act=del]").onclick=()=>{
-    if(rootCats().length+S.cats.filter(x=>x.parent&&!isSec(x)).length<=1){ alert("Son kategori silinemez."); return; }
+    if(rootCats().length+S.cats.filter(x=>x.parent&&isKat(x)).length<=1){ alert("Son kategori silinemez."); return; }
     // Notlar sahipsiz kalmasın: "Genel" siliniyorsa kalan ilk kategoriye taşı
-    let fb=S.cats.find(x=>x.id==="genel"&&x.id!==catId&&!isSec(x))||S.cats.find(x=>x.id!==catId&&!isSec(x));
+    let fb=S.cats.find(x=>x.id==="genel"&&x.id!==catId&&isKat(x))||S.cats.find(x=>x.id!==catId&&isKat(x));
     const parts=[];
     if(notes.length) parts.push(notes.length+" not “"+fb.name+"”e taşınacak");
     if(kids.length) parts.push(kids.length+" alt kategori bir üst seviyeye çıkacak");
@@ -2521,7 +2617,7 @@ document.addEventListener("click",e=>{
   if(!pop.contains(e.target)&&!e.target.closest("[data-catpick]")&&!e.target.closest("[data-catedit]")
      &&!e.target.closest("[data-triage]")&&!e.target.closest("[data-secpick]")
      &&!e.target.closest("[data-lsedit]")&&!e.target.closest("#sortbtn")
-     &&!e.target.closest("#filterbtn")) pop.style.display="none";
+     &&!e.target.closest("#filterbtn")&&!e.target.closest("#gridbtn")) pop.style.display="none";
 });
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&expandedId&&!recState.active) collapseNote();
@@ -2942,7 +3038,11 @@ function mergeRemote(remote){
     }
   }
   kartOnbellekTemizle();
-  for(const c of remote.cats||[]) if(!S.cats.some(x=>x.id===c.id)) S.cats.push(c);
+  for(const c of remote.cats||[]){
+    const l=S.cats.find(x=>x.id===c.id);
+    if(!l) S.cats.push(c);
+    else if(c.t&&(c.t>(l.t||0))) Object.assign(l,c);     // klasör: ad değişikliği / silinme diğer cihaza geçsin
+  }
   if(!S.takvimId&&remote.takvimId) S.takvimId=remote.takvimId;
   unionLog(S.appLog,remote.appLog);
 }
@@ -3199,11 +3299,7 @@ function applyTheme(){
 }
 $("#sortbtn").onclick=e=>{ e.stopPropagation(); sortPop($("#sortbtn")); };
 $("#filterbtn").onclick=e=>{ e.stopPropagation(); filterPop($("#filterbtn")); };
-$("#gridbtn").onclick=()=>{
-  dizilim=dizilim==="izgara"?"liste":"izgara";
-  try{ localStorage.setItem("nbmd_dizilim",dizilim); }catch(e){}
-  applyDizilim();
-};
+$("#gridbtn").onclick=e=>{ e.stopPropagation(); dizilimPop($("#gridbtn")); };
 $("#ts-plus").onclick=()=>textScaleAdim(1);
 $("#ts-minus").onclick=()=>textScaleAdim(-1);
 $("#themebtn").onclick=()=>{
@@ -3269,7 +3365,10 @@ function quickAdd(){
   const inp=$("#qa-input"), v=inp.value.trim();
   if(!v)return;
   // İlk yazılan şey BAŞLIK olur; kullanıcı isterse altını sonradan detaylandırır
-  newNote("",v); inp.value=""; render(); inp.focus();
+  const n=newNote("",v);
+  const k=sutunAcik()&&klasorOf(sutunKlasor);
+  if(k){ n.grup=k.id; n.log[0].a+=" — klasör: "+k.name; save(); }
+  inp.value=""; render(); inp.focus();
 }
 $("#quickadd").addEventListener("submit",e=>{ e.preventDefault(); quickAdd(); });
 
@@ -3319,7 +3418,7 @@ $("#qa-dictate").onclick=()=>startDictation($("#qa-input"),$("#qa-dictate"));
 
 /* ================= HER ŞEYİ TEMİZLE ================= */
 async function doWipe(){
-  const nN=S.notes.length, nC=S.cats.filter(c=>!isSec(c)).length,
+  const nN=S.notes.length, nC=S.cats.filter(isKat).length,
         nF=S.notes.reduce((s,n)=>s+n.files.length+n.audios.length,0);
   if(!nN&&!nF&&nC<=5&&!confirm("Görünüşe göre veri yok. Yine de sıfırlansın mı?")) return;
 
@@ -3665,6 +3764,252 @@ $("#minitakvim").addEventListener("click",e=>{
       setTimeout(()=>document.querySelector(`[data-takvimekle="${takvimSecili}"] input`)?.focus(),0);
   }
 });
+
+/* ================= KLASÖRLER + SÜTUN GÖRÜNÜMÜ (Finder gibi) =================
+   Klasör, kenar çubuğundaki kategoriden BAĞIMSIZ bir gruplamadır: notun kategorisi ne olursa
+   olsun istediği klasöre konur (n.grup). Klasörler S.cats içinde scope:"grup" ile tutulur,
+   böylece yedek ve Drive senkronu ek bir şey gerektirmeden taşır. Silinen klasör iz bırakır
+   (sil:true) — yoksa başka cihazdan gelen eski kopya onu geri getirirdi.
+   Sütun görünümü: solda klasörler · ortada seçili klasörün notları · sağda açılan not. */
+const isGrup=c=>c.scope==="grup"&&!c.sil;
+const klasorler=()=>S.cats.filter(isGrup).sort((a,b)=>a.name.localeCompare(b.name,"tr"));
+const klasorOf=id=>id?S.cats.find(c=>c.id===id&&isGrup(c)):null;
+const KLASORSUZ="_yok";
+let sutunKlasor=(()=>{ try{ return localStorage.getItem("nbmd_sutunklasor")||KLASORSUZ; }catch(e){ return KLASORSUZ; } })();
+let sutunSeviye=1;                 // telefonda: 1 klasörler · 2 notlar · 3 not (geniş ekranda üçü yan yana)
+let secim=new Set(), secimCapa=null, secimModu=false, klasorEkleniyor=false;
+const sutunAcik=()=>dizilim==="sutun"&&["active","cat"].includes(view.type);
+function sutunKlasorSec(id){
+  sutunKlasor=id; try{ localStorage.setItem("nbmd_sutunklasor",id); }catch(e){}
+}
+function klasorOlustur(ad){
+  const k={id:uid(),name:ad,scope:"grup",t:Date.now()};
+  S.cats.push(k); appLog("📁 Yeni klasör: "+ad); return k;
+}
+/* Notları klasöre taşı (tek ya da çoklu) — her nota kendi geçmişinde, Günlük'e tek satır */
+function klasoreTasi(ids,hedef){
+  const k=hedef===KLASORSUZ?null:klasorOf(hedef);
+  if(hedef!==KLASORSUZ&&!k) return 0;
+  let say=0;
+  for(const id of ids){
+    const n=S.notes.find(x=>x.id===id); if(!n) continue;
+    if((n.grup||null)===(k?k.id:null)) continue;
+    const eski=klasorOf(n.grup);
+    if(k) n.grup=k.id; else delete n.grup;
+    noteLog(n,k?"📁 Klasör: "+k.name+(eski?" (önceki: "+eski.name+")":""):"📁 Klasörden çıkarıldı"+(eski?": "+eski.name:""));
+    say++;
+  }
+  if(!say) return 0;
+  const tekNot=say===1?S.notes.find(x=>ids.includes(x.id)&&(x.grup||null)===(k?k.id:null)):null;
+  appLog(k?(say===1?"📁 “"+titleOf(tekNot)+"” → “"+k.name+"” klasörü":"📁 "+say+" not “"+k.name+"” klasörüne taşındı")
+          :(say===1?"📁 Klasörden çıkarıldı: “"+titleOf(tekNot)+"”":"📁 "+say+" not klasörden çıkarıldı"),say===1&&tekNot?tekNot.id:null);
+  kartOnbellekTemizle(); save();
+  return say;
+}
+/* Klasör seçici: kart rozeti ve çoklu taşıma aynı menüyü kullanır */
+function klasorPop(anchor,ids){
+  const tek=ids.length===1?S.notes.find(x=>x.id===ids[0]):null, mevcut=tek?(tek.grup||null):undefined;
+  pop.innerHTML=`<div class="popbaslik">${ids.length>1?ids.length+" notu taşı":"Klasör"}</div>`+
+    klasorler().map(k=>`<button data-kpick="${k.id}" class="${mevcut===k.id?"secili":""}">${mevcut===k.id?"✓ ":""}📁 ${esc(k.name)}</button>`).join("")+
+    `<button data-kpick="${KLASORSUZ}" class="${mevcut===null?"secili":""}">${mevcut===null?"✓ ":""}— Klasörsüz</button>`+
+    `<div class="sep"></div><input class="rename" id="kyeni" placeholder="＋ Yeni klasör adı, Enter" autocomplete="off">`;
+  popKonumla(anchor);
+  pop.querySelectorAll("[data-kpick]").forEach(b=>b.onclick=()=>{
+    pop.style.display="none"; klasoreTasi(ids,b.dataset.kpick); secim.clear(); secimModu=false; render();
+  });
+  const yi=$("#kyeni");
+  yi.onkeydown=e=>{
+    if(e.key==="Enter"&&yi.value.trim()){
+      const k=klasorOlustur(yi.value.trim()); pop.style.display="none";
+      klasoreTasi(ids,k.id); secim.clear(); secimModu=false; save(); render();
+    }
+    if(e.key==="Escape") pop.style.display="none";
+  };
+}
+/* Klasör: yeniden adlandır / sil (notlar SİLİNMEZ, klasörsüz kalır) */
+function klasorDuzenPop(anchor,id){
+  const k=klasorOf(id); if(!k) return;
+  const icindeki=S.notes.filter(n=>n.grup===id);
+  pop.innerHTML=`<input class="rename" id="kad" value="${esc(k.name)}" placeholder="Klasör adı">`+
+    `<div class="sep"></div><button data-act="sil" style="color:var(--red)">🗑 Klasörü sil</button>`;
+  popKonumla(anchor);
+  const ri=$("#kad"); ri.focus(); ri.select();
+  ri.onkeydown=e=>{
+    if(e.key==="Enter"&&ri.value.trim()&&ri.value.trim()!==k.name){
+      const eski=k.name; k.name=ri.value.trim(); k.t=Date.now();
+      appLog("✎ Klasör: "+eski+" → "+k.name); kartOnbellekTemizle(); save(); pop.style.display="none"; render();
+    }else if(e.key==="Enter"||e.key==="Escape") pop.style.display="none";
+  };
+  pop.querySelector("[data-act=sil]").onclick=()=>{
+    if(!confirm("“"+k.name+"” klasörü silinsin mi?\n\n"+(icindeki.length?icindeki.length+" not klasörsüz kalacak; notların kendisi SİLİNMEZ.":"Klasör boş."))) return;
+    icindeki.forEach(n=>{ delete n.grup; noteLog(n,"📁 Klasör silindi: "+k.name+" → klasörsüz"); });
+    k.sil=true; k.t=Date.now();
+    if(sutunKlasor===id) sutunKlasorSec(KLASORSUZ);
+    appLog("🗑 Klasör silindi: "+k.name+(icindeki.length?" ("+icindeki.length+" not klasörsüz kaldı)":""));
+    kartOnbellekTemizle(); save(); pop.style.display="none"; render();
+  };
+}
+function sutunSatir(n,sira){
+  const tri=n.triage&&TRI[n.triage], dl=n.deadline&&!n.done?timeLeft(n.deadline):null;
+  const secili=secim.has(n.id), acik=expandedId===n.id;
+  return `<div class="srow ${acik?"acik":""} ${secili?"secili":""} ${secimModu?"modlu":""}" draggable="true" data-srow="${n.id}" data-sira="${sira}" title="${esc(tamBaslik(n))}">
+    ${secimModu?`<span class="skutu">${secili?"✓":""}</span>`:""}
+    <span class="snokta" style="background:${tri?({r:"var(--red)",y:"var(--amber)",g:"var(--green)"})[n.triage]:"transparent"}"></span>
+    <span class="sad">${esc(tamBaslik(n))}</span>
+    ${n.subs.length?`<span class="sme">☑ ${n.subs.filter(x=>x.done).length}/${n.subs.length}</span>`:""}
+    ${dl?`<span class="sme ${dl.cls}">⏰</span>`:""}
+    ${n.files.length?`<span class="sme">📎</span>`:""}
+    <span class="sok">›</span></div>`;
+}
+let sutunNotlari=[];                // ortadaki sütunun güncel sırası (shift ile aralık seçimi için)
+function sutunViewHTML(){
+  const hepsi=visibleNotes(), ks=klasorler();
+  const sayi=id=>hepsi.filter(n=>id===KLASORSUZ?!klasorOf(n.grup):n.grup===id).length;
+  if(sutunKlasor!==KLASORSUZ&&!klasorOf(sutunKlasor)) sutunKlasorSec(KLASORSUZ);
+  { const an=expandedId&&S.notes.find(x=>x.id===expandedId);
+    if(an&&!an.panel){ const hedef=klasorOf(an.grup)?an.grup:KLASORSUZ; if(hedef!==sutunKlasor) sutunKlasorSec(hedef); } }
+  sutunNotlari=hepsi.filter(n=>sutunKlasor===KLASORSUZ?!klasorOf(n.grup):n.grup===sutunKlasor);
+  const acikNot=expandedId&&S.notes.find(x=>x.id===expandedId);
+  const seviye=acikNot?3:sutunSeviye;
+  const kAd=sutunKlasor===KLASORSUZ?"Klasörsüz":klasorOf(sutunKlasor).name;
+  const sol=`<div class="sk sk1">
+      <div class="skh"><span>Klasörler</span><button class="skbtn" data-kekle="1" title="Yeni klasör">＋</button></div>
+      ${klasorEkleniyor?`<div class="kekle"><input id="kekle-in" placeholder="Klasör adı, Enter" autocomplete="off"></div>`:""}
+      ${ks.map(k=>`<div class="kitem ${sutunKlasor===k.id?"secili":""}" data-sklasor="${k.id}">
+          <span class="kico">📁</span><span class="kad">${esc(k.name)}</span><span class="ksay">${sayi(k.id)||""}</span>
+          <button class="kduz" data-kduz="${k.id}" title="Yeniden adlandır / sil">⋯</button><span class="sok">›</span></div>`).join("")}
+      ${!ks.length&&!klasorEkleniyor?`<div class="kipucu">＋ ile ilk klasörünü aç, sonra notları buraya sürükle.</div>`:""}
+      <div class="kitem kyok ${sutunKlasor===KLASORSUZ?"secili":""}" data-sklasor="${KLASORSUZ}">
+        <span class="kico">🗂</span><span class="kad">Klasörsüz</span><span class="ksay">${sayi(KLASORSUZ)||""}</span><span class="sok">›</span></div>
+    </div>`;
+  const orta=`<div class="sk sk2">
+      <div class="skh"><button class="sgeri" data-sgeri="1">‹ Klasörler</button><span class="skad">${esc(kAd)}</span>
+        <span class="ssay">${sutunNotlari.length||""}</span>
+        <button class="skbtn ${secimModu?"on":""}" data-smod="1" title="Birden fazla not seç">${secimModu?"Bitti":"Seç"}</button></div>
+      ${secim.size?`<div class="sbar"><span>${secim.size} not seçili</span><button class="tool sm" data-stasi="1">📁 Klasöre taşı…</button></div>`:""}
+      ${sutunNotlari.length?sutunNotlari.map(sutunSatir).join("")
+        :`<div class="kipucu">${sutunKlasor===KLASORSUZ?"Klasörsüz not yok.":"Klasör boş — notları buraya sürükle ya da üstteki kutudan yaz."}</div>`}
+    </div>`;
+  let sag;
+  if(secim.size){
+    sag=`<div class="sk sk3"><div class="ssecim"><div class="big">${secim.size}</div><b>not seçili</b>
+      <p>Sol sütundaki bir klasöre sürükleyip bırakabilir ya da buradan taşıyabilirsin.</p>
+      <button class="tool" data-stasi="1">📁 Klasöre taşı…</button>
+      <button class="tool" data-stemizle="1">Seçimi kaldır</button></div></div>`;
+  }else if(acikNot){
+    sag=`<div class="sk sk3"><div class="skh sk3h"><button class="sgeri" data-sgeri="2">‹ ${esc(kAd)}</button></div>${noteCardHTML(acikNot)}</div>`;
+  }else{
+    sag=`<div class="sk sk3"><div class="kipucu bos">Bir not seç — burada açılır, yazıp ekleme yapabilirsin.</div></div>`;
+  }
+  return `<div class="sutunlar sv${secim.size?2:seviye}">${sol}${orta}${sag}</div>`;
+}
+/* Sütunlar her çizimde yeniden kurulur; kendi kaydırma konumları korunmalı */
+/* Sütunlar ekranın altına kadar uzansın ama sayfa ayrıca kaymasın (Finder gibi sabit pencere) */
+function sutunYukseklik(){
+  const el=document.querySelector(".sutunlar"), kap=$("#content"); if(!el||!kap) return;
+  if(matchMedia("(max-width:760px)").matches){ el.style.height=""; return; }
+  const ust=el.getBoundingClientRect().top-kap.getBoundingClientRect().top+kap.scrollTop;
+  const alt=parseFloat(getComputedStyle(kap).paddingBottom)||0;
+  el.style.height=Math.max(380,Math.floor(kap.clientHeight-ust-alt-2))+"px";
+}
+addEventListener("resize",()=>{ if(sutunAcik()) sutunYukseklik(); });
+function sutunKaydirmaAl(){ return [...document.querySelectorAll(".sutunlar .sk")].map(e=>e.scrollTop); }
+function sutunKaydirmaKoy(a){ document.querySelectorAll(".sutunlar .sk").forEach((e,i)=>{ if(a[i]) e.scrollTop=a[i]; }); }
+
+function satirTikla(e,id){
+  const n=S.notes.find(x=>x.id===id); if(!n) return;
+  const coklu=e.metaKey||e.ctrlKey, aralik=e.shiftKey;
+  if(aralik&&secimCapa){
+    const ids=sutunNotlari.map(x=>x.id), a=ids.indexOf(secimCapa), b=ids.indexOf(id);
+    if(a>-1&&b>-1){ if(expandedId) collapseNote(true); ids.slice(Math.min(a,b),Math.max(a,b)+1).forEach(x=>secim.add(x)); render(); return; }
+  }
+  if(coklu||secimModu){
+    if(expandedId){ if(!secim.size) secim.add(expandedId); collapseNote(true); }
+    secim.has(id)?secim.delete(id):secim.add(id); secimCapa=id; render(); return;
+  }
+  secim.clear(); secimCapa=id;
+  if(expandedId!==id) expandNote(id); else render();
+}
+let uzunBasma=0, uzunSon=0;     // basılı tutma zamanlayıcısı / son uzun basma anı (ardından gelen tık yutulur)
+document.addEventListener("click",e=>{
+  if(!sutunAcik()) return;
+  const el=e.target, bul=s=>el.closest&&el.closest(s); let t;
+  if(t=bul("[data-kduz]")){ e.stopPropagation(); klasorDuzenPop(t,t.dataset.kduz); return; }
+  if(t=bul("[data-kekle]")){ klasorEkleniyor=!klasorEkleniyor; render(); $("#kekle-in")?.focus(); return; }
+  if(t=bul("[data-sklasor]")){
+    if(expandedId) collapseNote(true);
+    secim.clear(); secimModu=false; sutunKlasorSec(t.dataset.sklasor); sutunSeviye=2; render(); return; }
+  if(t=bul("[data-srow]")){ if(Date.now()-uzunSon<700) return; satirTikla(e,t.dataset.srow); return; }
+  if(t=bul("[data-smod]")){ secimModu=!secimModu; if(!secimModu) secim.clear(); if(expandedId) collapseNote(true); render(); return; }
+  if(t=bul("[data-stasi]")){ e.stopPropagation(); klasorPop(t,[...secim]); return; }
+  if(t=bul("[data-stemizle]")){ secim.clear(); secimModu=false; render(); return; }
+  if(t=bul("[data-sgeri]")){
+    if(t.dataset.sgeri==="2"){ collapseNote(true); sutunSeviye=2; } else sutunSeviye=1;
+    render(); return; }
+});
+document.addEventListener("keydown",e=>{
+  if(!sutunAcik()) return;
+  if(e.target&&e.target.id==="kekle-in"){
+    const v=e.target.value.trim();
+    if(e.key==="Enter"&&v){ const k=klasorOlustur(v); klasorEkleniyor=false; sutunKlasorSec(k.id); sutunSeviye=2; save(); render(); }
+    if(e.key==="Escape"){ klasorEkleniyor=false; render(); }
+    return;
+  }
+  if(e.key==="Escape"&&secim.size){ secim.clear(); secimModu=false; render(); }
+});
+/* Sürükle-bırak: seçili notlardan birini sürükleyince seçimin tamamı taşınır */
+document.addEventListener("dragstart",e=>{
+  const r=e.target.closest&&e.target.closest("[data-srow]"); if(!r||!sutunAcik()) return;
+  const id=r.dataset.srow, ids=secim.has(id)?[...secim]:[id];
+  e.dataTransfer.setData("text/plain",ids.join(",")); e.dataTransfer.effectAllowed="move";
+  document.body.classList.add("suruklu");
+  const ad=document.createElement("div"); ad.className="surukad"; ad.textContent=ids.length>1?ids.length+" not":tamBaslik(S.notes.find(x=>x.id===id));
+  document.body.appendChild(ad); e.dataTransfer.setDragImage(ad,10,10); setTimeout(()=>ad.remove(),0);
+});
+document.addEventListener("dragend",()=>{ document.body.classList.remove("suruklu"); document.querySelectorAll(".kitem.hedef").forEach(x=>x.classList.remove("hedef")); });
+document.addEventListener("dragover",e=>{
+  const k=e.target.closest&&e.target.closest("[data-sklasor]"); if(!k||!document.body.classList.contains("suruklu")) return;
+  e.preventDefault(); e.dataTransfer.dropEffect="move";
+  document.querySelectorAll(".kitem.hedef").forEach(x=>{ if(x!==k) x.classList.remove("hedef"); }); k.classList.add("hedef");
+});
+document.addEventListener("dragleave",e=>{ const k=e.target.closest&&e.target.closest("[data-sklasor]"); if(k&&!k.contains(e.relatedTarget)) k.classList.remove("hedef"); });
+document.addEventListener("drop",e=>{
+  const k=e.target.closest&&e.target.closest("[data-sklasor]"); if(!k||!document.body.classList.contains("suruklu")) return;
+  e.preventDefault();
+  const ids=(e.dataTransfer.getData("text/plain")||"").split(",").filter(Boolean);
+  document.body.classList.remove("suruklu");
+  const say=klasoreTasi(ids,k.dataset.sklasor);
+  secim.clear(); secimModu=false; render();
+  if(say) bildir(say+" not → "+(k.dataset.sklasor===KLASORSUZ?"Klasörsüz":klasorOf(k.dataset.sklasor).name));
+});
+/* Dokunmatik: satıra basılı tutunca seçim modu açılır (sürükleme yerine) */
+document.addEventListener("touchstart",e=>{
+  const r=e.target.closest&&e.target.closest("[data-srow]"); if(!r||!sutunAcik()||secimModu) return;
+  clearTimeout(uzunBasma); uzunBasma=setTimeout(()=>{
+    secimModu=true; secim.add(r.dataset.srow); secimCapa=r.dataset.srow; if(expandedId) collapseNote(true);
+    uzunBasma=0; uzunSon=Date.now(); render(); if(navigator.vibrate) navigator.vibrate(15);
+  },480);
+},{passive:true});
+["touchend","touchmove","touchcancel"].forEach(t=>document.addEventListener(t,()=>{ if(uzunBasma){ clearTimeout(uzunBasma); uzunBasma=0; } },{passive:true}));
+let toastZaman=0;
+function bildir(m){
+  let el=$("#toast"); if(!el){ el=document.createElement("div"); el.id="toast"; document.body.appendChild(el); }
+  el.textContent=m; el.classList.add("on"); clearTimeout(toastZaman); toastZaman=setTimeout(()=>el.classList.remove("on"),2200);
+}
+/* Görünüm seçici: liste · kare · sütun */
+const DIZILIM={liste:{i:"▤",ad:"Liste"},izgara:{i:"▦",ad:"Kare"},sutun:{i:"◫",ad:"Sütun (klasörler)"}};
+function dizilimPop(anchor){
+  pop.innerHTML=`<div class="popbaslik">Görünüm</div>`+Object.entries(DIZILIM).map(([k,v])=>
+    `<button data-dz="${k}" class="${k===dizilim?"secili":""}"><span style="width:18px;text-align:center">${v.i}</span>${v.ad}</button>`).join("");
+  popKonumla(anchor);
+  pop.querySelectorAll("[data-dz]").forEach(b=>b.onclick=()=>{
+    pop.style.display="none";
+    if(expandedId) collapseNote(true);
+    dizilim=b.dataset.dz; secim.clear(); secimModu=false; sutunSeviye=1;
+    try{ localStorage.setItem("nbmd_dizilim",dizilim); }catch(e){}
+    siraKilidi=null; render();
+  });
+}
 
 /* ================= GOOGLE TAKVİM'E AKTARIM (tek yön: LogBook → Google) =================
    Bitiş tarihli notlar Google Takvim'de uygulamanın kendi açtığı "LogBook" takviminde tüm gün

@@ -37,6 +37,7 @@ Every edit keeps its predecessor. You can change your mind freely without losing
 - **Triage marks** — classify a note as red, amber, or green; the card is colour-coded accordingly and the change is recorded in the log
 - **Queue for review** — add a note to the mentor list without moving or duplicating it; a second click removes it from the queue
 - **Calendar** — every note with a deadline on a month or week calendar, with a mini calendar in the sidebar; tap a day to see its notes or add one due that day. Optionally exported to Google Calendar as all-day events in a separate “LogBook” calendar (the app cannot see your other calendars)
+- **Folders & column view** — file notes into folders independent of categories; a Finder-style column view shows folders, their notes and the open note side by side, with drag and drop and multi-select (on phones: folders → notes → note)
 - **Pen annotation** — draw on PDFs and images with Apple Pencil or mouse; four colors, highlighter, eraser, undo. Finger scrolls, pen draws
 - **Full edit history** — nothing is deleted or overwritten; every version persists with its date
 - **Turkish dictation** — speech-to-text via the Web Speech API

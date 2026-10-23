@@ -4,6 +4,15 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] — 2026-10-23
+
+### Added
+
+- **Folders, independent of categories.** Notes can be filed into folders that have nothing to do with the sidebar categories: a note in *Genel* can sit in any folder, or in none. Folders are created, renamed and deleted from the main area; deleting a folder never deletes notes — they simply become unfiled. Every note card carries a 📁 badge to choose or change its folder (or create a new one on the spot). All moves, renames and deletions are recorded in each note's history and the log, and folders travel with backups and Drive sync; a renamed or deleted folder propagates to other devices instead of being restored by an older copy
+- **Column view (Finder-style).** A third layout next to list and grid — chosen from the view button in the top bar — shows folders on the left, the selected folder's notes in the middle and the opened note with its full editor on the right, so the whole structure stays in view while writing. Quick capture files the new note into the selected folder. In a category view, the columns group only that category's notes; *Completed* keeps the plain list. The columns fill the window and scroll on their own, like a Finder window
+- **Drag and drop, multi-select.** Notes are dragged from the middle column onto a folder. ⌘/Ctrl-click adds a note to the selection and Shift-click selects a range; dragging any selected note moves the whole selection, or *Move to folder…* does it from a menu. On touch screens, pressing and holding a note (or the *Select* button) starts selection mode with checkboxes, and the move action appears above the list
+- **On phones** the column view works like the Files app: folders → notes → note, with a back button at each level
+
 ## [1.5.2] — 2026-10-16
 
 ### Fixed

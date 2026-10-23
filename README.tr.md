@@ -37,6 +37,7 @@ Her düzenlemenin öncesi saklanır. Fikir değiştirmek serbest — kaybettiği
 - **Triyaj işareti** — notu kırmızı, sarı veya yeşil olarak sınıflandır; kart buna göre renklenir, değişiklik günlüğe işlenir
 - **Görüşme listesine al** — notu taşımadan ve çoğaltmadan mentör listesine ekle; ikinci tıkta listeden çıkar
 - **Takvim** — bitiş tarihli tüm notlar ay ya da hafta takviminde, kenar çubuğunda da küçük bir takvim; bir güne dokun, o günün notlarını gör veya o güne not ekle. İstersen ayrı bir “LogBook” takvimiyle Google Takvim'e tüm gün etkinliği olarak aktarılır (uygulama diğer takvimlerini göremez)
+- **Klasörler ve sütun görünümü** — notları kategorilerden bağımsız klasörlere koy; Finder benzeri sütun görünümünde klasörler, içindeki notlar ve açık not yan yana; sürükle-bırak ve çoklu seçim (telefonda klasör → not → not)
 - **Kalemle çizim** — PDF ve görsellerin üzerine Apple Pencil / fareyle yaz; 4 renk, fosforlu, silgi, geri al. Parmak kaydırır, kalem çizer
 - **Düzenleme tarihçesi** — silmek yok, üzerine yazmak yok; her sürüm tarihiyle durur
 - **Türkçe dikte** — konuş, metne dönüşsün (Web Speech API)
