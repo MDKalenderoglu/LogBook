@@ -22,7 +22,9 @@ td.d{white-space:nowrap;font-weight:700}
 .gecti{color:var(--yesil)} .kaldi{color:var(--kirmizi)} .atlandi{color:var(--sari)}
 .ayrinti{color:var(--soluk);font-size:12px;word-break:break-word}
 tr.grup td{background:var(--bg);font-weight:700;font-size:12px;color:var(--soluk)}
-iframe{width:1px;height:1px;border:0;position:absolute;left:-9999px}
+/* Çerçeve ekranın İÇİNDE ama görünmez: tarayıcılar ekran dışındaki çerçevede çizimi (rAF) durdurur,
+   o zaman PDF çizimi hiç bitmezdi */
+iframe{position:fixed;right:0;bottom:0;width:160px;height:120px;border:0;opacity:.01;pointer-events:none;z-index:-1}
 </style>
 </head>
 <body>
@@ -236,7 +238,8 @@ test("PDF","PDF, güvenlik politikası altında açılıp çiziliyor",async()=>{
   const pdf=await W.pdfjsLib.getDocument({data:asgariPdf(),isEvalSupported:false}).promise;
   const sayfa=await pdf.getPage(1), vp=sayfa.getViewport({scale:1});
   const cv=W.document.createElement("canvas"); cv.width=vp.width; cv.height=vp.height;
-  await sayfa.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;
+  const sure=new Promise((_,j)=>setTimeout(()=>j(new Atla("PDF çizimi 10 sn içinde bitmedi (tarayıcı arka planda olabilir)")),10000));
+  await Promise.race([sayfa.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise,sure]);
   return pdf.numPages===1?true:["sayfa sayısı "+pdf.numPages];
 });
 

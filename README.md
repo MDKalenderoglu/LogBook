@@ -45,7 +45,8 @@ Every edit keeps its predecessor. You can change your mind freely without losing
 - **Attachments of any type** — drag, drop, or paste; images and PDFs open in-app; reorder or remove them (removals are logged too)
 - **Nested categories** — arbitrarily deep; a parent category also surfaces its children's notes
 - **Deadline countdown** — live "3 hours left" counter that turns amber, then red
-- **Sub-tasks** — a checkable mini-list inside any note, with progress; visible and tickable on the collapsed card, editable and deletable with every change logged
+- **Sub-tasks** — a checkable mini-list inside any note, with progress; visible and tickable on the collapsed card, editable, deletable, reorderable by drag, and insertable at any position — every change logged
+- **Pinned notes** — pin a note with 📌 and it stays at the top, however many new notes arrive
 - **Automatic date separators** — return to a note after a long gap and the continuation is stamped, so the chronology is visible in the text itself
 - **Complete activity log** — every addition, edit, and completion recorded with its date
 - **Light / dark theme**

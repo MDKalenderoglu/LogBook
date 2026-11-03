@@ -4,6 +4,18 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] — 2026-11-03
+
+### Added
+
+- **Pinned notes.** A 📌 badge on every active note pins it to the top: new notes arrive underneath it instead of pushing it down. Pinned notes stay first in list, grid and column views (and within a folder or category), keep their relative order, and carry a subtle accent border; in the column view their title is prefixed with 📌. Pinning and unpinning are recorded in the note's history and the log, and travel with sync
+- **Reorder sub-tasks by dragging.** Each sub-task has a ⠿ handle; drag it up or down and the others make room. Works with a mouse and with a finger (pointer events, with touch scrolling disabled on the handle only). Every move is logged separately with its old and new position, e.g. *“Masa siparişi” (7. → 1. sıra)*
+- **Insert a sub-task anywhere.** The ＋ next to a sub-task opens an input right below it; Enter adds the item there and keeps an input open below it for the next one, Esc closes. Text typed and then left is still saved. Each insertion is logged with its position
+
+### Changed
+
+- The security test page keeps its hidden app frame inside the viewport (browsers pause drawing in off-screen frames, which stalled the PDF test) and gives the PDF rendering test a time limit, so it reports *skipped* instead of hanging
+
 ## [1.6.1] — 2026-10-23
 
 ### Security

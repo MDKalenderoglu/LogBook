@@ -45,7 +45,8 @@ Her düzenlemenin öncesi saklanır. Fikir değiştirmek serbest — kaybettiği
 - **Her tür dosya eki** — sürükle-bırak veya yapıştır; görsel ve PDF'ler uygulama içinde açılır; ekleri sırala, kaldır (kaldırma bile günlüğe işlenir)
 - **İç içe kategoriler** — istediğin kadar derin; üst kategori alt notları da gösterir
 - **Deadline geri sayımı** — "3 saat kaldı" canlı sayaç; yaklaşınca sarı, geçince kırmızı
-- **Alt maddeler** — not içinde tikli mini görev listesi, ilerleme göstergeli; kapalı kartta görünür ve işaretlenir, düzenlenip silinebilir — her değişiklik günlüğe işlenir
+- **Alt maddeler** — not içinde tikli mini görev listesi, ilerleme göstergeli; kapalı kartta görünür ve işaretlenir, düzenlenir, silinir, sürükleyerek sıralanır, istenen sıraya araya eklenir — her değişiklik günlüğe işlenir
+- **Sabitleme** — 📌 ile sabitlenen not, ne kadar yeni not gelirse gelsin en üstte kalır
 - **Otomatik tarih ayracı** — uzun aradan sonra döndüğünde notun devamına tarih düşülür; ne zaman ne düşündüğün metnin kendisinde görünür
 - **Tam günlük** — her ekleme, düzenleme, tamamlama tarihiyle kayıtta
 - **Açık / koyu tema**

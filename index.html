@@ -8,7 +8,7 @@
      Uygulama kodu her değiştiğinde özeti güncelle:  python3 tools/csp-hash.py index.html LogBook.html
      (GitHub Pages sunucu başlığı eklemeye izin vermediği için meta etiket kullanılıyor; frame-ancestors
      gibi yalnız başlıkla çalışan yönergeler bu yüzden burada yok.) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-wsR5otW5x39K4NSyOPbzFhM/FcQUeoJwFNKzG6Qe1oE=' https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com/ajax/libs/pdf.js/; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' data: blob: https://www.googleapis.com https://oauth2.googleapis.com https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; worker-src 'self' blob: https://cdnjs.cloudflare.com/ajax/libs/pdf.js/; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-EKQZxD4XU3V4teAy4W2tMrhLv9JmvD++4X4iI4Pi+Pk=' https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com/ajax/libs/pdf.js/; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' data: blob: https://www.googleapis.com https://oauth2.googleapis.com https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; worker-src 'self' blob: https://cdnjs.cloudflare.com/ajax/libs/pdf.js/; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="LogBook">
@@ -367,9 +367,24 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 .sub .subtxt{flex:1;min-width:0;cursor:text;word-wrap:break-word;border-radius:5px}
 .sub .subtxt:hover{background:var(--surface2)}
 .subdel{flex-shrink:0;color:var(--text2);font-size:12px;padding:1px 6px;border-radius:6px;opacity:0;line-height:1.4}
+.subekle{flex-shrink:0;color:var(--text2);font-size:13px;padding:0 6px;border-radius:6px;opacity:0;line-height:1.4}
+.sub:hover .subekle,.subekle:focus{opacity:.75}
+.subekle:hover{color:var(--accent);background:var(--accent-soft);opacity:1}
+/* sürükleme tutamacı: dokunmatikte kaydırmayla karışmasın diye touch-action:none */
+.subtut{flex-shrink:0;width:14px;margin-top:1px;color:var(--text2);font-size:13px;line-height:1.3;cursor:grab;
+  opacity:0;touch-action:none;user-select:none;-webkit-user-select:none;text-align:center}
+.sub:hover .subtut{opacity:.6}
+.sub{transition:transform .14s ease}
+.siralaniyor .sub{user-select:none;-webkit-user-select:none}
+.sub.surukleniyor{transition:none;position:relative;z-index:3;background:var(--surface);border-radius:7px;
+  box-shadow:0 3px 12px rgba(0,0,0,.14)}
+.sub.surukleniyor .subtut{opacity:1;cursor:grabbing}
+.sub-araya{padding:1px 0 3px 46px}
+.sub-araya input{width:100%;border:none;border-bottom:1px solid var(--accent);outline:none;background:none;
+  font-size:calc(13.5px * var(--tscale,1));padding:4px 0;color:var(--text)}
 .sub:hover .subdel,.subdel:focus{opacity:.75}
 .subdel:hover{color:var(--red);background:var(--red-soft);opacity:1}
-@media(hover:none){ .subdel{opacity:.55} }
+@media(hover:none){ .subdel,.subekle{opacity:.55} .subtut{opacity:.5;width:20px;font-size:16px} }
 .subedit-in{flex:1;min-width:0;font:inherit;color:var(--text);background:var(--surface);
   border:1px solid var(--accent);border-radius:6px;padding:1px 6px;outline:none}
 /* kapalı kartta açık alt maddeler (liste görünümü) */
@@ -474,6 +489,10 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 
 /* ---------- Klasörler: sütun görünümü (Finder gibi) ---------- */
 .chip.fold.on{background:var(--accent-soft);color:var(--accent)}
+.chip.pin{filter:grayscale(1);opacity:.55}
+.chip.pin.on{filter:none;opacity:1;background:var(--accent-soft);color:var(--accent)}
+button.chip.pin:hover{opacity:1}
+.note.sabit{border-color:color-mix(in srgb,var(--accent) 40%,var(--border))}
 #list.izgara .chip.fold .ck{display:none}
 /* Sütun genişlikleri orantılı: dar alanda (sağ panel açıkken) not sütunu sıkışmasın */
 .sutunlar{display:grid;grid-template-columns:clamp(150px,22%,220px) clamp(170px,26%,290px) minmax(0,1fr);
@@ -879,7 +898,7 @@ body.suruklu .sk1{background:color-mix(in srgb,var(--accent-soft) 35%,var(--surf
    IndexedDB, senkron ve service worker kapalı — kullanıcının gerçek verisine dokunulmaz. */
 const TEST_MODU=/[?&]guvenlik-testi\b/.test(location.search);
 const LS_KEY=TEST_MODU?"nbmd_guvenlik_testi":"nbmd_v1";
-const SURUM="1.6.1";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
+const SURUM="1.7.0";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
 const CAT_COLORS=["#5B5BD6","#3E8E5A","#B57E1E","#C4442E","#2E7DB5","#8E5BAB","#5A8E7A","#B5573E"];
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
@@ -936,6 +955,7 @@ function veriDogrula(d){
     if(n.sec!=null&&!kimlik(n.sec)) delete n.sec;
     if(n.grup!=null&&!kimlik(n.grup)) delete n.grup;
     if(n.mentor!==undefined) n.mentor=!!n.mentor;
+    if(n.pin!==undefined){ if(n.pin) n.pin=true; else delete n.pin; }
     n.files=dizi(n.files).map(f=>{ if(!kimlik(f.id)) f.id=uid(); f.name=yazi(f.name);
       if(!mime(f.type)) f.type=""; f.size=sayi(f.size,0); f.t=sayi(f.t,0); return f; });
     n.audios=dizi(n.audios).map(a=>{ if(!kimlik(a.id)) a.id=uid(); if(a.mime!==undefined&&!mime(a.mime)) a.mime="";
@@ -1206,7 +1226,10 @@ function visibleNotes(){
   arr=suzgecUygula(arr);
   if(view.type==="done") arr.sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
   else arr.sort(SIRALAR[sirala].f);
-  return siraSabitle(arr);
+  arr=siraSabitle(arr);
+  // Sabitlenen notlar her zaman en üstte (Tamamlananlar hariç); kendi aralarında sıra korunur
+  if(view.type!=="done") arr=[...arr.filter(n=>n.pin),...arr.filter(n=>!n.pin)];
+  return arr;
 }
 /* Bir nota dokunmak (triyaj, kategori, danışman işareti) notu güncellediği için
    liste yeniden sıralanıyor ve kartlar parmağın altında yer değiştiriyordu.
@@ -1392,7 +1415,7 @@ function kartImza(n){
   const zaman=n.deadline?Math.floor(Date.now()/3e4):0;          // geri sayım tazeliği
   return [kartSurum,n.id,n.updatedAt,expandedId===n.id?1:0,n.done?1:0,n.doneAt||0,
     n.triage||"",n.mentor?1:0,n.sec||"",n.cat,n.deadline||"",zaman,
-    n.files.length,n.audios.length,n.subs.length,n.subs.filter(x=>x.done).length,n.grup||""].join("|");
+    n.files.length,n.audios.length,n.subs.length,n.subs.filter(x=>x.done).length,n.grup||"",n.pin?1:0].join("|");
 }
 function noteCardHTML(n){
   const imza=kartImza(n);
@@ -1411,7 +1434,7 @@ function kartHTMLUret(n){
   // (Eskiden yanlışlıkla tamamlanmış bir kayıt varsa tiki gösterip geri açılabilsin.)
   const defter=n.panel==="learn"&&!n.done;
   const kucukResim=!exp&&n.files.some(f=>(f.type||"").startsWith("image/"));
-  return `<div class="note ${n.done?"done":""} ${exp?"exp":""} ${tri?"tri-"+n.triage:""} ${defter?"nb":""} ${kucukResim?"hasthumb":""}" id="note-${n.id}">
+  return `<div class="note ${n.done?"done":""} ${exp?"exp":""} ${tri?"tri-"+n.triage:""} ${defter?"nb":""} ${kucukResim?"hasthumb":""} ${n.pin&&!n.done?"sabit":""}" id="note-${n.id}">
     <div class="note-head" data-open="${n.id}">
       ${defter?"":`<button class="chk" data-done="${n.id}" title="${n.done?"Yeniden aç":"Tamamlandı"}">✓</button>`}
       <div class="note-body">
@@ -1450,6 +1473,7 @@ function noteMetaHTML(n){
   const dl=n.deadline&&!n.done?timeLeft(n.deadline):null;
   const tri=n.triage&&TRI[n.triage];
   return `
+          ${!n.panel&&!n.done?`<button class="chip pin ${n.pin?"on":""}" data-pin="${n.id}" title="${n.pin?"Sabitlemeyi kaldır":"En üste sabitle"}">📌</button>`:""}
           <button class="chip ${tri?"tri-"+n.triage:""}" data-triage="${n.id}"
             title="Triyaj: ${tri?esc(tri.l):"işaretsiz"}">${tri?tri.e:"⚪"}<span class="ck">${tri?" "+tri.s:" Triyaj"}</span></button>
           ${n.panel!=="mentor"?`<button class="chip mshare ${n.mentor?"on":""}" data-mentor="${n.id}"
@@ -1837,6 +1861,14 @@ function revealNote(id){
   if(el){ el.classList.add("vurgula"); setTimeout(()=>el.classList.remove("vurgula"),1200); }
 }
 
+/* Notu en üste sabitle / sabitlemeyi kaldır — yeni notlar gelse de sabitler üstte kalır */
+function sabitleDegistir(id){
+  const n=S.notes.find(x=>x.id===id); if(!n) return;
+  n.pin=!n.pin; if(!n.pin) delete n.pin;
+  noteLog(n,n.pin?"📌 En üste sabitlendi":"📌 Sabitleme kaldırıldı");
+  appLog((n.pin?"📌 Sabitlendi: ":"📌 Sabitleme kaldırıldı: ")+"“"+titleOf(n)+"”",n.id);
+  save(); render();
+}
 /* Notu mentör listesine ekle / çıkar — not yerinde kalır, veri kopyalanmaz */
 function toggleMentor(id){
   const n=S.notes.find(x=>x.id===id); if(!n)return;
@@ -1861,6 +1893,7 @@ function delegeBaglan(){
       return; }
     if(t=bul("[data-done]")){ e.stopPropagation(); toggleDone(t.dataset.done); return; }
     if(t=bul("[data-triage]")){ e.stopPropagation(); openTriagePop(t,t.dataset.triage); return; }
+    if(t=bul("[data-pin]")){ e.stopPropagation(); sabitleDegistir(t.dataset.pin); return; }
     if(t=bul("[data-mentor]")){ e.stopPropagation(); toggleMentor(t.dataset.mentor); return; }
     if(t=bul("[data-catpick]")){ e.stopPropagation(); openCatPop(t,t.dataset.catpick); return; }
     if(t=bul("[data-grup]")){ e.stopPropagation(); klasorPop(t,[t.dataset.grup]); return; }
@@ -2134,17 +2167,87 @@ function bindEditor(){
 }
 
 /* ---------- subtasks ---------- */
+let altArayaSonra=null;          // araya ekleme kutusunun açık olduğu alt maddenin kimliği
 function renderSubs(n){
   const w=$("#ed-subs"); if(!w)return;
   const done=n.subs.filter(s=>s.done).length;
   w.innerHTML=(n.subs.length?`<div class="subs-title">Alt maddeler · ${done}/${n.subs.length}</div>`:"")+
-    n.subs.map(s=>`<div class="sub ${s.done?"done":""}">
+    n.subs.map(s=>`<div class="sub ${s.done?"done":""}" data-subsatir="${s.id}">
+      <span class="subtut" data-subtut="${s.id}" title="Sürükleyerek sırasını değiştir">⠿</span>
       <button class="chk chk-sm" data-subtoggle="${s.id}" title="${s.done?"Yeniden aç":"Tamamla"}">✓</button>
       <span class="subtxt" data-subedit="${s.id}" title="Düzenlemek için dokun">${linkify(esc(s.text))}</span>
-      <button class="subdel" data-subdel="${s.id}" title="Alt maddeyi sil">✕</button></div>`).join("")+
+      <button class="subekle" data-subekle="${s.id}" title="Altına yeni madde ekle">＋</button>
+      <button class="subdel" data-subdel="${s.id}" title="Alt maddeyi sil">✕</button></div>${
+      altArayaSonra===s.id?`<form class="sub-araya" data-arayaform="${s.id}" autocomplete="off">
+        <input enterkeyhint="done" placeholder="＋ Buraya yeni madde…  (Enter)"></form>`:""}`).join("")+
     `<form class="sub-add" id="sub-add"><input id="sub-input" autocomplete="off" enterkeyhint="done" placeholder="＋ Alt madde ekle…  (Enter)"></form>`;
   w.querySelectorAll("[data-subtoggle]").forEach(b=>{
     b.onclick=()=>{ if(altMaddeIsaretle(n,b.dataset.subtoggle)){ renderSubs(n); kartMetaYenile(n); } };
+  });
+  // Araya ekleme: ＋ satırın hemen altında bir kutu açar; Enter ekler ve yeni maddenin altında
+  // kutuyu açık tutar (arka arkaya yazılabilsin). Boşken Esc/odak kaybı kapatır.
+  w.querySelectorAll("[data-subekle]").forEach(b=>{
+    b.onclick=()=>{ altArayaSonra=altArayaSonra===b.dataset.subekle?null:b.dataset.subekle; renderSubs(n);
+      w.querySelector("[data-arayaform] input")?.focus(); };
+  });
+  const af=w.querySelector("[data-arayaform]");
+  if(af){
+    const inp=af.querySelector("input"); let islendi=false;
+    const ekle=v=>{
+      const i=n.subs.findIndex(x=>x.id===af.dataset.arayaform); if(i<0) return null;
+      const yeni={id:uid(),text:v,done:false,t:Date.now()};
+      n.subs.splice(i+1,0,yeni);
+      noteLog(n,"＋ Alt madde eklendi ("+(i+2)+". sıraya): "+v);
+      appLog("＋ Alt madde eklendi: “"+kisa(v)+"” ("+(i+2)+". sıra) — "+titleOf(n),n.id);
+      save(); kartMetaYenile(n); return yeni;
+    };
+    af.onsubmit=e=>{
+      e.preventDefault(); const v=inp.value.trim(); if(!v) return;
+      islendi=true; const y=ekle(v); altArayaSonra=y?y.id:null; renderSubs(n);
+      w.querySelector("[data-arayaform] input")?.focus();
+    };
+    inp.onkeydown=e=>{ if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); islendi=true; altArayaSonra=null; renderSubs(n); } };
+    inp.onblur=()=>setTimeout(()=>{
+      if(islendi||!document.contains(inp)) return;
+      const v=inp.value.trim(); if(v) ekle(v);              // yazılan kaybolmasın
+      altArayaSonra=null; renderSubs(n);
+    },120);
+  }
+  // Sürükle-bırak sıralama (fare ve dokunmatik aynı yol: pointer olayları).
+  // Tutulan satır parmağı izler, diğerleri yer açar; bırakınca sıra kaydedilir.
+  w.querySelectorAll("[data-subtut]").forEach(h=>{
+    h.onpointerdown=e=>{
+      if(e.button>0) return;
+      e.preventDefault();
+      const satir=h.closest(".sub"), liste=[...w.querySelectorAll(".sub")], bas=liste.indexOf(satir);
+      if(bas<0||liste.length<2) return;
+      const ortalar=liste.map(r=>{ const b=r.getBoundingClientRect(); return b.top+b.height/2; });
+      const adim=satir.getBoundingClientRect().height;
+      const digerleri=liste.filter(r=>r!==satir), y0=e.clientY;
+      let hedef=bas;
+      try{ h.setPointerCapture(e.pointerId); }catch(er){}
+      satir.classList.add("surukleniyor"); w.classList.add("siralaniyor");
+      const hareket=ev=>{
+        satir.style.transform=`translateY(${ev.clientY-y0}px)`;
+        hedef=ortalar.filter((m,i)=>i!==bas&&m<ev.clientY).length;
+        digerleri.forEach((r,j)=>{
+          r.style.transform=(j>=hedef&&j<bas)?`translateY(${adim}px)`:(j<hedef&&j>=bas)?`translateY(-${adim}px)`:"";
+        });
+      };
+      const bitir=()=>{
+        h.removeEventListener("pointermove",hareket); h.removeEventListener("pointerup",bitir); h.removeEventListener("pointercancel",bitir);
+        liste.forEach(r=>r.style.transform=""); satir.classList.remove("surukleniyor"); w.classList.remove("siralaniyor");
+        if(hedef!==bas){
+          const [m]=n.subs.splice(bas,1); n.subs.splice(hedef,0,m);
+          // Her taşıma ayrı kayıt: birleştirilirse ilk konum bilgisi kaybolurdu
+          noteLog(n,"↕ Alt madde taşındı: “"+m.text+"” ("+(bas+1)+". → "+(hedef+1)+". sıra)");
+          appLog("↕ Alt madde taşındı: “"+kisa(m.text)+"” ("+(bas+1)+". → "+(hedef+1)+". sıra) — "+titleOf(n),n.id);
+          save(); kartMetaYenile(n);
+        }
+        renderSubs(n);
+      };
+      h.addEventListener("pointermove",hareket); h.addEventListener("pointerup",bitir); h.addEventListener("pointercancel",bitir);
+    };
   });
   // Metne dokununca yerinde düzenleme: Enter/odak kaybı kaydeder, Esc vazgeçer.
   // Eski ve yeni metin geçmişe yazılır — hiçbir şey iz bırakmadan değişmez.
@@ -3935,7 +4038,7 @@ function sutunSatir(n,sira){
   return `<div class="srow ${acik?"acik":""} ${secili?"secili":""} ${secimModu?"modlu":""}" draggable="true" data-srow="${n.id}" data-sira="${sira}" title="${esc(tamBaslik(n))}">
     ${secimModu?`<span class="skutu">${secili?"✓":""}</span>`:""}
     <span class="snokta" style="background:${tri?({r:"var(--red)",y:"var(--amber)",g:"var(--green)"})[n.triage]:"transparent"}"></span>
-    <span class="sad">${esc(tamBaslik(n))}</span>
+    <span class="sad">${n.pin?"📌 ":""}${esc(tamBaslik(n))}</span>
     ${n.subs.length?`<span class="sme">☑ ${n.subs.filter(x=>x.done).length}/${n.subs.length}</span>`:""}
     ${dl?`<span class="sme ${dl.cls}">⏰</span>`:""}
     ${n.files.length?`<span class="sme">📎</span>`:""}
