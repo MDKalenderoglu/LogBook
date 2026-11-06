@@ -4,6 +4,22 @@ All notable changes to LogBook are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] — 2026-11-06
+
+### Added
+
+- **Organise a note's attachments inside the note.** Everything stays within the note it belongs to and travels with sync
+  - **Groups.** *＋ Grup* opens a named group (e.g. “Makaleler”, “Tetkikler”, “Görseller”) inside the note. Attachments not in any group sit under *Grupsuz*. Groups collapse and expand, can be renamed and reordered (⋯ menu). Deleting a group never deletes attachments: they simply become ungrouped
+  - **Drag to organise.** Every attachment has a ⠿ handle (replaces the ↑ ↓ buttons). Drag it to reorder, or onto another group to move it there; while dragging, previews shrink to compact rows and a blue line shows where it will land. Works with mouse and finger, scrolls near the edges, Esc cancels. A 📁 button moves an attachment to a group without dragging
+  - **Rename.** ✎ renames an attachment (the stored file is untouched)
+  - **Tags.** 🏷 adds or removes tags (#makale, #tetkik, …); tags are shown under the attachment and a tag chip filters the note's attachments
+  - **Notes on attachments.** 📝 opens a short free-text note under any attachment
+  - Attachment names, tags and notes are included in search. Every one of these changes is written to the note's history and the activity log
+
+### Security
+
+- The backup/sync validation layer also normalises the new fields (group ids, tag lists, attachment notes, group names), so a crafted file cannot inject markup through them
+
 ## [1.7.0] — 2026-11-03
 
 ### Added

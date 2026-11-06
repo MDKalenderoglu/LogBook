@@ -42,7 +42,7 @@ Every edit keeps its predecessor. You can change your mind freely without losing
 - **Full edit history** — nothing is deleted or overwritten; every version persists with its date
 - **Turkish dictation** — speech-to-text via the Web Speech API
 - **Voice notes** — recorded inline with a waveform player
-- **Attachments of any type** — drag, drop, or paste; images and PDFs open in-app; reorder or remove them (removals are logged too)
+- **Attachments of any type** — drag, drop, or paste; images and PDFs open in-app; remove them (removals are logged too). Organise them inside the note: groups, drag-to-reorder, rename, tags and a short note per attachment
 - **Nested categories** — arbitrarily deep; a parent category also surfaces its children's notes
 - **Deadline countdown** — live "3 hours left" counter that turns amber, then red
 - **Sub-tasks** — a checkable mini-list inside any note, with progress; visible and tickable on the collapsed card, editable, deletable, reorderable by drag, and insertable at any position — every change logged

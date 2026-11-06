@@ -42,7 +42,7 @@ Her düzenlemenin öncesi saklanır. Fikir değiştirmek serbest — kaybettiği
 - **Düzenleme tarihçesi** — silmek yok, üzerine yazmak yok; her sürüm tarihiyle durur
 - **Türkçe dikte** — konuş, metne dönüşsün (Web Speech API)
 - **Ses kaydı** — dalga formlu oynatıcıyla notun içinde
-- **Her tür dosya eki** — sürükle-bırak veya yapıştır; görsel ve PDF'ler uygulama içinde açılır; ekleri sırala, kaldır (kaldırma bile günlüğe işlenir)
+- **Her tür dosya eki** — sürükle-bırak veya yapıştır; görsel ve PDF'ler uygulama içinde açılır; ekleri kaldır (kaldırma bile günlüğe işlenir); notun içinde düzenle: gruplar, sürükleyerek sıralama, yeniden adlandırma, etiket ve her eke kısa not
 - **İç içe kategoriler** — istediğin kadar derin; üst kategori alt notları da gösterir
 - **Deadline geri sayımı** — "3 saat kaldı" canlı sayaç; yaklaşınca sarı, geçince kırmızı
 - **Alt maddeler** — not içinde tikli mini görev listesi, ilerleme göstergeli; kapalı kartta görünür ve işaretlenir, düzenlenir, silinir, sürükleyerek sıralanır, istenen sıraya araya eklenir — her değişiklik günlüğe işlenir

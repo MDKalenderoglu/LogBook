@@ -8,7 +8,7 @@
      Uygulama kodu her değiştiğinde özeti güncelle:  python3 tools/csp-hash.py index.html LogBook.html
      (GitHub Pages sunucu başlığı eklemeye izin vermediği için meta etiket kullanılıyor; frame-ancestors
      gibi yalnız başlıkla çalışan yönergeler bu yüzden burada yok.) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-EKQZxD4XU3V4teAy4W2tMrhLv9JmvD++4X4iI4Pi+Pk=' https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com/ajax/libs/pdf.js/; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' data: blob: https://www.googleapis.com https://oauth2.googleapis.com https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; worker-src 'self' blob: https://cdnjs.cloudflare.com/ajax/libs/pdf.js/; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-tZ45YbGPQxLBsVFXWaxnIhyMKr1WJYhxnWmju6N5/j4=' https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com/ajax/libs/pdf.js/; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' data: blob: https://www.googleapis.com https://oauth2.googleapis.com https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; worker-src 'self' blob: https://cdnjs.cloudflare.com/ajax/libs/pdf.js/; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="LogBook">
@@ -407,6 +407,30 @@ mark{background:var(--amber-soft);color:var(--text);padding:0 2px;border-radius:
 .fctl .fdel:hover{border-color:var(--red);color:var(--red)}
 .fimg img{max-width:100%;max-height:360px;border-radius:10px;border:1px solid var(--border);cursor:zoom-in;display:block}
 .fmeta{font-size:11.5px;color:var(--text2);margin-top:4px}
+/* ek düzeni: grup başlığı, etiket, not, sürükleme */
+.files{position:relative}
+.fgrip{cursor:grab;touch-action:none;padding:5px 8px;color:var(--text2);user-select:none;-webkit-user-select:none;font-size:14px;line-height:1}
+.fgrip:active{cursor:grabbing}
+.fbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.etk{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent;cursor:pointer}
+.etk.on{border-color:var(--accent)}
+.etk b{font-weight:700;opacity:.6;cursor:pointer}
+.etk b:hover{opacity:1}
+.fextra{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
+.fnot{width:100%;margin-top:6px;border:1px solid var(--border);border-radius:9px;background:var(--surface2);color:var(--text);font:inherit;font-size:13px;padding:7px 10px;resize:vertical;min-height:38px;outline:none}
+.fnot:focus{border-color:var(--accent)}
+.fghead{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--border);font-weight:700;font-size:13.5px;margin-top:6px}
+.fghead span{cursor:pointer}
+.fghead small{color:var(--text2);font-weight:400}
+.fghead .fgtog{color:var(--text2);padding:2px 6px}
+.fghead .fchip{margin-left:auto;padding:3px 9px}
+.fgbos{font-size:12px;color:var(--text2);padding:0 6px}
+.fbox.grupta{padding-left:10px;border-left:2px solid var(--border)}
+.surukleniyor{user-select:none;-webkit-user-select:none}
+.surukleniyor .fimg,.surukleniyor .fpdf,.surukleniyor audio,.surukleniyor video,.surukleniyor .fextra,.surukleniyor .fnot,.surukleniyor .fgbos{display:none!important}
+.surukleniyor .fctl{display:none}
+.fbox.tutuldu{position:relative;z-index:20;box-shadow:var(--shadow);background:var(--surface);border-radius:10px;pointer-events:none}
+.fdrop{position:absolute;left:0;right:0;height:3px;border-radius:2px;background:var(--accent);pointer-events:none;z-index:21}
 .fpdf{display:none;margin-top:8px}
 .fpdf iframe{width:100%;height:520px;border:1px solid var(--border);border-radius:10px;background:#fff}
 /* PDF üzerine kalemle çizim */
@@ -898,7 +922,7 @@ body.suruklu .sk1{background:color-mix(in srgb,var(--accent-soft) 35%,var(--surf
    IndexedDB, senkron ve service worker kapalı — kullanıcının gerçek verisine dokunulmaz. */
 const TEST_MODU=/[?&]guvenlik-testi\b/.test(location.search);
 const LS_KEY=TEST_MODU?"nbmd_guvenlik_testi":"nbmd_v1";
-const SURUM="1.7.0";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
+const SURUM="1.8.0";                       // hangi yapının çalıştığını Senkron penceresinden görebilmek için
 const CAT_COLORS=["#5B5BD6","#3E8E5A","#B57E1E","#C4442E","#2E7DB5","#8E5BAB","#5A8E7A","#B5573E"];
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
@@ -957,7 +981,12 @@ function veriDogrula(d){
     if(n.mentor!==undefined) n.mentor=!!n.mentor;
     if(n.pin!==undefined){ if(n.pin) n.pin=true; else delete n.pin; }
     n.files=dizi(n.files).map(f=>{ if(!kimlik(f.id)) f.id=uid(); f.name=yazi(f.name);
-      if(!mime(f.type)) f.type=""; f.size=sayi(f.size,0); f.t=sayi(f.t,0); return f; });
+      if(!mime(f.type)) f.type=""; f.size=sayi(f.size,0); f.t=sayi(f.t,0);
+      if(f.g!=null&&!kimlik(f.g)) delete f.g;
+      if(f.etiket!==undefined) f.etiket=(Array.isArray(f.etiket)?f.etiket:[]).filter(t=>typeof t==="string"&&t.trim()).map(t=>t.slice(0,30)).slice(0,12);
+      if(f.not!==undefined) f.not=yazi(f.not);
+      return f; });
+    if(n.fgroups!==undefined) n.fgroups=dizi(n.fgroups).map(g=>{ if(!kimlik(g.id)) g.id=uid(); g.ad=yazi(g.ad); return g; });
     n.audios=dizi(n.audios).map(a=>{ if(!kimlik(a.id)) a.id=uid(); if(a.mime!==undefined&&!mime(a.mime)) a.mime="";
       a.dur=sayi(a.dur,0); a.t=sayi(a.t,0); return a; });
     n.subs=dizi(n.subs).map(x=>{ if(!kimlik(x.id)) x.id=uid(); x.text=yazi(x.text); x.done=!!x.done; return x; });
@@ -1210,7 +1239,7 @@ const titleOf=n=>(n.title||htmlToText(n.content)||"Başlıksız not").slice(0,40
 // Arama eşleşmesi — hem ana liste hem sağ panel aynı ölçütü kullanır
 function matchQ(n){
   if(!searchQ) return true;
-  return (n.title+" "+htmlToText(n.content)+" "+n.subs.map(s=>s.text).join(" ")+" "+n.files.map(f=>f.name).join(" "))
+  return (n.title+" "+htmlToText(n.content)+" "+n.subs.map(s=>s.text).join(" ")+" "+n.files.map(f=>f.name+" "+(f.etiket||[]).join(" ")+" "+(f.not||"")).join(" "))
     .toLowerCase().includes(searchQ.toLowerCase());
 }
 function visibleNotes(){
@@ -2327,28 +2356,306 @@ async function downloadFile(f){
   if(!url){ alert("Dosya bulunamadı."); return; }
   const a=document.createElement("a"); a.href=url; a.download=f.name; a.click();
 }
+/* ---------- ek düzeni: gruplar, etiket, ad, not, sürükleyerek sıralama ---------- */
+/* Hepsi yalnızca notun kendi içindedir. Grup/etiket/not, ekin kendi alanlarında (f.g, f.etiket, f.not)
+   ve notun n.fgroups listesinde durur; not bir bütün olarak eşitlendiği için başka cihaza da geçer.
+   Grup silinince ekler SİLİNMEZ, "Grupsuz" kalır. */
+const ekKapali=new Set(), ekNotAcik=new Set(), ekNotLog=new Set();
+let ekFiltre=null;
+const ekGrupId=(n,f)=>(f.g&&(n.fgroups||[]).some(g=>g.id===f.g))?f.g:"";
+const ekGrupAd=(n,gid)=>gid?((n.fgroups||[]).find(g=>g.id===gid)||{ad:"Grupsuz"}).ad:"Grupsuz";
+const ekEtiketKey=t=>String(t).toLocaleLowerCase("tr");
+const ekEtiketTemizle=v=>String(v||"").replace(/^#+/,"").trim().slice(0,30);
+function ekEtiketler(n){
+  const m=new Map();
+  for(const f of n.files) for(const t of (f.etiket||[])){ const k=ekEtiketKey(t); if(!m.has(k)) m.set(k,t); }
+  return [...m.values()];
+}
+function ekKaydet(n){ n.updatedAt=Date.now(); kartOnbellekTemizle(); save(); }
+function ekSirali(n){
+  const gr=n.fgroups||[];
+  if(ekFiltre&&ekFiltre.nid===n.id){
+    const k=ekEtiketKey(ekFiltre.etk);
+    return n.files.filter(f=>(f.etiket||[]).some(t=>ekEtiketKey(t)===k)).map(f=>({f}));
+  }
+  if(!gr.length) return n.files.map(f=>({f}));
+  const out=[];
+  const gec=(g)=>{
+    const fl=n.files.filter(f=>ekGrupId(n,f)===g.id);
+    out.push({g,say:fl.length});
+    if(!ekKapali.has(n.id+":"+g.id)) fl.forEach(f=>out.push({f}));
+  };
+  gec({id:"",ad:"Grupsuz"}); gr.forEach(gec);
+  return out;
+}
+function ekAraclar(n,w){
+  w.querySelector(":scope > .fbar")?.remove();
+  const gr=n.fgroups||[];
+  if(!n.files.length&&!gr.length) return;
+  const ets=ekEtiketler(n), aktif=ekFiltre&&ekFiltre.nid===n.id?ekEtiketKey(ekFiltre.etk):null;
+  const b=document.createElement("div"); b.className="fbar";
+  b.innerHTML=`<button class="fchip fgyeni" title="Bu nota ek grubu (klasör) aç">＋ Grup</button>`+
+    ets.map(t=>`<span class="etk ${aktif===ekEtiketKey(t)?"on":""}" data-etk="${esc(t)}" title="Bu etikete göre süz">#${esc(t)}</span>`).join("")+
+    (aktif?`<button class="fchip" data-etktemizle>✕ Süzmeyi kaldır</button>`:"");
+  w.prepend(b);
+  b.querySelector(".fgyeni").onclick=e=>{ e.stopPropagation(); ekGrupYeniPop(n,e.currentTarget); };
+  b.querySelectorAll("[data-etk]").forEach(el=>el.onclick=()=>{
+    const ayni=aktif===ekEtiketKey(el.dataset.etk);
+    ekFiltre=ayni?null:{nid:n.id,etk:el.dataset.etk}; renderFiles(n);
+  });
+  b.querySelector("[data-etktemizle]")?.addEventListener("click",()=>{ ekFiltre=null; renderFiles(n); });
+}
+function ekBaslik(n,w,o){
+  const g=o.g, anahtar=n.id+":"+g.id, kap=ekKapali.has(anahtar);
+  const d=document.createElement("div"); d.className="fghead"; d.dataset.g=g.id;
+  d.innerHTML=`<button class="fgtog" title="Aç / kapat">${kap?"▸":"▾"}</button><span>${g.id?"📁":"📎"} ${esc(g.ad)} <small>(${o.say})</small></span>`+
+    (g.id?`<button class="fchip fgduz" title="Grubu düzenle">⋯</button>`:"");
+  w.appendChild(d);
+  const ac=()=>{ if(ekKapali.has(anahtar)) ekKapali.delete(anahtar); else ekKapali.add(anahtar); renderFiles(n); };
+  d.querySelector(".fgtog").onclick=ac; d.querySelector("span").onclick=ac;
+  d.querySelector(".fgduz")?.addEventListener("click",e=>{ e.stopPropagation(); ekGrupPop(n,g.id,e.currentTarget); });
+  if(g.id&&!o.say&&!kap){ const bos=document.createElement("div"); bos.className="fgbos"; bos.textContent="Boş — ekleri buraya sürükle ya da 📁 ile taşı"; w.appendChild(bos); }
+}
+function ekGrupYeniPop(n,anchor){
+  pop.innerHTML=`<div class="popbaslik">Yeni grup</div><input class="rename" id="egad" placeholder="Grup adı, Enter'a bas" autocomplete="off">`;
+  popKonumla(anchor);
+  const gi=$("#egad"); gi.focus();
+  gi.onkeydown=e=>{
+    if(e.key==="Enter"&&gi.value.trim()){
+      const ad=gi.value.trim().slice(0,60);
+      (n.fgroups=n.fgroups||[]).push({id:uid(),ad});
+      noteLog(n,"📁 Ek grubu açıldı: "+ad); appLog("📁 Ek grubu açıldı: “"+titleOf(n)+"” ← "+ad,n.id);
+      ekKaydet(n); pop.style.display="none"; renderFiles(n);
+    }else if(e.key==="Escape") pop.style.display="none";
+  };
+}
+function ekGrupPop(n,gid,anchor){
+  const gr=n.fgroups||[], i=gr.findIndex(g=>g.id===gid); if(i<0) return;
+  const g=gr[i], say=n.files.filter(f=>ekGrupId(n,f)===gid).length;
+  pop.innerHTML=`<input class="rename" id="egad" value="${esc(g.ad)}" placeholder="Grup adı">`+
+    `<button data-act="yukari" ${i===0?"disabled":""}>↑ Yukarı taşı</button><button data-act="asagi" ${i===gr.length-1?"disabled":""}>↓ Aşağı taşı</button>`+
+    `<div class="sep"></div><button data-act="sil" style="color:var(--red)">🗑 Grubu sil</button>`;
+  popKonumla(anchor);
+  const ri=$("#egad"); ri.focus(); ri.select();
+  ri.onkeydown=e=>{
+    if(e.key==="Enter"&&ri.value.trim()&&ri.value.trim()!==g.ad){
+      const eski=g.ad; g.ad=ri.value.trim().slice(0,60);
+      noteLog(n,"✎ Ek grubu: "+eski+" → "+g.ad); appLog("✎ Ek grubu: “"+titleOf(n)+"” "+eski+" → "+g.ad,n.id);
+      ekKaydet(n); pop.style.display="none"; renderFiles(n);
+    }else if(e.key==="Enter"||e.key==="Escape") pop.style.display="none";
+  };
+  pop.querySelectorAll("[data-act=yukari],[data-act=asagi]").forEach(b=>b.onclick=()=>{
+    const j=i+(b.dataset.act==="yukari"?-1:1); if(j<0||j>=gr.length) return;
+    gr.splice(i,1); gr.splice(j,0,g);
+    logBoth(n,"↕ Ek grubu sırası","↕ Ek grubu sırası: "+g.ad+" → "+(j+1)+"/"+gr.length);
+    ekKaydet(n); pop.style.display="none"; renderFiles(n);
+  });
+  pop.querySelector("[data-act=sil]").onclick=()=>{
+    if(!confirm("“"+g.ad+"” grubu silinsin mi?\n\n"+(say?say+" ek Grupsuz kalacak; ekler SİLİNMEZ.":"Grup boş."))) return;
+    n.files.forEach(f=>{ if(f.g===gid) delete f.g; });
+    gr.splice(i,1);
+    noteLog(n,"🗑 Ek grubu silindi: "+g.ad+(say?" ("+say+" ek grupsuz kaldı)":"")); appLog("🗑 Ek grubu silindi: “"+titleOf(n)+"” ← "+g.ad,n.id);
+    ekKaydet(n); pop.style.display="none"; render();
+  };
+}
+function ekAdPop(n,f,anchor){
+  pop.innerHTML=`<div class="popbaslik">Ek adı</div><input class="rename" id="eadi" value="${esc(f.name)}" autocomplete="off">`;
+  popKonumla(anchor);
+  const ri=$("#eadi"); ri.focus();
+  const nokta=f.name.lastIndexOf("."); ri.setSelectionRange(0,nokta>0?nokta:f.name.length);
+  ri.onkeydown=e=>{
+    if(e.key==="Enter"&&ri.value.trim()&&ri.value.trim()!==f.name){
+      const eski=f.name; f.name=ri.value.trim().slice(0,200);
+      noteLog(n,"✎ Ek adı: "+eski+" → "+f.name); appLog("✎ Ek adı: “"+titleOf(n)+"” "+eski+" → "+f.name,n.id);
+      ekKaydet(n); pop.style.display="none"; renderFiles(n);
+    }else if(e.key==="Enter"||e.key==="Escape") pop.style.display="none";
+  };
+}
+/* Etiket / not satırları: yalnız o ekin kutusu tazelenir (açık PDF/görsel kapanmasın) */
+function ekEkYenile(n,f,box){
+  box.querySelector(":scope > .fextra")?.remove();
+  const frow=box.querySelector(".frow"); if(!frow) return;
+  const tg=f.etiket||[];
+  if(tg.length){
+    const ex=document.createElement("div"); ex.className="fextra";
+    ex.innerHTML=tg.map(t=>`<span class="etk" data-t="${esc(t)}">#${esc(t)} <b title="Etiketi kaldır">✕</b></span>`).join("");
+    frow.after(ex);
+    ex.querySelectorAll(".etk").forEach(el=>{
+      el.querySelector("b").onclick=e=>{ e.stopPropagation(); ekEtiketKaldir(n,f,box,el.dataset.t); };
+      el.onclick=()=>{ ekFiltre={nid:n.id,etk:el.dataset.t}; renderFiles(n); };
+    });
+  }
+}
+function ekEtiketEkle(n,f,box,ham){
+  const t=ekEtiketTemizle(ham); if(!t) return false;
+  f.etiket=f.etiket||[];
+  if(f.etiket.some(x=>ekEtiketKey(x)===ekEtiketKey(t))||f.etiket.length>=12) return false;
+  f.etiket.push(t);
+  noteLog(n,"🏷 Ek etiketi: "+f.name+" ← #"+t); appLog("🏷 Ek etiketi: “"+titleOf(n)+"” ← "+f.name+" #"+t,n.id);
+  ekKaydet(n); ekEkYenile(n,f,box); ekAraclar(n,$("#ed-files")); return true;
+}
+function ekEtiketKaldir(n,f,box,t){
+  f.etiket=(f.etiket||[]).filter(x=>ekEtiketKey(x)!==ekEtiketKey(t)); if(!f.etiket.length) delete f.etiket;
+  noteLog(n,"🏷 Ek etiketi kaldırıldı: "+f.name+" ✕ #"+t); appLog("🏷 Ek etiketi kaldırıldı: “"+titleOf(n)+"” ← "+f.name+" #"+t,n.id);
+  ekKaydet(n);
+  if(ekFiltre&&ekFiltre.nid===n.id&&ekEtiketKey(ekFiltre.etk)===ekEtiketKey(t)&&!ekEtiketler(n).some(x=>ekEtiketKey(x)===ekEtiketKey(t))) ekFiltre=null;
+  if(ekFiltre) renderFiles(n); else { ekEkYenile(n,f,box); ekAraclar(n,$("#ed-files")); }
+}
+function ekEtiketPop(n,f,box,anchor){
+  const var_=ekEtiketler(n), mevcut=new Set((f.etiket||[]).map(ekEtiketKey));
+  pop.innerHTML=`<div class="popbaslik">Etiket</div>`+
+    var_.map(t=>`<button data-tk="${esc(t)}" class="${mevcut.has(ekEtiketKey(t))?"secili":""}">${mevcut.has(ekEtiketKey(t))?"✓ ":""}#${esc(t)}</button>`).join("")+
+    (var_.length?`<div class="sep"></div>`:"")+
+    `<input class="rename" id="eyet" placeholder="＋ Yeni etiket, Enter" autocomplete="off">`;
+  popKonumla(anchor);
+  pop.querySelectorAll("[data-tk]").forEach(b=>b.onclick=()=>{
+    pop.style.display="none";
+    if(mevcut.has(ekEtiketKey(b.dataset.tk))) ekEtiketKaldir(n,f,box,b.dataset.tk); else ekEtiketEkle(n,f,box,b.dataset.tk);
+  });
+  const yi=$("#eyet"); yi.focus();
+  yi.onkeydown=e=>{
+    if(e.key==="Enter"){ ekEtiketEkle(n,f,box,yi.value); pop.style.display="none"; }
+    else if(e.key==="Escape") pop.style.display="none";
+  };
+}
+function ekNotAc(n,f,box,odak){
+  let ta=box.querySelector(":scope > .fnot");
+  if(!ta){
+    ta=document.createElement("textarea"); ta.className="fnot"; ta.rows=2; ta.placeholder="Bu ek hakkında not…"; ta.value=f.not||"";
+    const sonra=box.querySelector(":scope > .fextra")||box.querySelector(".frow");
+    sonra.after(ta);
+    let zaman=0;
+    const yaz=()=>{
+      clearTimeout(zaman);
+      f.not=ta.value; if(!f.not) delete f.not;
+      if(!ekNotLog.has(f.id)){ ekNotLog.add(f.id);
+        noteLog(n,"📝 Ek notu: "+f.name); appLog("📝 Ek notu: “"+titleOf(n)+"” ← "+f.name,n.id); }
+      ekKaydet(n);
+    };
+    ta.oninput=()=>{ clearTimeout(zaman); zaman=setTimeout(yaz,700); };
+    ta.onblur=()=>{ if(zaman) yaz(); };
+  }
+  ekNotAcik.add(f.id);
+  if(odak) ta.focus();
+}
+function ekGrupSecPop(n,f,anchor){
+  const mevcut=ekGrupId(n,f);
+  pop.innerHTML=`<div class="popbaslik">Gruba taşı</div>`+
+    (n.fgroups||[]).map(g=>`<button data-gp="${g.id}" class="${mevcut===g.id?"secili":""}">${mevcut===g.id?"✓ ":""}📁 ${esc(g.ad)}</button>`).join("")+
+    `<button data-gp="" class="${mevcut===""?"secili":""}">${mevcut===""?"✓ ":""}— Grupsuz</button>`;
+  popKonumla(anchor);
+  pop.querySelectorAll("[data-gp]").forEach(b=>b.onclick=()=>{
+    pop.style.display="none";
+    if(ekTasi(n,f,b.dataset.gp,null)) render();
+  });
+}
+/* Eki (gid) grubuna taşır; sonrakiFid verilirse o ekin hemen önüne, yoksa grubun sonuna koyar. */
+function ekTasi(n,f,gid,sonrakiFid){
+  const eskiSira=n.files.map(x=>x.id).join(), eskiG=ekGrupId(n,f);
+  n.files.splice(n.files.indexOf(f),1);
+  let i=sonrakiFid?n.files.findIndex(x=>x.id===sonrakiFid):-1;
+  if(i<0){ let son=-1; n.files.forEach((x,k)=>{ if(ekGrupId(n,x)===gid) son=k; }); i=son<0?n.files.length:son+1; }
+  n.files.splice(i,0,f);
+  if(gid) f.g=gid; else delete f.g;
+  if(eskiG===gid&&n.files.map(x=>x.id).join()===eskiSira) return false;
+  if(eskiG!==gid){
+    noteLog(n,"📁 Ek taşındı: "+f.name+" → "+ekGrupAd(n,gid));
+    appLog("📁 Ek taşındı: “"+titleOf(n)+"” ← "+f.name+" → "+ekGrupAd(n,gid),n.id);
+  }else{
+    const sira=n.files.filter(x=>ekGrupId(n,x)===gid), k=sira.indexOf(f)+1;
+    logBoth(n,"↕ Ek sırası","↕ Ek sırası: "+f.name+" → "+k+"/"+sira.length);
+  }
+  ekKaydet(n); return true;
+}
+/* Sürükleyerek taşıma: tutamaçtan tutulur; sürüklerken ekler küçük satıra iner, mavi çizgi bırakılacak yeri gösterir. */
+function ekSurukle(n,f,box,ev){
+  const w=$("#ed-files"); if(!w) return;
+  ev.preventDefault();
+  const tut=ev.currentTarget; try{ tut.setPointerCapture(ev.pointerId); }catch(e){}
+  w.classList.add("surukleniyor"); box.classList.add("tutuldu");
+  const cizgi=document.createElement("div"); cizgi.className="fdrop"; w.appendChild(cizgi);
+  let y=ev.clientY, hedef=null, bitti=false, raf=0;
+  let kaydirici=w.parentElement; while(kaydirici&&kaydirici!==document.body){
+    const o=getComputedStyle(kaydirici).overflowY;
+    if((o==="auto"||o==="scroll")&&kaydirici.scrollHeight>kaydirici.clientHeight) break;
+    kaydirici=kaydirici.parentElement;
+  }
+  const kayan=(!kaydirici||kaydirici===document.body)?(document.scrollingElement||document.documentElement):kaydirici;
+  const cozumle=()=>{
+    const r0=box.style.transform; box.style.transform="";
+    const m=box.getBoundingClientRect(); box.style.transform=r0;
+    box.style.transform="translateY("+(y-(m.top+m.height/2))+"px)";
+    const oge=[...w.querySelectorAll(".fghead,.fbox")].filter(e=>e!==box);
+    let idx=oge.findIndex(e=>{ const r=e.getBoundingClientRect(); return y<r.top+r.height/2; });
+    if(idx<0) idx=oge.length;
+    const onceki=oge[idx-1], sonraki=oge[idx], wr=w.getBoundingClientRect();
+    const g=onceki?onceki.dataset.g:"";
+    const sonDosya=oge.slice(idx).find(e=>e.classList.contains("fbox")&&e.dataset.g===g);
+    hedef={g,sonrakiFid:sonDosya?sonDosya.dataset.fid:null};
+    const cy=sonraki?sonraki.getBoundingClientRect().top-4:(onceki?onceki.getBoundingClientRect().bottom+4:wr.top);
+    cizgi.style.top=(cy-wr.top)+"px";
+  };
+  const dongu=()=>{
+    if(bitti) return;
+    const h=innerHeight, hiz=y<70?-14:(y>h-70?14:0);
+    if(hiz) kayan.scrollTop+=hiz;
+    cozumle(); raf=requestAnimationFrame(dongu);
+  };
+  const temizle=()=>{
+    bitti=true; cancelAnimationFrame(raf);
+    tut.removeEventListener("pointermove",hareket); tut.removeEventListener("pointerup",birak);
+    tut.removeEventListener("pointercancel",iptal); document.removeEventListener("keydown",tus);
+    w.classList.remove("surukleniyor"); box.classList.remove("tutuldu"); box.style.transform=""; cizgi.remove();
+  };
+  const hareket=e=>{ y=e.clientY; };
+  const birak=()=>{
+    cozumle(); const h=hedef; temizle();
+    if(h&&ekTasi(n,f,h.g,h.sonrakiFid)) render(); else renderFiles(n);
+  };
+  const iptal=()=>{ temizle(); };
+  const tus=e=>{ if(e.key==="Escape") iptal(); };
+  tut.addEventListener("pointermove",hareket); tut.addEventListener("pointerup",birak);
+  tut.addEventListener("pointercancel",iptal); document.addEventListener("keydown",tus);
+  dongu();
+}
+/* Her ekin kutusuna: sürükleme tutamacı, etiket satırı, varsa not */
+function ekEk(n,f,box){
+  const frow=box.querySelector(".frow");
+  const sureklenebilir=!(ekFiltre&&ekFiltre.nid===n.id)&&(n.files.length>1||(n.fgroups||[]).length>0);
+  if(frow&&sureklenebilir){
+    const tut=document.createElement("button"); tut.className="fchip fgrip"; tut.title="Tut ve sürükle: sırayı / grubu değiştirir"; tut.textContent="⠿";
+    tut.onpointerdown=e=>{ if(e.pointerType==="mouse"&&e.button!==0) return; ekSurukle(n,f,box,e); };
+    frow.insertBefore(tut,frow.firstChild);
+  }
+  ekEkYenile(n,f,box);
+  if(f.not||ekNotAcik.has(f.id)) ekNotAc(n,f,box,false);
+}
 function renderFiles(n){
   const w=$("#ed-files"); if(!w)return;
   w.innerHTML="";
-  for(const f of n.files){
+  if(ekFiltre&&ekFiltre.nid===n.id&&!ekEtiketler(n).some(t=>ekEtiketKey(t)===ekEtiketKey(ekFiltre.etk))) ekFiltre=null;
+  ekAraclar(n,w);
+  const grupluMu=!(ekFiltre&&ekFiltre.nid===n.id)&&(n.fgroups||[]).length>0;
+  for(const oge of ekSirali(n)){
+    if(oge.g){ ekBaslik(n,w,oge); continue; }
+    const f=oge.f;
     const t=f.type||"", nm=(f.name||"").toLowerCase();
     const isImg=t.startsWith("image/"), isPdf=t==="application/pdf"||nm.endsWith(".pdf");
     const isAud=t.startsWith("audio/"), isVid=t.startsWith("video/");
-    const box=document.createElement("div"); box.className="fbox";
+    const box=document.createElement("div"); box.className="fbox"+(grupluMu&&ekGrupId(n,f)?" grupta":"");
+    box.dataset.fid=f.id; box.dataset.g=ekGrupId(n,f);
     w.appendChild(box);
-    const idx=n.files.indexOf(f);
     const ctl=`<span class="fctl">
-        <button class="fchip fmv" data-mv="-1" title="Yukarı taşı" ${idx===0?"disabled":""}>↑</button>
-        <button class="fchip fmv" data-mv="1" title="Aşağı taşı" ${idx===n.files.length-1?"disabled":""}>↓</button>
+        <button class="fchip fed" title="Adını değiştir">✎</button>
+        <button class="fchip fet" title="Etiket ekle / çıkar">🏷</button>
+        <button class="fchip fno" title="Bu eke not yaz">📝</button>
+        ${(n.fgroups||[]).length?`<button class="fchip fgr" title="Gruba taşı">📁</button>`:""}
         <button class="fchip fdel" title="Ekten kaldır">🗑</button></span>`;
     const bindCtl=()=>{
-      box.querySelectorAll(".fmv").forEach(b=>b.onclick=()=>{
-        const i=n.files.indexOf(f), j=i+Number(b.dataset.mv);
-        if(i<0||j<0||j>=n.files.length)return;
-        n.files.splice(i,1); n.files.splice(j,0,f);
-        logBoth(n,"🔀 Ek sırası","🔀 Ek sırası: "+f.name+" → "+(j+1)+"/"+n.files.length);
-        save(); render();
-      });
+      box.querySelector(".fed").onclick=e=>{ e.stopPropagation(); ekAdPop(n,f,e.currentTarget); };
+      box.querySelector(".fet").onclick=e=>{ e.stopPropagation(); ekEtiketPop(n,f,box,e.currentTarget); };
+      box.querySelector(".fno").onclick=()=>ekNotAc(n,f,box,true);
+      const gb=box.querySelector(".fgr"); if(gb) gb.onclick=e=>{ e.stopPropagation(); ekGrupSecPop(n,f,e.currentTarget); };
       box.querySelector(".fdel").onclick=()=>{
         if(!confirm("“"+f.name+"” bu nottan kaldırılsın mı?\n(İşlem günlüğe kaydedilir.)"))return;
         const i=n.files.indexOf(f); if(i>-1)n.files.splice(i,1);
@@ -2440,6 +2747,7 @@ function renderFiles(n){
       bindCtl();
       box.querySelector(".fopen").onclick=()=>downloadFile(f);
     }
+    ekEk(n,f,box);
   }
 }
 /* ---------- PDF üzerine kalemle çizim (OneNote tarzı) ---------- */
